@@ -15,42 +15,55 @@ export function OptionsView({ model }: OptionsViewProps) {
   const settings = model.settings;
 
   return (
-    <main>
-      <header>
-        <h1>ATTI Options</h1>
-        <p>Configure lightweight extension settings stored on this device.</p>
-      </header>
-      <DebugModeSection
-        debugMode={settings?.debugMode ?? false}
-        disabled={model.isLoading || model.isSaving}
-        onToggle={(debugMode) => {
-          void model.updateDebugMode(debugMode);
-        }}
-      />
-      <ProviderSelectionSection
-        activeProvider={model.providerConfiguration?.normalizedActiveProvider ?? "openai"}
-        disabled={model.isLoading || model.isSaving}
-        openAiApiKey={settings?.openAiApiKey ?? ""}
-        providerStatus={model.providerConfiguration}
-        onOpenAiApiKeyChange={(openAiApiKey) => {
-          void model.updateOpenAiApiKey(openAiApiKey);
-        }}
-        onSelect={(activeProvider) => {
-          void model.updateProvider(activeProvider);
-        }}
-      />
-      {model.providerConfiguration ? (
-        <ProviderStatusNote state={model.providerConfiguration} />
-      ) : null}
-      <ProviderBoundarySection />
-      <DataManagementSection />
-      {settings?.debugMode ? (
-        <DebugViewSection
-          isLoading={model.isDebugViewLoading}
-          snapshot={model.debugSnapshot}
-        />
-      ) : null}
-      {model.statusMessage ? <p role="status">{model.statusMessage}</p> : null}
+    <main className="atti-shell atti-shell--options">
+      <div className="atti-frame">
+        <div className="atti-frame__content">
+          <header className="atti-hero">
+            <span className="atti-hero__eyebrow">中文前台 / AI-first 过渡版</span>
+            <h1 className="atti-hero__title">ATTI 设置</h1>
+            <p className="atti-hero__subtitle">
+              当前阶段先把前台体验和产品路线切到 AI-first，多站点稳定适配仍会分阶段落地。
+            </p>
+          </header>
+          <section className="atti-grid atti-grid--columns-2">
+            <DebugModeSection
+              debugMode={settings?.debugMode ?? false}
+              disabled={model.isLoading || model.isSaving}
+              onToggle={(debugMode) => {
+                void model.updateDebugMode(debugMode);
+              }}
+            />
+            <ProviderSelectionSection
+              activeProvider={model.providerConfiguration?.normalizedActiveProvider ?? "openai"}
+              disabled={model.isLoading || model.isSaving}
+              openAiApiKey={settings?.openAiApiKey ?? ""}
+              providerStatus={model.providerConfiguration}
+              onOpenAiApiKeyChange={(openAiApiKey) => {
+                void model.updateOpenAiApiKey(openAiApiKey);
+              }}
+              onSelect={(activeProvider) => {
+                void model.updateProvider(activeProvider);
+              }}
+            />
+            {model.providerConfiguration ? (
+              <ProviderStatusNote state={model.providerConfiguration} />
+            ) : null}
+            <ProviderBoundarySection />
+            <DataManagementSection />
+            {settings?.debugMode ? (
+              <DebugViewSection
+                isLoading={model.isDebugViewLoading}
+                snapshot={model.debugSnapshot}
+              />
+            ) : null}
+          </section>
+          {model.statusMessage ? (
+            <p className="atti-alert atti-alert--info" role="status">
+              {model.statusMessage}
+            </p>
+          ) : null}
+        </div>
+      </div>
     </main>
   );
 }

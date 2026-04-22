@@ -95,7 +95,7 @@ export function useOptionsShell(
         }
 
         const message =
-          error instanceof Error ? error.message : "Unable to load settings.";
+          error instanceof Error ? error.message : "无法读取设置。";
         setStatusMessage(message);
         setDebugSnapshot(null);
         setIsDebugViewLoading(false);
@@ -124,7 +124,7 @@ export function useOptionsShell(
       setStatusMessage(successMessage);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to save settings.";
+        error instanceof Error ? error.message : "无法保存设置。";
       setStatusMessage(message);
     } finally {
       setIsSaving(false);
@@ -140,7 +140,7 @@ export function useOptionsShell(
     isSaving,
     statusMessage,
     updateDebugMode: async (debugMode) => {
-      await applySettingsPatch({ debugMode }, "Settings saved locally.");
+      await applySettingsPatch({ debugMode }, "设置已保存在本地。");
     },
     updateProvider: async (activeProvider) => {
       const nextProvider = activeProvider === "remote" ? "openai" : activeProvider;
@@ -150,7 +150,7 @@ export function useOptionsShell(
       });
       await applySettingsPatch(
         { activeProvider: nextProvider },
-        nextStatus.actionMessage ?? "Provider preference saved locally."
+        nextStatus.actionMessage ?? "规划引擎偏好已保存在本地。"
       );
     },
     updateOpenAiApiKey: async (openAiApiKey) => {
@@ -158,8 +158,8 @@ export function useOptionsShell(
       await applySettingsPatch(
         { openAiApiKey: trimmedApiKey },
         trimmedApiKey
-          ? "OpenAI API key saved locally."
-          : "OpenAI API key removed from local settings."
+          ? "OpenAI API key 已保存在本地。"
+          : "已从本地设置中移除 OpenAI API key。"
       );
     },
   };

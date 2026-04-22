@@ -51,7 +51,7 @@ function resolveApiKey(explicitApiKey?: string): string {
     throw new ProviderExecutionError({
       providerId: OPENAI_PROVIDER_ID,
       code: "OPENAI_API_KEY_MISSING",
-      message: "OpenAI API key is missing. Add it in ATTI Options before running answer planning.",
+      message: "缺少 OpenAI API key。请先前往 ATTI 设置页保存 API key，再开始 AI 规划。",
       retryable: false
     });
   }
@@ -71,7 +71,7 @@ function resolveFetch(fetchImpl?: FetchLike): FetchLike {
   throw new ProviderExecutionError({
     providerId: OPENAI_PROVIDER_ID,
     code: "OPENAI_FETCH_UNAVAILABLE",
-    message: "Fetch is unavailable for the OpenAI assessment provider.",
+    message: "当前运行环境无法为 OpenAI provider 发起网络请求。",
     retryable: false
   });
 }
@@ -122,7 +122,7 @@ async function createJsonResponse(args: {
     throw new ProviderExecutionError({
       providerId: OPENAI_PROVIDER_ID,
       code: "OPENAI_REQUEST_FAILED",
-      message: "The OpenAI assessment provider request failed before receiving a response.",
+      message: "OpenAI provider 在收到响应前请求失败。",
       retryable: true,
       details: {
         cause: error instanceof Error ? error.message : "unknown"
@@ -137,8 +137,8 @@ async function createJsonResponse(args: {
       providerId: OPENAI_PROVIDER_ID,
       code: isAuthFailure ? "OPENAI_AUTH_FAILED" : "OPENAI_RESPONSE_NOT_OK",
       message: isAuthFailure
-        ? "The saved OpenAI API key was rejected. Check the key in ATTI Options and try again."
-        : "The OpenAI assessment provider returned a non-success HTTP status.",
+        ? "已保存的 OpenAI API key 被拒绝。请检查设置页中的 key 后重试。"
+        : "OpenAI provider 返回了非成功状态码。",
       statusCode: response.status,
       retryable: response.status >= 500,
       details: {
@@ -153,7 +153,7 @@ async function createJsonResponse(args: {
     throw new ProviderExecutionError({
       providerId: OPENAI_PROVIDER_ID,
       code: "OPENAI_OUTPUT_TEXT_MISSING",
-      message: "The OpenAI assessment provider response did not include output_text.",
+      message: "OpenAI provider 的响应中缺少 output_text。",
       retryable: false
     });
   }
@@ -184,7 +184,7 @@ export function createOpenAiAssessmentProvider(
       throw new ProviderExecutionError({
         providerId: OPENAI_PROVIDER_ID,
         code: "OPENAI_PROFILE_SUMMARY_PARSE_FAILED",
-        message: "The OpenAI profile summary response could not be parsed.",
+        message: "OpenAI 返回的画像摘要结果无法解析。",
         retryable: false,
         details: {
           cause: error instanceof Error ? error.message : "unknown"
@@ -209,7 +209,7 @@ export function createOpenAiAssessmentProvider(
       throw new ProviderExecutionError({
         providerId: OPENAI_PROVIDER_ID,
         code: "OPENAI_QUESTION_INTERPRETATION_PARSE_FAILED",
-        message: "The OpenAI question interpretation response could not be parsed.",
+        message: "OpenAI 返回的问题解读结果无法解析。",
         retryable: false,
         details: {
           cause: error instanceof Error ? error.message : "unknown"
@@ -244,7 +244,7 @@ export function createOpenAiAssessmentProvider(
       throw new ProviderExecutionError({
         providerId: OPENAI_PROVIDER_ID,
         code: "OPENAI_ANSWER_PLANNING_PARSE_FAILED",
-        message: "The OpenAI answer planning response could not be parsed.",
+        message: "OpenAI 返回的答题规划结果无法解析。",
         retryable: false,
         details: {
           cause: error instanceof Error ? error.message : "unknown"

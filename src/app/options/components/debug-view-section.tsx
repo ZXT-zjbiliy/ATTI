@@ -8,7 +8,7 @@ function buildSessionHistoryLabel(args: {
   questionCount: number;
   recommendationCount: number;
 }) {
-  return `${args.siteId} / ${args.startedAt} / ${args.status} / ${args.questionCount} questions / ${args.recommendationCount} recommendations`;
+  return `${args.siteId} / ${args.startedAt} / ${args.status} / ${args.questionCount} 题 / ${args.recommendationCount} 条推荐`;
 }
 
 interface DebugViewSectionProps {
@@ -21,22 +21,22 @@ export function DebugViewSection({
   isLoading
 }: DebugViewSectionProps) {
   return (
-    <OptionsSection title="Debug View">
-      {isLoading ? <p>Loading debug snapshot...</p> : null}
+    <OptionsSection title="调试视图">
+      {isLoading ? <p className="atti-status-text">正在加载调试快照...</p> : null}
       {snapshot ? (
-        <div>
-          <p>Runtime: {snapshot.runtimeName}</p>
-          <p>Runtime status: {snapshot.runtimeStatus}</p>
-          <p>Active provider: {snapshot.activeSettings.activeProvider}</p>
-          <p>Debug mode: {String(snapshot.activeSettings.debugMode)}</p>
-          <p>Profile draft present: {String(snapshot.hasActiveProfileDraft)}</p>
-          <p>Active profile id: {snapshot.activeProfileId ?? "none"}</p>
-          <p>Last session summary: {snapshot.lastSessionSummary}</p>
-          <p>Recent session history:</p>
+        <div className="atti-stack atti-stack--tight">
+          <p className="atti-status-text">运行时：{snapshot.runtimeName}</p>
+          <p className="atti-status-text">运行状态：{snapshot.runtimeStatus}</p>
+          <p className="atti-status-text">当前 provider：{snapshot.activeSettings.activeProvider}</p>
+          <p className="atti-status-text">调试模式：{String(snapshot.activeSettings.debugMode)}</p>
+          <p className="atti-status-text">是否存在画像草稿：{String(snapshot.hasActiveProfileDraft)}</p>
+          <p className="atti-status-text">当前画像 ID：{snapshot.activeProfileId ?? "无"}</p>
+          <p className="atti-status-text">最近一次会话摘要：{snapshot.lastSessionSummary}</p>
+          <p className="atti-status-text">最近会话历史：</p>
           {snapshot.recentSessionHistory.length === 0 ? (
-            <p>No local session history yet.</p>
+            <p className="atti-status-text">当前还没有本地会话历史。</p>
           ) : (
-            <ul>
+            <ul className="atti-list">
               {snapshot.recentSessionHistory.map((entry) => (
                 <li key={entry.id}>
                   {buildSessionHistoryLabel({

@@ -196,7 +196,7 @@ describe("provider contract", () => {
       name: "ProviderExecutionError",
       providerId: "openai-assessment-provider",
       code: "OPENAI_API_KEY_MISSING",
-      message: "OpenAI API key is missing. Add it in ATTI Options before running answer planning.",
+      message: "缺少 OpenAI API key。请先前往 ATTI 设置页保存 API key，再开始 AI 规划。",
       retryable: false
     } satisfies Partial<ProviderExecutionError>);
   });
@@ -217,7 +217,7 @@ describe("provider contract", () => {
       name: "ProviderExecutionError",
       providerId: "openai-assessment-provider",
       code: "OPENAI_AUTH_FAILED",
-      message: "The saved OpenAI API key was rejected. Check the key in ATTI Options and try again.",
+      message: "已保存的 OpenAI API key 被拒绝。请检查设置页中的 key 后重试。",
       statusCode: 401,
       retryable: false
     } satisfies Partial<ProviderExecutionError>);

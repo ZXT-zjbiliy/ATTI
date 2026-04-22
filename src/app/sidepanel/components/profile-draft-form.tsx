@@ -17,15 +17,17 @@ export function ProfileDraftForm({
 }: ProfileDraftFormProps) {
   return (
     <form
+      className="atti-form"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <label>
-        <span>Profile summary</span>
+      <label className="atti-field">
+        <span className="atti-field__label">画像摘要</span>
         <textarea
-          aria-label="Profile summary"
+          aria-label="画像摘要"
+          className="atti-textarea"
           disabled={disabled}
           onChange={(event) => {
             onNarrativeSummaryChange(event.currentTarget.value);
@@ -34,10 +36,11 @@ export function ProfileDraftForm({
           value={narrativeSummary}
         />
       </label>
-      <label>
-        <span>Evidence notes</span>
+      <label className="atti-field">
+        <span className="atti-field__label">证据备注</span>
         <textarea
-          aria-label="Evidence notes"
+          aria-label="证据备注"
+          className="atti-textarea"
           disabled={disabled}
           onChange={(event) => {
             onEvidenceTextChange(event.currentTarget.value);
@@ -46,8 +49,8 @@ export function ProfileDraftForm({
           value={evidenceText}
         />
       </label>
-      <button disabled={disabled} type="submit">
-        Save local profile draft
+      <button className="atti-button" disabled={disabled} type="submit">
+        保存本地画像草稿
       </button>
     </form>
   );

@@ -75,7 +75,7 @@ export const handleAnswerFillRunMessage: BackgroundMessageHandler<AnswerFillRunM
 
     return createErrorResult(
       "NO_FILLABLE_ANSWERS",
-      `No fillable answer plans are available for session: ${session.id}`
+      `当前会话没有可执行填写的推荐结果：${session.id}`
     );
   }
 

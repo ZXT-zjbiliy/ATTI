@@ -62,13 +62,13 @@ function mapPageDetectionState(session: Session | null): SidePanelShellModel["pa
   if (!session) {
     return {
       kind: "loading",
-      message: "Waiting for a supported assessment page."
+      message: "正在等待可识别的测评页面。"
     };
   }
 
   return {
     kind: "placeholder",
-    summary: `Detected supported page: ${session.siteId}`,
+    summary: `已识别页面：${session.siteId}`,
     detail: session.pageUrl
   };
 }
@@ -83,16 +83,16 @@ function mapSessionStatusState(
   if (!session) {
     return {
       kind: "empty",
-      message: "No active session is available yet."
+      message: "当前还没有可用的活动会话。"
     };
   }
 
   return {
     kind: "placeholder",
-    summary: `Session status: ${session.status}`,
+    summary: `会话状态：${session.status}`,
     detail: providerConfiguration?.isReady === false && providerConfiguration.actionMessage
-      ? `${session.questionIds.length} questions extracted, ${previewItemCount} recommendations available. ${providerConfiguration.actionMessage}`
-      : `${session.questionIds.length} questions extracted, ${previewItemCount} recommendations available.`
+      ? `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。${providerConfiguration.actionMessage}`
+      : `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。`
   };
 }
 
@@ -124,7 +124,7 @@ export function useSidePanelShell(
   const [recommendationPreviewStatus, setRecommendationPreviewStatus] =
     useState<SidePanelShellModel["recommendationPreviewStatus"]>({
       kind: "loading",
-      message: "Loading recommendation preview."
+      message: "正在加载 AI 推荐预览。"
     });
   const [settings, setSettings] = useState<Settings | null>(null);
   const [latestSession, setLatestSession] = useState<Session | null>(null);
@@ -132,7 +132,7 @@ export function useSidePanelShell(
   async function refreshRecommendationPreview(currentSettings: Settings | null = settings) {
     setRecommendationPreviewStatus({
       kind: "loading",
-      message: "Loading recommendation preview."
+      message: "正在加载 AI 推荐预览。"
     });
 
     try {
@@ -154,15 +154,15 @@ export function useSidePanelShell(
         setLatestSession(null);
         setPageDetectionStatus({
           kind: "loading",
-          message: "Waiting for a supported assessment page."
+          message: "正在等待可识别的测评页面。"
         });
         setSessionStatus({
           kind: "empty",
-          message: "No active session is available yet."
+          message: "当前还没有可用的活动会话。"
         });
         setRecommendationPreviewStatus({
           kind: "empty",
-          message: "Recommendation preview will appear after answer planning completes."
+          message: "开始 AI 规划后，这里会出现推荐预览。"
         });
         return;
       }
@@ -176,19 +176,19 @@ export function useSidePanelShell(
         result.preview.items.length === 0
           ? {
               kind: "empty",
-              message: "No recommendations are available for this session yet."
+              message: "当前会话还没有可用的推荐结果。"
             }
           : {
               kind: "ready",
               sessionId: result.preview.sessionId,
               items: result.preview.items.map(createPreviewEntry),
               isRefreshing: false,
-              message: `Loaded ${result.preview.items.length} recommendation${result.preview.items.length === 1 ? "" : "s"}.`
+              message: `已加载 ${result.preview.items.length} 条推荐。`
             }
       );
     } catch (error) {
       const nextMessage =
-        error instanceof Error ? error.message : "Unable to load recommendation preview.";
+        error instanceof Error ? error.message : "无法加载推荐预览。";
 
       setRecommendationPreviewStatus({
         kind: "error",
@@ -224,13 +224,13 @@ export function useSidePanelShell(
 
         if (!profile) {
           setStatus("empty");
-          setMessage("Create a minimal local profile draft to continue.");
+          setMessage("请先创建一份最小可用的本地画像草稿。");
           return;
         }
 
         setSavedProfile(profile);
         setStatus("ready");
-        setMessage("Local profile draft saved.");
+        setMessage("本地画像草稿已保存。");
         const draftInput = createDraftInput(mapProfileToDraft(profile));
         setDraftNarrativeSummary(draftInput.narrativeSummary);
         setDraftEvidenceText(draftInput.evidenceText);
@@ -240,7 +240,7 @@ export function useSidePanelShell(
         }
 
         setStatus("error");
-        setMessage(error instanceof Error ? error.message : "Unable to load local profile draft.");
+        setMessage(error instanceof Error ? error.message : "无法加载本地画像草稿。");
       } finally {
         if (isActive) {
           setIsProfileLoading(false);
@@ -280,7 +280,7 @@ export function useSidePanelShell(
       if (!latestSession) {
         setSessionStatus({
           kind: "error",
-          message: "No active session is available for answer planning."
+          message: "当前没有可用于 AI 规划的活动会话。"
         });
         return;
       }
@@ -290,7 +290,7 @@ export function useSidePanelShell(
           kind: "error",
           message:
             getProviderConfigurationState(settings).actionMessage ??
-            "Provider configuration must be completed before answer planning can run."
+            "请先完成 provider 配置，再开始 AI 规划。"
         });
         return;
       }
@@ -307,13 +307,13 @@ export function useSidePanelShell(
           setSessionStatus({
             kind: "error",
             message:
-              error instanceof Error ? error.message : "Unable to run answer planning."
+              error instanceof Error ? error.message : "无法执行 AI 规划。"
           });
         }
       } catch (error) {
         setSessionStatus({
           kind: "error",
-          message: error instanceof Error ? error.message : "Unable to run answer planning."
+          message: error instanceof Error ? error.message : "无法执行 AI 规划。"
         });
       }
     },
@@ -334,10 +334,10 @@ export function useSidePanelShell(
         setDraftNarrativeSummary(draftInput.narrativeSummary);
         setDraftEvidenceText(draftInput.evidenceText);
         setStatus("ready");
-        setMessage("Local profile draft saved.");
+        setMessage("本地画像草稿已保存。");
       } catch (error) {
         setStatus("error");
-        setMessage(error instanceof Error ? error.message : "Unable to save local profile draft.");
+        setMessage(error instanceof Error ? error.message : "无法保存本地画像草稿。");
       } finally {
         setIsSaving(false);
       }

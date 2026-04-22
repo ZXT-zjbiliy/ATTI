@@ -72,19 +72,18 @@ describe("options page shell", () => {
       <OptionsView model={createOptionsModel()} />,
     );
 
-    expect(markup).toContain("ATTI Options");
-    expect(markup).toContain("Debug Mode");
-    expect(markup).toContain("Provider Selection");
+    expect(markup).toContain("ATTI 设置");
+    expect(markup).toContain("调试模式");
+    expect(markup).toContain("AI Provider 设置");
     expect(markup).toContain("OpenAI API key");
-    expect(markup).toContain("OpenAI key status: Missing");
-    expect(markup).toContain("Add an OpenAI API key in Options before running answer planning.");
-    expect(markup).toContain("Local And Provider Boundary");
-    expect(markup).toContain("Your saved profile draft, extracted questions, planned answers, diagnostics, and local history stay on this device by default.");
-    expect(markup).toContain("clicking Run answer planning also triggers page fill immediately after planning");
-    expect(markup).toContain("Current supported scope is limited to the locked single-site MVP path: Truity Enneagram.");
-    expect(markup).toContain("Data Management");
-    expect(markup).toContain("No destructive data actions are available in this shell.");
-    expect(markup).not.toContain("Debug View");
+    expect(markup).toContain("OpenAI 密钥状态： 缺失");
+    expect(markup).toContain("请先在设置页补充 OpenAI API key，再开始 AI 规划。");
+    expect(markup).toContain("本地与 Provider 边界");
+    expect(markup).toContain("画像草稿、题目、推荐结果、诊断信息与本地历史默认保存在当前设备。");
+    expect(markup).toContain("当前界面已转向 AI-first 多站点过渡表达");
+    expect(markup).toContain("数据管理");
+    expect(markup).toContain("当前阶段不提供破坏性数据操作");
+    expect(markup).not.toContain("调试视图");
   });
 
   it("shows the debug view only when debug mode is enabled", () => {
@@ -103,15 +102,15 @@ describe("options page shell", () => {
       />,
     );
 
-    expect(markup).toContain("Debug View");
-    expect(markup).toContain("Runtime: options");
-    expect(markup).toContain("Profile draft present: true");
+    expect(markup).toContain("调试视图");
+    expect(markup).toContain("运行时：options");
+    expect(markup).toContain("是否存在画像草稿：true");
     expect(markup).toContain(
-      "Last session summary: placeholder-assessment / placeholder-created / 2025-01-01T00:00:00.000Z",
+      "最近一次会话摘要：placeholder-assessment / placeholder-created / 2025-01-01T00:00:00.000Z",
     );
-    expect(markup).toContain("Recent session history:");
+    expect(markup).toContain("最近会话历史：");
     expect(markup).toContain(
-      "placeholder-assessment / 2025-01-01T00:00:00.000Z / placeholder-created / 0 questions / 0 recommendations",
+      "placeholder-assessment / 2025-01-01T00:00:00.000Z / placeholder-created / 0 题 / 0 条推荐",
     );
   });
 });

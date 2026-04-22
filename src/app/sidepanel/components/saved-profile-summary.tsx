@@ -6,9 +6,9 @@ interface SavedProfileSummaryProps {
 
 export function SavedProfileSummary({ profile }: SavedProfileSummaryProps) {
   return (
-    <div>
-      <p>Saved profile summary: {profile.narrativeSummary}</p>
-      <p>Saved evidence count: {profile.evidence.length}</p>
+    <div className="atti-surface">
+      <p className="atti-status-text">已保存画像摘要：{profile.narrativeSummary}</p>
+      <p className="atti-meta">已记录证据条目：{profile.evidence.length}</p>
     </div>
   );
 }

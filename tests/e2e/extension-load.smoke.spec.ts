@@ -24,10 +24,10 @@ test.describe("e2e: edge extension load smoke", () => {
       await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
 
       await expect(
-        popupPage.getByRole("heading", { name: "ATTI" })
+        popupPage.getByRole("heading", { name: "ATTI 智能助手" })
       ).toBeVisible();
       await expect(
-        popupPage.getByRole("checkbox", { name: "Enable extension" })
+        popupPage.getByRole("checkbox", { name: "启用扩展" })
       ).toBeVisible();
     } finally {
       await extensionHandle.close();

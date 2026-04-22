@@ -25,7 +25,7 @@ export interface OptionsDebugClient {
 
 function buildLastSessionSummary(session: Session | null): string {
   if (!session) {
-    return "No local session record yet.";
+    return "当前还没有本地会话记录。";
   }
 
   return `${session.siteId} / ${session.status} / ${session.startedAt}`;

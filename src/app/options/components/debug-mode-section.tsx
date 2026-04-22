@@ -12,13 +12,14 @@ export function DebugModeSection({
   onToggle,
 }: DebugModeSectionProps) {
   return (
-    <OptionsSection title="Debug Mode">
-      <p>Enable extra diagnostics for extension development and troubleshooting.</p>
-      <label>
-        <span>Debug mode</span>
+    <OptionsSection title="调试模式">
+      <p className="atti-copy-muted">仅用于开发和排查问题，不会改变当前产品边界。</p>
+      <label className="atti-toggle">
+        <span className="atti-field__label">开启调试模式</span>
         <input
-          aria-label="Debug mode"
+          aria-label="开启调试模式"
           checked={debugMode}
+          className="atti-checkbox"
           disabled={disabled}
           onChange={(event) => {
             onToggle(event.currentTarget.checked);

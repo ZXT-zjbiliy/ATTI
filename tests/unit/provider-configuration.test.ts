@@ -23,8 +23,8 @@ describe("provider configuration", () => {
       hasOpenAiApiKey: false,
       isReady: false,
       status: "action-required",
-      summary: "OpenAI is selected but no API key is saved locally.",
-      actionMessage: "Add an OpenAI API key in Options before running answer planning."
+      summary: "已选择 OpenAI，但当前设备尚未保存 API key。",
+      actionMessage: "请先在设置页补充 OpenAI API key，再开始 AI 规划。"
     });
   });
 

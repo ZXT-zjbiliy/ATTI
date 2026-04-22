@@ -7,9 +7,11 @@ interface OptionsSectionProps {
 
 export function OptionsSection({ title, children }: OptionsSectionProps) {
   return (
-    <section aria-label={title}>
-      <h2>{title}</h2>
-      <div>{children}</div>
+    <section aria-label={title} className="atti-card">
+      <div className="atti-card__header">
+        <h2 className="atti-card__title">{title}</h2>
+      </div>
+      <div className="atti-card__body">{children}</div>
     </section>
   );
 }

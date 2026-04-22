@@ -11,9 +11,9 @@ interface RecommendationPreviewCardProps {
 export function RecommendationPreviewCard({ state, onRefresh }: RecommendationPreviewCardProps) {
   if (state.kind !== "ready") {
     return (
-      <StatusCard title="Recommendation Preview">
-        <button type="button" onClick={onRefresh}>
-          Refresh recommendation preview
+      <StatusCard title="AI 推荐预览">
+        <button className="atti-button atti-button--secondary" type="button" onClick={onRefresh}>
+          刷新推荐预览
         </button>
         <SectionStateView state={state} />
       </StatusCard>
@@ -21,10 +21,10 @@ export function RecommendationPreviewCard({ state, onRefresh }: RecommendationPr
   }
 
   return (
-    <StatusCard title="Recommendation Preview">
-      <p>{state.message}</p>
-      <button type="button" onClick={onRefresh}>
-        Refresh recommendation preview
+    <StatusCard title="AI 推荐预览">
+      <p className="atti-status-text">{state.message}</p>
+      <button className="atti-button atti-button--secondary" type="button" onClick={onRefresh}>
+        刷新推荐预览
       </button>
       {state.items.map((item) => (
         <RecommendationPreviewItemView key={item.answerPlanId} item={item} />

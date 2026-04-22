@@ -38,14 +38,15 @@ describe("popup view", () => {
     );
 
     expect(markup).toContain("ATTI");
-    expect(markup).toContain("ATTI is enabled");
-    expect(markup).toContain("Enable extension");
-    expect(markup).toContain("Open side panel");
-    expect(markup).toContain("OpenAI is selected but no API key is saved locally.");
-    expect(markup).toContain("Add an OpenAI API key in Options before running answer planning.");
-    expect(markup).toContain("Your saved profile draft, local history, and planned answers stay on this device by default.");
-    expect(markup).toContain("clicking Run answer planning also triggers page fill immediately after planning");
-    expect(markup).toContain("it does not auto-submit the assessment");
+    expect(markup).toContain("ATTI 智能助手");
+    expect(markup).toContain("扩展已启用");
+    expect(markup).toContain("启用扩展");
+    expect(markup).toContain("打开侧边栏");
+    expect(markup).toContain("已选择 OpenAI，但当前设备尚未保存 API key。");
+    expect(markup).toContain("请先在设置页补充 OpenAI API key，再开始 AI 规划。");
+    expect(markup).toContain("画像草稿、本地历史和推荐结果默认保存在当前设备。");
+    expect(markup).toContain("当前产品正过渡到 AI-first 多站点路线");
+    expect(markup).toContain("不会自动提交问卷");
   });
 
   it("reflects the current settings state", () => {
@@ -57,7 +58,7 @@ describe("popup view", () => {
       />,
     );
 
-    expect(markup).toContain("ATTI is disabled");
+    expect(markup).toContain("扩展已暂停");
     expect(markup).not.toContain("checked=\"\"");
   });
 });

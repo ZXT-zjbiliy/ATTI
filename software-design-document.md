@@ -9,12 +9,13 @@ This document defines a simplified, implementation-oriented architecture for `AT
 - generates answer recommendations with an LLM,
 - previews answers before filling them into the page.
 
-The design goal is to keep the system modular, local-first, and easy to evolve from MVP to production.
+The current design goal is to keep the system modular, local-first, and easy to evolve from the locked single-site MVP into an AI-first multi-site product in small, audited steps.
 
 ## 2. Design Principles
 
 - `Local First`: user profile, sessions, and history stay on-device by default.
 - `Human In The Loop`: the system may recommend and fill answers, but should not auto-submit by default.
+- `AI-First Transition`: future multi-site expansion should favor normalized AI planning and lighter site-specific hard-coding, but the current repository still keeps real extraction and fill inside the locked Truity adapter boundary.
 - `Modular By Default`: split code by domain, runtime, and feature.
 - `No Monolith`: do not place multiple domains or runtimes in one giant file.
 - `Replaceable Providers`: LLM, storage, and site adapters must be swappable.
@@ -84,6 +85,11 @@ Responsibilities:
 - extracting DOM-based questions,
 - previewing planned answers,
 - applying fill operations.
+
+Current implementation note:
+
+- the stable production path is still the Truity-specific adapter flow
+- future multi-site expansion may introduce AI-assisted site understanding, but that must not collapse provider, UI, storage, and DOM automation into one runtime boundary
 
 Files should live under:
 
@@ -160,6 +166,12 @@ Owns:
 8. For the locked single-site trial flow, the user explicitly starts planning from the side panel, and that same action is accepted as the fill trigger.
 9. Content script fills answers into the page without auto-submitting the assessment.
 10. Background stores the session result locally.
+
+Current transition note:
+
+- the repository now accepts an AI-first product direction for future multi-site support
+- this does not mean the current codebase already supports generic unsupported-site automation
+- at this checkpoint, the only stable real-site loop remains Truity Enneagram
 
 ## 7. Data Ownership
 
@@ -245,6 +257,12 @@ The MVP should include only:
 - answer preview,
 - the locked single-site trial strategy where clicking `Run answer planning` also triggers fill after planning,
 - local session history.
+
+The current transition phase may additionally include:
+
+- Chinese-first end-user UI copy,
+- visual shell improvements shared across popup, side panel, and options,
+- architecture and roadmap documentation for a future AI-first multi-site expansion.
 
 The MVP should exclude:
 

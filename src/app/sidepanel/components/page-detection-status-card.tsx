@@ -8,7 +8,7 @@ interface PageDetectionStatusCardProps {
 
 export function PageDetectionStatusCard({ state }: PageDetectionStatusCardProps) {
   return (
-    <StatusCard title="Page Detection Status">
+    <StatusCard title="页面识别">
       <SectionStateView state={state} />
     </StatusCard>
   );

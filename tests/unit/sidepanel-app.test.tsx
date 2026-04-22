@@ -23,15 +23,15 @@ describe("side panel shell", () => {
       <SidePanelView model={defaultSidePanelShellModel} />,
     );
 
-    expect(markup).toContain("ATTI Side Panel");
-    expect(markup).toContain("Profile Status");
-    expect(markup).toContain("Page Detection Status");
-    expect(markup).toContain("Session Status");
-    expect(markup).toContain("Recommendation Preview");
-    expect(markup).toContain("Create a minimal local profile draft to continue.");
-    expect(markup).toContain("Save local profile draft");
-    expect(markup).toContain("Empty: No active session is available yet.");
-    expect(markup).toContain("Run answer planning");
+    expect(markup).toContain("ATTI AI 侧边栏");
+    expect(markup).toContain("本地画像");
+    expect(markup).toContain("页面识别");
+    expect(markup).toContain("执行会话");
+    expect(markup).toContain("AI 推荐预览");
+    expect(markup).toContain("请先创建一份最小可用的本地画像草稿。");
+    expect(markup).toContain("保存本地画像草稿");
+    expect(markup).toContain("空状态：当前还没有可用的活动会话。");
+    expect(markup).toContain("开始 AI 规划");
     expect(markup).toContain("disabled=\"\"");
     expect(markup).not.toContain("Apply reviewed answers");
   });
@@ -44,18 +44,18 @@ describe("side panel shell", () => {
             ...defaultSidePanelShellModel.profilePanel,
             status: "loading",
             isLoading: true,
-            message: "Loading local profile state.",
+            message: "正在加载本地画像状态。",
           },
           pageDetectionStatus: {
             kind: "loading",
-            message: "Checking the current page.",
+            message: "正在检查当前页面。",
           },
         })}
       />,
     );
 
-    expect(markup).toContain("Loading local profile state.");
-    expect(markup).toContain("Loading: Checking the current page.");
+    expect(markup).toContain("正在加载本地画像状态。");
+    expect(markup).toContain("加载中：正在检查当前页面。");
   });
 
   it("renders error placeholders", () => {
@@ -64,13 +64,13 @@ describe("side panel shell", () => {
         model={createSidePanelModel({
           sessionStatus: {
             kind: "error",
-            message: "Unable to read the current session shell.",
+            message: "无法读取当前会话状态。",
           },
         })}
       />,
     );
 
-    expect(markup).toContain("Error: Unable to read the current session shell.");
+    expect(markup).toContain("错误：无法读取当前会话状态。");
     expect(markup).toContain("role=\"alert\"");
   });
 
@@ -81,7 +81,7 @@ describe("side panel shell", () => {
           profilePanel: {
             ...defaultSidePanelShellModel.profilePanel,
             status: "ready",
-            message: "Local profile draft saved.",
+            message: "本地画像草稿已保存。",
             savedProfile: {
               id: "profile-1",
               version: 1,
@@ -124,18 +124,18 @@ describe("side panel shell", () => {
               }
             ],
             isRefreshing: false,
-            message: "Loaded 1 recommendation.",
+            message: "已加载 1 条推荐。",
           },
         })}
       />,
     );
 
-    expect(markup).toContain("Saved profile summary: I enjoy collaborative planning.");
+    expect(markup).toContain("已保存画像摘要：I enjoy collaborative planning.");
     expect(markup).toContain("I strive for perfection.");
-    expect(markup).toContain("Filled on page: Accurate");
-    expect(markup).toContain("Confidence: 92%");
-    expect(markup).toContain("Rationale: The saved profile strongly aligns with high agreement.");
-    expect(markup).not.toContain("Quality: Degraded");
+    expect(markup).toContain("页面填写：Accurate");
+    expect(markup).toContain("置信度：92%");
+    expect(markup).toContain("理由说明：The saved profile strongly aligns with high agreement.");
+    expect(markup).not.toContain("质量状态：已降级");
     expect(markup).not.toContain("Confirm recommendation");
     expect(markup).not.toContain("Reject recommendation");
     expect(markup).not.toContain("Save modified selection");

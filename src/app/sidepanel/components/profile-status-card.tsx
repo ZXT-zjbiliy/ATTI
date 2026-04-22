@@ -17,8 +17,8 @@ export function ProfileStatusCard({
   onSubmit
 }: ProfileStatusCardProps) {
   return (
-    <StatusCard title="Profile Status">
-      {state.message ? <p>{state.message}</p> : null}
+    <StatusCard title="本地画像">
+      {state.message ? <p className="atti-status-text">{state.message}</p> : null}
       {state.savedProfile ? <SavedProfileSummary profile={state.savedProfile} /> : null}
       <ProfileDraftForm
         disabled={state.isLoading || state.isSaving}

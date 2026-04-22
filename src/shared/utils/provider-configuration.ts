@@ -40,7 +40,7 @@ export function getProviderConfigurationState(
       hasOpenAiApiKey,
       isReady: true,
       status: "ready",
-      summary: "Local provider fallback is selected. No OpenAI API key is required.",
+      summary: "当前使用本地回退引擎，无需 OpenAI API key。",
       actionMessage: null
     };
   }
@@ -52,7 +52,7 @@ export function getProviderConfigurationState(
       hasOpenAiApiKey,
       isReady: true,
       status: "ready",
-      summary: "OpenAI is selected and an API key is saved locally on this device.",
+      summary: "已选择 OpenAI，且当前设备已保存可用的 API key。",
       actionMessage: null
     };
   }
@@ -64,8 +64,8 @@ export function getProviderConfigurationState(
       hasOpenAiApiKey,
       isReady: false,
       status: "action-required",
-      summary: "OpenAI is selected but no API key is saved locally.",
-      actionMessage: "Add an OpenAI API key in Options before running answer planning."
+      summary: "已选择 OpenAI，但当前设备尚未保存 API key。",
+      actionMessage: "请先在设置页补充 OpenAI API key，再开始 AI 规划。"
     };
   }
 
@@ -75,7 +75,7 @@ export function getProviderConfigurationState(
     hasOpenAiApiKey,
     isReady: false,
     status: "action-required",
-    summary: `The selected provider is unsupported: ${settings.activeProvider}`,
-    actionMessage: "Choose OpenAI or the local provider fallback in Options."
+    summary: `当前 provider 暂不受支持：${settings.activeProvider}`,
+    actionMessage: "请在设置页选择 OpenAI 或本地回退引擎。"
   };
 }

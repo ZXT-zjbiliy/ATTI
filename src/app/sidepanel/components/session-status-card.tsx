@@ -14,14 +14,15 @@ export function SessionStatusCard({
   onRunAnswerPlanning
 }: SessionStatusCardProps) {
   return (
-    <StatusCard title="Session Status">
+    <StatusCard title="执行会话">
       <SectionStateView state={state} />
       <button
+        className="atti-button"
         disabled={isRunAnswerPlanningDisabled}
         type="button"
         onClick={onRunAnswerPlanning}
       >
-        Run answer planning
+        开始 AI 规划
       </button>
     </StatusCard>
   );

@@ -1576,7 +1576,7 @@ describe("background message router", () => {
       ok: false,
       error: {
         code: "OPENAI_ANSWER_PLANNING_PARSE_FAILED",
-        message: "The OpenAI answer planning response could not be parsed."
+        message: "OpenAI 返回的答题规划结果无法解析。"
       }
     });
     expect(
@@ -1588,7 +1588,7 @@ describe("background message router", () => {
     );
     expect(diagnostics.at(-1)).toMatchObject({
       phase: "answer-planning",
-      message: "The OpenAI answer planning response could not be parsed.",
+      message: "OpenAI 返回的答题规划结果无法解析。",
       payload: {
         providerId: "openai-assessment-provider",
         errorCode: "OPENAI_ANSWER_PLANNING_PARSE_FAILED",
@@ -2341,7 +2341,7 @@ describe("background message router", () => {
       ok: false,
       error: {
         code: "NO_FILLABLE_ANSWERS",
-        message: `No fillable answer plans are available for session: ${extractionResult.data.sessionId}`
+        message: `当前会话没有可执行填写的推荐结果：${extractionResult.data.sessionId}`
       }
     });
 

@@ -12,33 +12,42 @@ interface SidePanelViewProps {
 
 export function SidePanelView({ model }: SidePanelViewProps) {
   return (
-    <main>
-      <header>
-        <h1>ATTI Side Panel</h1>
-        <p>Assessment status and recommendations will appear here.</p>
-      </header>
-      <ProfileStatusCard
-        onEvidenceTextChange={model.setProfileDraftEvidenceText}
-        onNarrativeSummaryChange={model.setProfileDraftNarrativeSummary}
-        onSubmit={() => {
-          void model.saveProfileDraft();
-        }}
-        state={model.profilePanel}
-      />
-      <PageDetectionStatusCard state={model.pageDetectionStatus} />
-      <SessionStatusCard
-        isRunAnswerPlanningDisabled={model.isRunAnswerPlanningDisabled}
-        onRunAnswerPlanning={() => {
-          void model.runAnswerPlanning();
-        }}
-        state={model.sessionStatus}
-      />
-      <RecommendationPreviewCard
-        onRefresh={() => {
-          void model.refreshRecommendationPreview();
-        }}
-        state={model.recommendationPreviewStatus}
-      />
+    <main className="atti-shell atti-shell--panel">
+      <div className="atti-frame">
+        <div className="atti-frame__content">
+          <header className="atti-hero">
+            <span className="atti-hero__eyebrow">AI 问卷工作台</span>
+            <h1 className="atti-hero__title">ATTI AI 侧边栏</h1>
+            <p className="atti-hero__subtitle">
+              当前界面面向 AI-first 多站点路线重排，但真实稳定适配范围仍以 Truity 九型人格试用流为主。
+            </p>
+          </header>
+          <section className="atti-grid atti-grid--columns-2">
+            <ProfileStatusCard
+              onEvidenceTextChange={model.setProfileDraftEvidenceText}
+              onNarrativeSummaryChange={model.setProfileDraftNarrativeSummary}
+              onSubmit={() => {
+                void model.saveProfileDraft();
+              }}
+              state={model.profilePanel}
+            />
+            <PageDetectionStatusCard state={model.pageDetectionStatus} />
+            <SessionStatusCard
+              isRunAnswerPlanningDisabled={model.isRunAnswerPlanningDisabled}
+              onRunAnswerPlanning={() => {
+                void model.runAnswerPlanning();
+              }}
+              state={model.sessionStatus}
+            />
+            <RecommendationPreviewCard
+              onRefresh={() => {
+                void model.refreshRecommendationPreview();
+              }}
+              state={model.recommendationPreviewStatus}
+            />
+          </section>
+        </div>
+      </div>
     </main>
   );
 }

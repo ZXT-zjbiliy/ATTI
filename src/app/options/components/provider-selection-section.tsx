@@ -11,8 +11,8 @@ interface ProviderSelectionSectionProps {
 }
 
 const providerOptions = [
-  { value: "openai", label: "OpenAI Provider" },
-  { value: "local", label: "Local Provider (Dev Fallback)" },
+  { value: "openai", label: "OpenAI（主路径）" },
+  { value: "local", label: "本地回退（开发用）" },
 ] as const;
 
 export function ProviderSelectionSection({
@@ -24,12 +24,15 @@ export function ProviderSelectionSection({
   onOpenAiApiKeyChange
 }: ProviderSelectionSectionProps) {
   return (
-    <OptionsSection title="Provider Selection">
-      <p>Configure the provider used for single-site answer planning. OpenAI is the primary MVP path.</p>
-      <label>
-        <span>Provider</span>
+    <OptionsSection title="AI Provider 设置">
+      <p className="atti-copy-muted">
+        当前产品正过渡到 AI-first 多站点路线；稳定试用路径仍以 OpenAI + Truity 为主。
+      </p>
+      <label className="atti-field">
+        <span className="atti-field__label">当前规划引擎</span>
         <select
-          aria-label="Provider"
+          aria-label="当前规划引擎"
+          className="atti-select"
           disabled={disabled}
           onChange={(event) => {
             onSelect(event.currentTarget.value);
@@ -43,10 +46,11 @@ export function ProviderSelectionSection({
           ))}
         </select>
       </label>
-      <label>
-        <span>OpenAI API key</span>
+      <label className="atti-field">
+        <span className="atti-field__label">OpenAI API key</span>
         <input
           aria-label="OpenAI API key"
+          className="atti-input"
           disabled={disabled}
           onChange={(event) => {
             onOpenAiApiKeyChange(event.currentTarget.value);
@@ -56,15 +60,16 @@ export function ProviderSelectionSection({
           value={openAiApiKey}
         />
       </label>
-      <p>
-        OpenAI key status:{" "}
+      <p className="atti-status-text">
+        OpenAI 密钥状态：
+        {" "}
         {providerStatus?.usesOpenAi
           ? providerStatus.hasOpenAiApiKey
-            ? "Saved locally"
-            : "Missing"
+            ? "已保存在本地"
+            : "缺失"
           : providerStatus?.hasOpenAiApiKey
-            ? "Saved locally and unused while local fallback is selected"
-            : "Not required for the local fallback"}
+            ? "已保存在本地，但当前未启用"
+            : "当前模式无需填写"}
       </p>
     </OptionsSection>
   );

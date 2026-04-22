@@ -56,7 +56,7 @@ export function usePopupShell(
           return;
         }
 
-        const message = error instanceof Error ? error.message : "Unable to load extension state.";
+        const message = error instanceof Error ? error.message : "无法读取扩展状态。";
         setStatusMessage(message);
         setProviderConfiguration(null);
       } finally {
@@ -86,7 +86,7 @@ export function usePopupShell(
         setExtensionEnabled(settings.extensionEnabled);
         setStatusMessage(null);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unable to update extension state.";
+        const message = error instanceof Error ? error.message : "无法更新扩展状态。";
         setStatusMessage(message);
       } finally {
         setIsUpdating(false);
@@ -97,7 +97,7 @@ export function usePopupShell(
         await openPopupSidePanel();
         setStatusMessage(null);
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Unable to open side panel.";
+        const message = error instanceof Error ? error.message : "无法打开侧边栏。";
         setStatusMessage(message);
       }
     },

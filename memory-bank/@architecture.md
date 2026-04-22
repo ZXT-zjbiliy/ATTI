@@ -23,6 +23,7 @@ This checkpoint reflects the repository reality after the first architecture aud
   - extension shell and storage/message foundations are implemented
   - single-site extraction, provider-backed answer planning, recommendation preview, and fill execution modules are implemented for the locked MVP path
   - the single-site MVP usability checkpoint is now passed for the locked Truity path with real-provider planning support: extract -> plan -> preview -> auto-fill is working end-to-end, with OpenAI as the primary planning path and the fake provider retained only as a local fallback
+  - the repository has now also entered an explicit AI-first transition phase at the product and documentation level: UI copy and roadmap planning are being prepared for future multi-site support, while the only stable real automation path remains the Truity adapter-backed flow
 
 ## 3. Current Repository Structure Reality
 
@@ -380,6 +381,7 @@ Current adapter shell boundary:
 - the current Truity Enneagram adapter is the first real-site adapter boundary and currently supports URL matching, assessment-page recognition, normalized question extraction, and answer fill against both fixture-style blocks and the live radio-group markup shape
 - the Truity adapter now shares a single prompt-normalization and prompt-key strategy across question-region location, extraction, and fill so light casing, whitespace, and wrapper drift can be tolerated without moving selector fallback into content or background modules
 - Truity extraction and fill now each try multiple adapter-local paths for question block and radio-group resolution, but this remains a single-site implementation and is not a generic cross-site selector framework
+- the current AI-first multi-site direction does not remove this boundary yet; it only establishes the product/documentation direction that future site expansion should lean more on normalized AI planning and lighter site-specific logic, without pretending the current repository already has generic all-site extraction/fill
 - the placeholder adapter remains as a non-production boundary example
 - the current real-site adapter still does not perform provider planning, preview, or orchestration directly; those remain background responsibilities
 - adapter registry remains decoupled from content runtime startup logic
@@ -399,6 +401,7 @@ Current provider shell boundary:
 - provider inputs are validated through existing shared schemas before outbound calls
 - provider failures are wrapped in structured `ProviderExecutionError` objects instead of raw crashes
 - missing OpenAI API keys and rejected OpenAI credentials now surface through clearer actionable provider errors so UI/runtime flows can guide the user back to Options without exposing raw secrets
+- provider output remains normalized recommendation data only; the current AI-first multi-site direction must not turn `src/llm/*` into a site-selector or DOM-control layer
 - provider consumers must depend on the provider interface instead of the fake implementation
 - UI runtimes must not directly invoke provider modules
 
@@ -422,6 +425,30 @@ Current testing limits at this checkpoint:
 - built-extension browser e2e now also covers degraded recommendation rendering and quality-gated fill blocking inside the mocked OpenAI service-worker harness
 - the committed e2e suite is green again after aligning the options-page provider-save assertions with the current provider-readiness copy and saved-key feedback
 - always-on live-network OpenAI verification still remains explicitly deferred; the committed browser harness uses service-worker-level mocked OpenAI responses instead of real network calls
+
+## 8.3 AI-First Multi-Site Transition Note
+
+Checkpoint date: `2026-04-22`
+
+Transition reality at this checkpoint:
+
+- product copy, user-facing docs, and internal roadmap now explicitly describe an AI-first multi-site direction
+- the current shipped implementation is still not a generic all-site automation engine
+- stable real extraction and fill are still locked to the Truity Enneagram adapter boundary
+- OpenAI remains the primary planning provider, but provider modules still consume normalized profile/question inputs rather than raw site DOM
+- the UI refresh to Chinese-first copy and shared visual styling is part of this transition checkpoint, not a claim that multi-site runtime support is already complete
+
+What this transition phase does allow:
+
+- rewriting companion docs and prompts around a staged multi-site roadmap
+- aligning popup/options/sidepanel copy around AI planning, local-data boundaries, and the current locked supported site
+- reducing future dependence on heavy site-specific product copy without collapsing runtime boundaries
+
+What it still does not allow:
+
+- claiming unsupported-site runtime coverage today
+- moving DOM extraction or fill logic into provider code
+- expanding the release checkpoint beyond the locked Truity single-site bar
 
 ## 8.1 Single-Site Recommendation Quality Checkpoint
 
@@ -665,6 +692,7 @@ Current project state:
 - read-only debug view established in options page with service reuse
 - popup and options now expose lightweight UX copy clarifying what stays local, when provider planning may run, that `Run answer planning` also triggers fill for the locked trial flow, that auto-submit is not performed, and that the current supported scope is the locked Truity MVP only
 - popup, options, and side panel now also align on provider-readiness messaging so missing OpenAI configuration is surfaced before the user reaches a guaranteed failed planning attempt
+- popup, options, and side panel now use Chinese-first user copy plus a shared visual shell, while still preserving the same MVP runtime boundaries and the same locked Truity support scope
 - automated testing baseline established with separated unit, integration, and end-to-end scopes
 - repository persistence smoke coverage established across profile, session, and adapter diagnostics repositories
 - Edge extension load smoke coverage established through Playwright against the built extension artifact
