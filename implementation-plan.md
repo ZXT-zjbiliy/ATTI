@@ -488,4 +488,3 @@ Do not start these until the foundation is complete:
 - Do not skip ahead because a later step looks related.
 - If implementation pressure starts pulling multiple concerns into one file, stop and split the module before continuing.
 - If the architecture changes, update the memory bank before proceeding.
-

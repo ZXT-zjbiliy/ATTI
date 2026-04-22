@@ -182,4 +182,3 @@ Official documentation used to guide this stack choice:
 - Dexie: https://dexie.org/docs/Dexie/Dexie
 - Vitest: https://vitest.dev/
 - Playwright: https://playwright.dev/docs/next/intro
-

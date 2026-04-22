@@ -40,7 +40,7 @@ The MVP should deliver:
 
 - The user must understand when the extension is analyzing.
 - The user must understand which answers are recommendations.
-- The user must be able to confirm before fill.
+- For the locked single-site trial flow, the user must understand that clicking `Run answer planning` is the explicit fill trigger; the product does not add a second confirmation step before fill.
 - The user must be able to edit or reject recommendations.
 - The user must understand what data stays local and what may be sent to a provider.
 
@@ -51,4 +51,3 @@ Before implementing code, always align with:
 - [software-design-document.md](e:\ATTI\ATTI\software-design-document.md)
 - [tech-stack.md](e:\ATTI\ATTI\tech-stack.md)
 - [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md)
-

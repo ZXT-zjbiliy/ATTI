@@ -49,7 +49,7 @@ Responsibilities:
 - profile onboarding,
 - viewing current page status,
 - previewing recommendations,
-- confirming fill actions,
+- exposing the single-site trial fill trigger and related status,
 - managing settings and privacy options.
 
 Files should live under:
@@ -156,9 +156,9 @@ Owns:
 4. Content script extracts normalized questions through a site adapter.
 5. Background loads the profile and calls the LLM provider.
 6. Provider returns an answer plan with confidence and rationale.
-7. UI shows a preview.
-8. User confirms.
-9. Content script fills answers into the page.
+7. UI shows recommendation status and preview data.
+8. For the locked single-site trial flow, the user explicitly starts planning from the side panel, and that same action is accepted as the fill trigger.
+9. Content script fills answers into the page without auto-submitting the assessment.
 10. Background stores the session result locally.
 
 ## 7. Data Ownership
@@ -243,7 +243,7 @@ The MVP should include only:
 - one LLM provider,
 - one supported site adapter,
 - answer preview,
-- manual confirmation before fill,
+- the locked single-site trial strategy where clicking `Run answer planning` also triggers fill after planning,
 - local session history.
 
 The MVP should exclude:
@@ -270,4 +270,3 @@ All subsequent implementation work should treat this document as the lightweight
 - current milestone,
 - feature status,
 - architectural deltas after each major delivery.
-

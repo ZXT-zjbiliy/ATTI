@@ -1,0 +1,7 @@
+.git
+.output
+.tools
+.wxt
+node_modules
+pnpm-lock.yaml
+*.md

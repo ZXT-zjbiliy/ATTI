@@ -1,0 +1,180 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+
+import { PopupView } from "../../src/app/popup/App";
+import { createPopupSettingsClient } from "../../src/app/popup/services/popup-settings-client";
+import { openPopupSidePanel } from "../../src/app/popup/services/popup-sidepanel-opener";
+import type { PopupShellModel } from "../../src/app/popup/hooks/use-popup-shell";
+import type { AppResult, SettingsFetchMessage, SettingsUpdateMessage } from "../../src/shared/types";
+import { getProviderConfigurationState } from "../../src/shared/utils/provider-configuration";
+
+function createPopupModel(overrides: Partial<PopupShellModel> = {}): PopupShellModel {
+  return {
+    extensionEnabled: true,
+    providerConfiguration: getProviderConfigurationState({
+      activeProvider: "openai",
+      openAiApiKey: null
+    }),
+    isLoading: false,
+    isUpdating: false,
+    statusMessage: null,
+    toggleExtensionEnabled: async () => {},
+    openSidePanel: async () => {},
+    ...overrides,
+  };
+}
+
+describe("popup view", () => {
+  it("renders the lightweight popup shell", () => {
+    const markup = renderToStaticMarkup(
+      <PopupView
+        model={createPopupModel({
+          extensionEnabled: true,
+        })}
+      />,
+    );
+
+    expect(markup).toContain("ATTI");
+    expect(markup).toContain("ATTI is enabled");
+    expect(markup).toContain("Enable extension");
+    expect(markup).toContain("Open side panel");
+    expect(markup).toContain("OpenAI is selected but no API key is saved locally.");
+    expect(markup).toContain("Add an OpenAI API key in Options before running answer planning.");
+    expect(markup).toContain("Your saved profile draft, local history, and planned answers stay on this device by default.");
+    expect(markup).toContain("clicking Run answer planning also triggers page fill immediately after planning");
+    expect(markup).toContain("it does not auto-submit the assessment");
+  });
+
+  it("reflects the current settings state", () => {
+    const markup = renderToStaticMarkup(
+      <PopupView
+        model={createPopupModel({
+          extensionEnabled: false,
+        })}
+      />,
+    );
+
+    expect(markup).toContain("ATTI is disabled");
+    expect(markup).not.toContain("checked=\"\"");
+  });
+});
+
+describe("popup settings client", () => {
+  it("reads the current settings through the shared message contract", async () => {
+    const sendMessage = vi.fn(
+      async (message: SettingsFetchMessage | SettingsUpdateMessage): Promise<AppResult> => {
+        if (message.type === "settingsFetch") {
+          return {
+            ok: true,
+            data: {
+              extensionEnabled: false,
+              debugMode: false,
+              activeProvider: "local",
+              openAiApiKey: null,
+              approvedDomains: [],
+              lastActiveProfileId: null,
+              featureFlags: {},
+            },
+          };
+        }
+
+        return {
+          ok: true,
+          data: message.payload.settings,
+        };
+      },
+    );
+    const client = createPopupSettingsClient(sendMessage);
+
+    const settings = await client.fetchSettings();
+
+    expect(settings.extensionEnabled).toBe(false);
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: "settingsFetch",
+      payload: {},
+    });
+  });
+
+  it("updates only the extension toggle through settings update messages", async () => {
+    const sendMessage = vi.fn(
+      async (message: SettingsFetchMessage | SettingsUpdateMessage): Promise<AppResult> => {
+        if (message.type === "settingsFetch") {
+          return {
+            ok: true,
+            data: {
+              extensionEnabled: true,
+              debugMode: false,
+              activeProvider: "local",
+              openAiApiKey: null,
+              approvedDomains: ["example.com"],
+              lastActiveProfileId: null,
+              featureFlags: {},
+            },
+          };
+        }
+
+        return {
+          ok: true,
+          data: message.payload.settings,
+        };
+      },
+    );
+    const client = createPopupSettingsClient(sendMessage);
+
+    const settings = await client.updateExtensionEnabled(false);
+
+    expect(settings.extensionEnabled).toBe(false);
+    expect(sendMessage).toHaveBeenNthCalledWith(2, {
+      type: "settingsUpdate",
+      payload: {
+        settings: {
+          extensionEnabled: false,
+          debugMode: false,
+          activeProvider: "local",
+          openAiApiKey: null,
+          approvedDomains: ["example.com"],
+          lastActiveProfileId: null,
+          featureFlags: {},
+        },
+      },
+    });
+  });
+});
+
+describe("popup side panel opener", () => {
+  it("opens the current window side panel", async () => {
+    const open = vi.fn(async () => {});
+    const getCurrent = vi.fn(async () => ({ id: 7 }));
+
+    await openPopupSidePanel({ open }, { getCurrent });
+
+    expect(getCurrent).toHaveBeenCalledTimes(1);
+    expect(open).toHaveBeenCalledWith({ windowId: 7 });
+  });
+});
+
+describe("popup module boundaries", () => {
+  it("keeps popup code lightweight and free of background implementation imports", () => {
+    const popupFiles = [
+      "src/app/popup/App.tsx",
+      "src/app/popup/components/popup-boundary-summary.tsx",
+      "src/app/popup/components/popup-provider-status.tsx",
+      "src/app/popup/hooks/use-popup-shell.ts",
+      "src/app/popup/services/popup-settings-client.ts",
+      "src/app/popup/services/popup-sidepanel-opener.ts",
+    ];
+
+    for (const popupFile of popupFiles) {
+      const content = readFileSync(resolve(process.cwd(), popupFile), "utf8");
+
+      expect(content).not.toContain("/background/");
+      expect(content).not.toContain("/storage/");
+      expect(content).not.toContain("/llm/");
+      expect(content).not.toContain("/adapters/");
+    }
+  });
+});

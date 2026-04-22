@@ -714,3 +714,685 @@
 - 真实页面填写
 - 真实站点适配
 
+---
+
+## 28. 进入可用化阶段前的范围锁定
+
+### 目标
+
+锁定单站点 MVP 范围，避免功能发散。
+
+### Prompt
+
+请先完整阅读以下文档，再开始执行：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/@game-design-document.md`
+- `software-design-document.md`
+- `tech-stack.md`
+
+现在请只完成“单站点 MVP 范围锁定”这一步，不要开始实现真实功能。
+
+要求：
+
+- 从当前产品目标出发，明确只支持 `1` 个真实 assessment 站点作为 MVP 目标。
+- 明确记录该站点的页面范围、题型范围、支持边界和不支持边界。
+- 明确当前 MVP 中哪些能力会进入真实实现，哪些能力继续延期。
+- 将范围锁定结果写入 `memory-bank/@architecture.md`。
+- 不要开始代码实现。
+
+完成后请执行并汇报以下验证：
+
+- 是否只锁定了一个真实支持站点，而不是泛化到多个站点。
+- MVP 支持范围与不支持范围是否都被显式写出。
+- `memory-bank/@architecture.md` 是否已反映该范围决策。
+
+---
+
+## 29. Prompt 26
+
+### 目标
+
+补齐 questions 与 answer plans 的 repository 边界。
+
+### Prompt
+
+请只完成“questions / answer plans repository 边界补齐”这一步。
+
+要求：
+
+- 实现 `question-repo`。
+- 实现 `answer-plan-repo`。
+- repository 职责必须各自独立，不要混入 session 编排、provider 编排或 UI 逻辑。
+- 继续保持所有数据库访问只通过 repository。
+- 为这两个 repository 增加对应测试。
+- 如果 repository 边界从“预留”变为“已实现”，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- `question-repo` 是否可以通过 repository 接口完成基础读写。
+- `answer-plan-repo` 是否可以通过 repository 接口完成基础读写。
+- 是否不存在 repository 之外直接访问 `questions` / `answerPlans` store 的情况。
+- `memory-bank/@architecture.md` 是否已反映实现状态变化。
+
+---
+
+## 30. Prompt 27
+
+### 目标
+
+建立首个真实站点 adapter 的边界与测试夹具。
+
+### Prompt
+
+请只完成“首个真实站点 adapter 边界与夹具”这一步。
+
+要求：
+
+- 只支持一个已锁定的真实 assessment 站点。
+- 在 `src/adapters/sites/*` 下实现该站点的独立 adapter 模块。
+- 不要把多个站点逻辑合并在一个 adapter 文件里。
+- 建立该站点的 fixture / sample page / selector 测试基线。
+- 当前先建立匹配、页面识别、题目区域定位边界；不要一次性完成全部流程。
+- 如有 adapter 策略变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- registry 是否能正确解析出该真实站点 adapter。
+- fixture 测试是否能稳定验证站点识别与基础定位。
+- 是否仍保持站点逻辑只存在于 adapter 模块中。
+
+---
+
+## 31. Prompt 28
+
+### 目标
+
+建立单站点的真实题目提取流程。
+
+### Prompt
+
+请只完成“真实题目提取流程”这一步。
+
+要求：
+
+- 仅针对已锁定的首个真实站点实现题目提取。
+- content script 通过 adapter 提取规范化 questions。
+- 提取结果通过既有消息边界交给 background，再持久化到 `question-repo`。
+- 当前不要实现 provider 调用、答案规划或页面填写。
+- 对提取失败写入 sanitized diagnostics，而不是写入原始敏感页面内容。
+- 如有新的消息边界或数据流边界，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 是否可以从该真实站点页面提取出规范化 questions。
+- 提取结果是否能成功持久化到 `question-repo`。
+- diagnostics 是否避免记录原始敏感页面内容。
+- 提取失败信息是否足够清晰，能定位到 adapter 边界。
+
+---
+
+## 32. Prompt 29
+
+### 目标
+
+接入一个真实 provider 的最小可用链路。
+
+### Prompt
+
+请只完成“真实 provider 最小接入”这一步。
+
+要求：
+
+- 在现有 provider interface 之下接入 `1` 个真实 provider。
+- 新增最小可用的 `prompts` 与 `parsers` 模块，不要把它们混进 UI、background 或 adapter。
+- provider 输入必须经过现有 schema / contract 边界。
+- 当前只实现 profile + questions -> answer plan 的最小调用链路。
+- 不要在 UI runtime 中直接调用 provider。
+- 如有 provider 策略、prompt 边界或 parser 边界变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 真实 provider 是否通过统一 provider interface 被调用。
+- prompts / parsers 是否位于 `llm/` 边界内，而不在其他 runtime 中散落。
+- provider 失败是否返回结构化错误，而不是直接崩溃。
+
+---
+
+## 33. Prompt 30
+
+### 目标
+
+建立 answer planning 的 background 编排与持久化流程。
+
+### Prompt
+
+请只完成“answer planning 编排与持久化”这一步。
+
+要求：
+
+- background 基于已保存 profile、已提取 questions 和真实 provider 生成 answer plans。
+- 持久化 answer plans 到 `answer-plan-repo`。
+- session 要能记录该轮规划的基础执行状态。
+- 继续保持 background 编排、provider 调用、repository 持久化分层清晰。
+- 当前不要实现页面填写。
+- 如有消息边界、session 状态或 answer plan 结构变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 是否能从 profile + questions 生成并持久化 answer plans。
+- session 状态是否能反映规划阶段结果。
+- 失败信息是否能清晰定位到 provider、router 或 repository 边界。
+
+---
+
+## 34. Prompt 31
+
+### 目标
+
+建立 recommendation preview 与人工确认流程。
+
+### Prompt
+
+请只完成“recommendation preview 与人工确认”这一步。
+
+要求：
+
+- 在 side panel 中展示每道题的推荐结果。
+- 明确展示推荐项、置信度、理由。
+- 用户必须可以确认、拒绝或修改推荐结果。
+- 当前仍然不要自动提交页面。
+- UI 只负责展示与交互，不直接做 provider 调用或数据库底层访问。
+- 如有 side panel 边界或交互状态边界变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- side panel 是否能稳定展示 recommendation preview。
+- 用户是否可以逐题确认、拒绝或修改推荐。
+- UI 是否仍然没有越权承担 provider / repository 底层逻辑。
+
+---
+
+## 35. Prompt 32
+
+### 目标
+
+建立手动确认后的页面填写流程。
+
+### Prompt
+
+请只完成“手动确认后的页面填写”这一步。
+
+要求：
+
+- content script 消费用户确认后的 answer plans。
+- 仅对已锁定站点执行真实页面填写。
+- 默认不得自动提交。
+- 写入必要的 execution log 和 diagnostics。
+- 当前不要扩展到第二个站点。
+- 如有 fill 边界、消息边界或 session 结构变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 用户确认后是否能正确填写页面。
+- 是否明确没有自动提交。
+- fill 失败时是否能返回足够清晰的结构化错误。
+
+---
+
+## 36. Prompt 33
+
+### 目标
+
+完成单站点 MVP 可用性检查点。
+
+### Prompt
+
+请只完成“单站点 MVP 可用性检查点”这一步。
+
+要求：
+
+- 对照 `software-design-document.md`、`tech-stack.md`、`memory-bank/@architecture.md` 审计当前真实实现。
+- 明确记录单站点 MVP 已完成能力与仍延期能力。
+- 补充端到端验证，覆盖“提取 -> 规划 -> 预览 -> 确认 -> 填写”的最小真实链路。
+- 更新 `memory-bank/@architecture.md`，使其反映当前可用状态。
+- 不要在这一步顺手扩展第二个站点或做非 MVP 功能。
+
+完成后请执行并汇报以下验证：
+
+- 当前单站点 MVP 是否已达到“可提取、可规划、可预览、可确认、可填写”的可用标准。
+- 当前仓库结构、数据结构、消息边界是否仍与 memory bank 一致。
+- 延期事项是否继续被显式写出，而不是再次隐含省略。
+
+---
+
+## 37. Prompt 34
+
+### 目标
+
+接管单站点推荐质量，去掉 placeholder recommendation 依赖。
+
+### Prompt
+
+请先完整阅读以下文档，再开始执行：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/@game-design-document.md`
+- `software-design-document.md`
+- `tech-stack.md`
+
+现在请只完成“单站点推荐质量接管”这一步。
+
+要求：
+
+- 对照当前真实实现，审计 answer planning 是否仍然依赖 placeholder recommendation。
+- 将当前单站点 MVP 的 answer planning 从 placeholder recommendation 切换为真实 provider 输出。
+- 保持当前已落地交互：`Run answer planning` 后自动填写网页，side panel 只展示推荐结论与分析原因，不要恢复人工确认按钮。
+- provider 的 prompt 构造与返回解析必须继续留在 `llm/` 边界内，不要散落到 background、UI 或 adapter。
+- 不要在这一步扩展第二个站点，不要顺手重做 UI 流程。
+- 如有 provider 策略、prompt 边界、parser 边界或 answer plan 数据结构变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 当前单站点 planning 是否已经不再依赖 placeholder recommendation。
+- 真实 provider 输出是否能够生成与题目数一致的 answer plans。
+- 自动填写链路在接入真实 provider 后是否仍然可用。
+
+---
+
+## 38. Prompt 35
+
+### 目标
+
+为单站点 provider 输出补齐最小校验与失败保护。
+
+### Prompt
+
+请只完成“provider 输出校验与失败保护”这一步。
+
+要求：
+
+- 对当前单站点 provider 输出链路增加最小但明确的边界校验。
+- 至少校验：
+  - answer plan 数量与提取题目数一致；
+  - 每条 recommendation 的 option id 必须命中对应 question 的 options；
+  - rationale、confidence、provider 元数据满足既有 contract；
+  - provider 返回脏数据时不能静默吞掉。
+- 校验失败时必须写入结构化 diagnostics，并返回清晰的结构化错误。
+- 不要把这些校验塞进 UI 或 adapter；应保持在 provider parser、background orchestration、shared schema 的清晰边界内。
+- 不要在这一步扩展新功能面。
+- 如有 diagnostics、message contract、answer plan 结构或执行状态变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 脏输出是否会被明确拒绝，而不是继续写入 repository。
+- diagnostics 是否足够定位是 provider、parser、router 还是 persistence 边界出错。
+- 正常 provider 输出是否仍然能通过并继续自动填写流程。
+
+---
+
+## 39. Prompt 36
+
+### 目标
+
+补齐单站点本地 session history 的最小可用读取路径。
+
+### Prompt
+
+请只完成“本地 session history 最小读取路径”这一步。
+
+要求：
+
+- 对照 `memory-bank/@architecture.md`、`software-design-document.md`、`@game-design-document.md`，补齐当前 MVP 尚缺失的 local session history 最小能力。
+- 只实现最小读取与展示：
+  - 最近 session 列表或最近一次 session 摘要；
+  - session 的 site、时间、状态、题目数、recommendation 数等基础信息；
+  - 不要扩展为完整分析中心或复杂筛选系统。
+- session history 必须通过 repository + background message contract 暴露，不要让 UI 直接读 IndexedDB。
+- 当前可以放在 side panel 或 options debug/read-only 区域，但必须保持模块职责清晰。
+- 不要在这一步扩展多站点历史聚合或云同步。
+- 如有 session 读取 contract、展示边界或 repository 能力变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 本地 session history 是否可以稳定读取并展示。
+- UI 是否仍未越权直接访问数据库。
+- 当前展示是否保持“最小可用”，而没有长成新的 monolith 页面。
+
+---
+
+## 40. Prompt 37
+
+### 目标
+
+补齐 provider 使用与本地数据边界的用户可见说明。
+
+### Prompt
+
+请只完成“provider / 本地数据边界说明”这一步。
+
+要求：
+
+- 对照 `@game-design-document.md` 中关于“用户必须理解哪些数据留在本地、哪些可能发给 provider”的要求，审计当前 UI。
+- 在当前模块边界内补齐最小说明文案：
+  - 哪些数据默认保存在本地；
+  - 何时会调用 provider；
+  - 当前不会自动 submit；
+  - 当前支持范围仅限已锁定单站点 MVP。
+- 说明文案应进入 popup、side panel 或 options 的合适位置，但不要把多个说明区域堆成一个大组件文件。
+- 不要在这一步实现新的权限系统、云同步或复杂隐私中心。
+- 如有 UX 边界或设置项变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 用户是否能明确理解“本地保存 / provider 调用 / 不自动提交”这三件事。
+- 新说明是否保持轻量，没有引入新的业务编排逻辑。
+- 当前 UI 结构是否仍保持模块化拆分。
+
+---
+
+## 41. Prompt 38
+
+### 目标
+
+完成单站点 MVP 推荐质量检查点。
+
+### Prompt
+
+请只完成“单站点推荐质量检查点”这一步。
+
+要求：
+
+- 对照 `software-design-document.md`、`tech-stack.md`、`memory-bank/@architecture.md` 审计当前真实实现。
+- 明确记录哪些能力已经达到“质量可用”，哪些仍只是“流程可用”。
+- 验证重点放在：
+  - recommendation 是否来自真实 provider；
+  - side panel 是否稳定展示推荐结论与原因；
+  - `Run answer planning` 后是否仍能自动填写网页；
+  - provider 异常或脏输出是否被显式处理。
+- 更新 `memory-bank/@architecture.md`，使其反映当前真实状态。
+- 不要在这一步扩展第二站点或做非单站点功能。
+
+完成后请执行并汇报以下验证：
+
+- 当前单站点 recommendation 是否已脱离 placeholder。
+- 当前自动填写链路是否仍然可用且不自动 submit。
+- 延期事项是否继续被显式写出，而不是再次隐含省略。
+
+---
+
+## 42. Prompt 39
+
+### 目标
+
+补强单站点真实 provider 的浏览器侧验证闭环。
+
+### Prompt
+
+请只完成“真实 provider 浏览器侧验证补强”这一步。
+
+要求：
+
+- 对照当前 `single-site recommendation quality checkpoint` 的延期事项，只补强“浏览器侧真实 provider 验证”这一条。
+- 目标是让浏览器级验证尽可能覆盖：
+  - side panel 读取真实 provider 生成的 recommendation；
+  - side panel 展示 recommendation 结论与 rationale；
+  - `Run answer planning` 后继续自动填写网页；
+  - provider 异常时前端可见状态保持清晰。
+- 优先补强现有 Playwright / built-extension / test harness，不要重做整套测试系统。
+- 如果需要引入 provider mock、service worker 拦截、测试专用配置或 runtime 开关，必须保持边界清晰，不要把测试逻辑散落进产品主流程。
+- 不要在这一步扩展第二站点，不要顺手改业务交互。
+- 如有验证策略、测试边界或 runtime 配置边界变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 浏览器级验证是否已经能够覆盖真实 provider recommendation 的展示与自动填写。
+- 当前 harness 是否仍然保持模块化，而不是长成一套 monolith 测试脚本。
+- 之前在 architecture 中显式延期的 “live-browser OpenAI-backed rationale rendering” 是否已经被关闭或更新状态。
+
+---
+
+## 43. Prompt 40
+
+### 目标
+
+为单站点 recommendation 建立最小质量基线与回退策略。
+
+### Prompt
+
+请只完成“单站点 recommendation 质量基线与回退策略”这一步。
+
+要求：
+
+- 对照当前真实 provider 输出链路，为 recommendation 增加最小但明确的质量基线。
+- 质量基线至少覆盖：
+  - recommendation 不得空缺；
+  - rationale 不得退化为占位文案；
+  - confidence 必须满足当前 contract；
+  - provider 返回内容虽然结构合法但质量明显退化时，要有明确的回退或拒绝策略。
+- 回退策略必须明确区分：
+  - 可继续展示但应降级标记；
+  - 不应继续写入并自动填写；
+  - 应写入 diagnostics 并停止当前 planning。
+- 这些质量基线与回退逻辑应继续留在 `llm/`、background orchestration、shared contract 的清晰边界内，不要塞进 UI。
+- 不要在这一步扩展新的 provider，不要扩展新的站点。
+- 如有 diagnostics、answer plan contract 或 planning 状态变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- recommendation 质量退化时是否不会再被当作正常结果直接自动填写。
+- diagnostics 是否能区分“结构错误”和“质量退化但结构合法”。
+- 正常 recommendation 是否仍然能够通过并继续当前单站点自动填写流程。
+
+---
+
+## 44. Prompt 41
+
+### 目标
+
+补齐单站点 provider 设置的最小可用性收口。
+
+### Prompt
+
+请只完成“provider 设置最小可用性收口”这一步。
+
+要求：
+
+- 对照当前 options 中的 provider 相关设置，补齐最小可用性边界。
+- 至少处理：
+  - OpenAI API key 的本地保存与读取状态反馈；
+  - 缺失 key 时的清晰阻断与提示；
+  - provider 选择与当前默认策略的一致性；
+  - 不让 side panel/popup 产生误导性的“可以运行但其实一定失败”的状态。
+- 设置页仍然只承担配置与说明，不要把 provider 调用编排塞回 options UI。
+- 不要在这一步引入复杂账户系统、云密钥托管、权限中心或多 provider 管理台。
+- 保持模块化拆分，不要把设置、说明、调试、history 混成一个巨型 options 组件。
+- 如有设置项、错误提示边界或 UX 状态变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 缺失或无效 provider 配置时，用户是否能得到明确、轻量、可操作的提示。
+- 当前 provider 设置链路是否仍然保持本地优先和模块化边界。
+- options 页面是否仍保持最小可用结构，而没有膨胀成新的 monolith 页面。
+
+---
+
+## 45. Prompt 42
+
+### 目标
+
+补强 Truity 单站点 adapter 的抗页面漂移能力。
+
+### Prompt
+
+请只完成“Truity adapter 抗页面漂移补强”这一步。
+
+要求：
+
+- 仅针对当前锁定的 Truity Enneagram 站点，补强 adapter 对轻微 DOM 漂移的韧性。
+- 优先处理：
+  - question block / radio group 的多路径定位；
+  - 题干文本大小写、空白、轻微包装层变化；
+  - extraction 与 fill 共享的稳定标识策略；
+  - 失败时的 sanitized diagnostics。
+- 继续保持所有站点特定逻辑只存在于 Truity adapter 边界内，不要把 selector fallback 散到 content script 或 background。
+- 不要在这一步泛化为跨站 selector 框架。
+- 不要扩展第二站点。
+- 如有 adapter 策略或 diagnostics 边界变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- 轻微页面结构变化下，当前 Truity extraction / fill 是否仍能稳定工作。
+- 失败信息是否仍然足够定位在 adapter 边界，而不是把错误模糊化。
+- 当前实现是否仍然保持“单站点专用 adapter”，而没有开始泛化成多站点系统。
+
+---
+
+## 46. Prompt 43
+
+### 目标
+
+完成单站点 MVP 发布前检查点。
+
+### Prompt
+
+请只完成“单站点 MVP 发布前检查点”这一步。
+
+要求：
+
+- 对照 `software-design-document.md`、`tech-stack.md`、`memory-bank/@architecture.md` 审计当前真实实现，判断它是否已经达到“可交付给小范围真实用户试用”的标准。
+- 重点检查：
+  - 当前单站点范围是否仍然清晰锁定；
+  - provider 调用、本地数据边界、非自动 submit 是否仍然清晰；
+  - 提取、规划、side panel 展示、自动填写、错误处理是否形成稳定闭环；
+  - 当前剩余延期项是否仍然被显式写出。
+- 明确区分：
+  - 已达到试用发布标准的部分；
+  - 仍需在正式更广泛使用前补齐的部分。
+- 不要在这一步继续开发新功能；重点是审计、验证、记录和收口。
+- 更新 `memory-bank/@architecture.md`，使其反映当前是否达到“单站点试用发布”状态。
+
+完成后请执行并汇报以下验证：
+
+- 当前单站点 MVP 是否已达到“小范围试用发布”标准。
+- 当前延期事项是否仍然显式存在，而不是被检查点结论覆盖掉。
+- architecture 是否已经准确反映这一发布前状态，而不是保留过时描述。
+---
+
+## 47. Final Plan
+
+### 目标
+
+完成“单站点 MVP 最后一版收口计划”，目标是达到“小范围试用发布标准”。
+
+### 当前差距
+
+基于最近一次发布前检查点，距离“小范围试用发布标准”还差最后两类事项：
+
+- 把当前 committed 自动化发布门重新拉绿；
+- 处理 `software-design-document.md` 中 `manual confirmation before fill` 与当前 side panel 自动 fill UX 的分歧。
+
+后续提示词只围绕这两项收口工作展开，不再扩展第二站点，不再引入非 MVP 新能力。
+
+---
+
+## 48. Prompt 44
+
+### 目标
+
+修正单站点试用发布前的自动化发布门，使当前仓库重新满足绿色 release gate。
+
+### Prompt
+
+请先完整阅读以下文档，再开始执行：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/@game-design-document.md`
+- `software-design-document.md`
+- `tech-stack.md`
+
+现在请只完成“单站点试用发布前自动化发布门修正”这一步。
+
+要求：
+
+- 不开发新产品能力，只修正当前仓库中阻止试用发布检查点通过的自动化验证失配。
+- 重点对照当前真实 UI 文案、provider 设置状态反馈、side panel 行为，与现有 `tests/e2e/*`、必要的 unit test 断言保持一致。
+- 至少处理：
+  - options 页面 provider 保存后的状态提示断言与当前真实文案一致；
+  - popup / side panel / options 中与 provider readiness 相关的断言一致；
+  - 当前 built-extension e2e 对单站点 Truity 流程的关键闭环验证仍然保留：
+    - extract；
+    - answer planning；
+    - side panel recommendation preview；
+    - answer fill；
+    - provider failure visibility；
+    - degraded recommendation fill blocking。
+- 不要在这一步顺手重做整套测试体系。
+- 不要在这一步改变产品边界、站点范围或 provider 策略。
+- 如果测试策略、验证边界或 checkpoint 状态描述发生变化，请更新 `memory-bank/@architecture.md`。
+
+完成后请执行并汇报以下验证：
+
+- `pnpm test:unit` 是否通过；
+- `pnpm test:e2e` 是否通过；
+- 当前 release gate 失败是否只来自测试断言过时，而不是产品闭环本身不成立。
+
+---
+
+## 49. Prompt 45
+
+### 目标
+
+收口单站点 MVP 中“manual confirmation before fill”与当前自动填充 UX 的分歧，使试用发布标准与文档/实现重新一致。
+
+### Prompt
+
+请先完整阅读以下文档，再开始执行：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/@game-design-document.md`
+- `software-design-document.md`
+- `tech-stack.md`
+
+
+
+---
+
+## 50. Prompt 46
+
+### 目标
+
+完成单站点 MVP 的最终试用发布检查点，并确认仓库已达到“小范围试用发布标准”。
+
+### Prompt
+
+请先完整阅读以下文档，再开始执行：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/@game-design-document.md`
+- `software-design-document.md`
+- `tech-stack.md`
+
+现在请只完成“单站点 MVP 最终试用发布检查点”这一步。
+
+要求：
+
+- 不新增功能；重点是最终审计、验证、记录和收口。
+- 必须重新检查以下内容：
+  - 当前单站点范围是否仍然清晰锁定在 Truity Enneagram；
+  - provider 调用、本地数据边界、非自动 submit 是否仍然清晰；
+  - extract -> plan -> side panel 展示 -> fill -> error handling 是否形成稳定闭环；
+  - 当前剩余延期项是否仍然显式写出；
+  - 当前自动化发布门是否已经恢复为绿色；
+  - 当前预填充确认策略是否已经与文档和实现一致。
+- 明确区分：
+  - 已达到“小范围试用发布标准”的部分；
+  - 仍然属于正式更广泛使用前的延期项。
+- 更新 `memory-bank/@architecture.md`，把 `single-site MVP trial-release checkpoint` 的状态改成真实结论。
+
+完成后请执行并汇报以下验证：
+
+- 当前单站点 MVP 是否已达到“小范围试用发布标准”；
+- `pnpm test:unit` 与 `pnpm test:e2e` 是否均通过；
+- 当前延期事项是否仍然显式存在，而不是被最终通过结论覆盖掉；
+- architecture 是否已经准确反映最终试用发布状态。
