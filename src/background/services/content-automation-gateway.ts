@@ -1,7 +1,8 @@
 import type {
   AnswerFillApplyCommand,
   AppResult,
-  ContentAnswerFillSelection
+  ContentAnswerFillSelection,
+  QuestionExtractionRunCommand
 } from "../../shared/types";
 import { CONTENT_COMMAND_TYPES } from "../../shared/types";
 
@@ -19,6 +20,7 @@ export interface FillExecutionResult {
 
 export interface ContentAutomationGateway {
   applyAnswerFill(request: FillExecutionRequest): Promise<FillExecutionResult>;
+  runQuestionExtraction(request: { pageUrl: string; sessionId: string }): Promise<{ questionCount: number }>;
 }
 
 interface BrowserTab {
@@ -28,7 +30,7 @@ interface BrowserTab {
 
 interface BrowserTabsApi {
   query(queryInfo: Record<string, unknown>): Promise<BrowserTab[]>;
-  sendMessage(tabId: number, message: AnswerFillApplyCommand): Promise<AppResult>;
+  sendMessage(tabId: number, message: AnswerFillApplyCommand | QuestionExtractionRunCommand): Promise<AppResult>;
 }
 
 type GlobalWithChromeTabs = typeof globalThis & {
@@ -51,18 +53,22 @@ function resolveTabsApi(): BrowserTabsApi {
   return tabs;
 }
 
+function findTargetTab(tabs: BrowserTab[], pageUrl: string, sessionId: string) {
+  const targetTab = tabs.find((tab) => tab.url === pageUrl);
+
+  if (!targetTab?.id) {
+    throw createError(`Unable to find an open assessment tab for session: ${sessionId}`);
+  }
+
+  return targetTab;
+}
+
 export function createChromeContentAutomationGateway(
   tabsApi: BrowserTabsApi = resolveTabsApi()
 ): ContentAutomationGateway {
   return {
     async applyAnswerFill(request) {
-      const tabs = await tabsApi.query({});
-      const targetTab = tabs.find((tab) => tab.url === request.pageUrl);
-
-      if (!targetTab?.id) {
-        throw createError(`Unable to find an open assessment tab for session: ${request.sessionId}`);
-      }
-
+      const targetTab = findTargetTab(await tabsApi.query({}), request.pageUrl, request.sessionId);
       const result = await tabsApi.sendMessage(targetTab.id, {
         type: CONTENT_COMMAND_TYPES.answerFillApply,
         payload: {
@@ -82,6 +88,21 @@ export function createChromeContentAutomationGateway(
       return {
         siteId: request.siteId,
         filledCount: (result.data as { filledCount?: number }).filledCount ?? 0
+      };
+    },
+    async runQuestionExtraction(request) {
+      const targetTab = findTargetTab(await tabsApi.query({}), request.pageUrl, request.sessionId);
+      const result = await tabsApi.sendMessage(targetTab.id, {
+        type: CONTENT_COMMAND_TYPES.questionExtractionRun,
+        payload: {}
+      });
+
+      if (!result.ok) {
+        throw createError(result.error.message);
+      }
+
+      return {
+        questionCount: (result.data as { questionCount?: number }).questionCount ?? 0
       };
     }
   };

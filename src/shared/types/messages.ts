@@ -13,6 +13,7 @@ export const MESSAGE_TYPES = {
   recommendationPreviewFetch: "recommendationPreviewFetch",
   answerPlanReviewSave: "answerPlanReviewSave",
   answerFillRun: "answerFillRun",
+  contentExtractionRun: "contentExtractionRun",
   profileDraftSave: "profileDraftSave",
   settingsFetch: "settingsFetch",
   settingsUpdate: "settingsUpdate",
@@ -76,6 +77,13 @@ export type ContentQuestionExtractionFailedMessage = {
 export type SettingsFetchMessage = {
   type: typeof MESSAGE_TYPES.settingsFetch;
   payload: EmptyPayload;
+};
+
+export type ContentExtractionRunMessage = {
+  type: typeof MESSAGE_TYPES.contentExtractionRun;
+  payload: {
+    sessionId: string;
+  };
 };
 
 export type AnswerPlanningRunMessage = {
@@ -157,6 +165,7 @@ export type AppMessage =
   | RecommendationPreviewFetchMessage
   | AnswerPlanReviewSaveMessage
   | AnswerFillRunMessage
+  | ContentExtractionRunMessage
   | ProfileDraftSaveMessage
   | SettingsFetchMessage
   | SettingsUpdateMessage
@@ -177,6 +186,8 @@ export type SessionHistoryFetchResult = SessionHistoryEntry[];
 
 export const CONTENT_COMMAND_TYPES = {
   answerFillApply: "answerFillApply"
+  ,
+  questionExtractionRun: "questionExtractionRun"
 } as const;
 
 export type ContentCommandType = (typeof CONTENT_COMMAND_TYPES)[keyof typeof CONTENT_COMMAND_TYPES];
@@ -197,7 +208,12 @@ export type AnswerFillApplyCommand = {
   };
 };
 
-export type ContentCommand = AnswerFillApplyCommand;
+export type QuestionExtractionRunCommand = {
+  type: typeof CONTENT_COMMAND_TYPES.questionExtractionRun;
+  payload: Record<string, never>;
+};
+
+export type ContentCommand = AnswerFillApplyCommand | QuestionExtractionRunCommand;
 
 export type AppResultSuccess<TData = unknown> = {
   ok: true;

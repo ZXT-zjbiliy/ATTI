@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   answerPlanningRunMessageSchema,
   answerFillRunMessageSchema,
+  contentExtractionRunMessageSchema,
   answerPlanReviewSaveMessageSchema,
   contentQuestionExtractionFailedMessageSchema,
   contentQuestionsExtractedMessageSchema,
@@ -22,6 +23,7 @@ import { MESSAGE_TYPES } from "../shared/types";
 import { handleContentMetadataReportMessage } from "./handlers/content-metadata-handler";
 import { handleAnswerPlanningRunMessage } from "./handlers/answer-planning-handler";
 import { handleAnswerFillRunMessage } from "./handlers/answer-fill-handler";
+import { handleContentExtractionRunMessage } from "./handlers/content-extraction-handler";
 import {
   handleAnswerPlanReviewSaveMessage,
   handleRecommendationPreviewFetchMessage
@@ -67,6 +69,7 @@ const supportedMessageSchemas = {
   [MESSAGE_TYPES.contentQuestionExtractionFailed]: contentQuestionExtractionFailedMessageSchema,
   [MESSAGE_TYPES.answerPlanningRun]: answerPlanningRunMessageSchema,
   [MESSAGE_TYPES.answerFillRun]: answerFillRunMessageSchema,
+  [MESSAGE_TYPES.contentExtractionRun]: contentExtractionRunMessageSchema,
   [MESSAGE_TYPES.recommendationPreviewFetch]: recommendationPreviewFetchMessageSchema,
   [MESSAGE_TYPES.answerPlanReviewSave]: answerPlanReviewSaveMessageSchema,
   [MESSAGE_TYPES.profileDraftSave]: profileDraftSaveMessageSchema,
@@ -95,6 +98,8 @@ const supportedMessageHandlers: Record<
     handleAnswerPlanningRunMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.answerFillRun]:
     handleAnswerFillRunMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
+  [MESSAGE_TYPES.contentExtractionRun]:
+    handleContentExtractionRunMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.recommendationPreviewFetch]:
     handleRecommendationPreviewFetchMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.answerPlanReviewSave]:

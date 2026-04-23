@@ -402,4 +402,66 @@ describe("content runtime", () => {
       }
     });
   });
+
+  it("supports an explicit re-extraction command for multi-page assessments", async () => {
+    const sendMessage = vi.fn(async (message: { type: string }) => ({
+      ok: true as const,
+      data: { received: message.type }
+    }));
+    let listener:
+      | ((message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void)
+      | undefined;
+    const runtime = {
+      onMessage: {
+        addListener(nextListener: typeof listener) {
+          listener = nextListener;
+        }
+      }
+    };
+    const dependencies = {
+      document: {
+        title: "Enneagram Personality Test | Truity",
+        readyState: "complete",
+        body: {
+          innerHTML: truityEnneagramFixture
+        }
+      },
+      location: {
+        href: "https://www.truity.com/test/enneagram-personality-test"
+      },
+      window: {} as { self: unknown; top: unknown },
+      sendMessage,
+      runtime
+    };
+
+    dependencies.window.self = dependencies.window;
+    dependencies.window.top = dependencies.window;
+
+    await expect(startContentRuntime(dependencies)).resolves.toBeUndefined();
+
+    const response = await new Promise<unknown>((resolve) => {
+      listener?.(
+        {
+          type: "questionExtractionRun",
+          payload: {}
+        },
+        {},
+        resolve
+      );
+    });
+
+    expect(sendMessage).toHaveBeenLastCalledWith({
+      type: MESSAGE_TYPES.contentQuestionsExtracted,
+      payload: expect.objectContaining({
+        siteId: "truity-enneagram"
+      })
+    });
+    expect(response).toEqual({
+      ok: true,
+      data: {
+        questionCount: 2,
+        siteId: "truity-enneagram"
+      }
+    });
+  });
 });

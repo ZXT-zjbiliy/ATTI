@@ -9,6 +9,7 @@ export type { AdapterDiagnostics, AdapterDiagnosticsPayload } from "./adapter-di
 export type {
   AnswerPlanningRunMessage,
   AnswerFillRunMessage,
+  ContentExtractionRunMessage,
   AnswerPlanReviewSaveMessage,
   AppMessage,
   AppResult,
@@ -41,6 +42,7 @@ export {
 } from "./messages";
 export type {
   AnswerFillApplyCommand,
+  QuestionExtractionRunCommand,
   ContentAnswerFillSelection,
   ContentCommand,
   ContentCommandType

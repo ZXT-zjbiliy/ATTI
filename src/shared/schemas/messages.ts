@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { AppMessage, AppResult, AnswerFillApplyCommand } from "../types";
+import type { AppMessage, AppResult, AnswerFillApplyCommand, QuestionExtractionRunCommand } from "../types";
 import { CONTENT_COMMAND_TYPES, MESSAGE_TYPES } from "../types";
 import { answerPlanReviewStatusSchema } from "./answer-plan";
 import { adapterDiagnosticsPayloadSchema } from "./adapter-diagnostics";
@@ -65,6 +65,10 @@ export const answerPlanReviewSavePayloadSchema = z.object({
 });
 
 export const answerFillRunPayloadSchema = z.object({
+  sessionId: nonEmptyStringSchema
+});
+
+export const contentExtractionRunPayloadSchema = z.object({
   sessionId: nonEmptyStringSchema
 });
 
@@ -142,6 +146,11 @@ export const answerFillRunMessageSchema = z.object({
   payload: answerFillRunPayloadSchema
 });
 
+export const contentExtractionRunMessageSchema = z.object({
+  type: z.literal(MESSAGE_TYPES.contentExtractionRun),
+  payload: contentExtractionRunPayloadSchema
+});
+
 export const answerFillApplyCommandSchema = z.object({
   type: z.literal(CONTENT_COMMAND_TYPES.answerFillApply),
   payload: z.object({
@@ -150,6 +159,11 @@ export const answerFillApplyCommandSchema = z.object({
     selections: z.array(contentAnswerFillSelectionSchema)
   })
 }) satisfies z.ZodType<AnswerFillApplyCommand>;
+
+export const questionExtractionRunCommandSchema = z.object({
+  type: z.literal(CONTENT_COMMAND_TYPES.questionExtractionRun),
+  payload: z.object({}).strict()
+}) satisfies z.ZodType<QuestionExtractionRunCommand>;
 
 export const settingsUpdateMessageSchema = z.object({
   type: z.literal(MESSAGE_TYPES.settingsUpdate),
@@ -186,6 +200,7 @@ export const appMessageSchema = z.discriminatedUnion("type", [
   recommendationPreviewFetchMessageSchema,
   answerPlanReviewSaveMessageSchema,
   answerFillRunMessageSchema,
+  contentExtractionRunMessageSchema,
   settingsFetchMessageSchema,
   settingsUpdateMessageSchema,
   sessionFetchMessageSchema,

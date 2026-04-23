@@ -3,6 +3,7 @@ import type {
   AppResult,
   AnswerPlanningRunMessage,
   AnswerFillRunMessage,
+  ContentExtractionRunMessage,
   AnswerPlanReviewSaveMessage,
   ContentQuestionExtractionFailedMessage,
   ContentQuestionsExtractedMessage,
@@ -32,6 +33,7 @@ export type SupportedBackgroundMessage =
   | ContentQuestionExtractionFailedMessage
   | AnswerPlanningRunMessage
   | AnswerFillRunMessage
+  | ContentExtractionRunMessage
   | RecommendationPreviewFetchMessage
   | AnswerPlanReviewSaveMessage
   | ProfileDraftSaveMessage

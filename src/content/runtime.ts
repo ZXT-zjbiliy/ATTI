@@ -1,4 +1,5 @@
 import type { AppResult } from "../shared/types";
+import { CONTENT_COMMAND_TYPES } from "../shared/types";
 import { applyAnswerFillCommand, isSupportedContentCommand } from "./answer-fill";
 import { collectContentPageMetadata } from "./page-metadata";
 import { adapterRegistry } from "../adapters";
@@ -6,7 +7,7 @@ import {
   reportExtractedQuestions,
   reportQuestionExtractionFailure,
   reportContentPageMetadata,
-  type ContentRuntimeMessageSender,
+  type ContentRuntimeMessageSender
 } from "./content-message-client";
 import { extractQuestionsFromSupportedPage } from "./question-extraction";
 
@@ -63,7 +64,8 @@ async function resolveExtractionResult(
   page: ReturnType<typeof collectContentPageMetadata>
 ) {
   const maxAttempts = 5;
-  const wait = dependencies.wait ??
+  const wait =
+    dependencies.wait ??
     ((ms: number) =>
       new Promise<void>((resolve) => {
         globalThis.setTimeout(resolve, ms);
@@ -96,12 +98,87 @@ async function resolveExtractionResult(
   };
 }
 
+async function runQuestionExtraction(
+  dependencies: ContentRuntimeDependencies,
+  sendMessage: ContentRuntimeMessageSender | undefined
+) {
+  const page = collectContentPageMetadata(dependencies.document, dependencies.location, dependencies.window);
+  const metadataResult = await reportContentPageMetadata(page, sendMessage);
+
+  if (!metadataResult.ok) {
+    throw new Error(metadataResult.error.message);
+  }
+
+  const extractionResult = await resolveExtractionResult(dependencies, page);
+
+  if (extractionResult.kind === "extracted") {
+    const extractionMessageResult = await reportExtractedQuestions(
+      {
+        siteId: extractionResult.siteId,
+        page,
+        questions: extractionResult.questions
+      },
+      sendMessage
+    );
+
+    if (!extractionMessageResult.ok) {
+      throw new Error(extractionMessageResult.error.message);
+    }
+
+    return {
+      ok: true as const,
+      data: {
+        questionCount: extractionResult.questions.length,
+        siteId: extractionResult.siteId
+      }
+    };
+  }
+
+  if (extractionResult.kind === "failed") {
+    const failureResult = await reportQuestionExtractionFailure(
+      {
+        siteId: extractionResult.siteId,
+        page,
+        phase: extractionResult.phase,
+        message: extractionResult.message,
+        payload: extractionResult.payload
+      },
+      sendMessage
+    );
+
+    if (!failureResult.ok) {
+      throw new Error(failureResult.error.message);
+    }
+
+    return {
+      ok: false as const,
+      error: {
+        code: "QUESTION_EXTRACTION_FAILED",
+        message: extractionResult.message
+      }
+    };
+  }
+
+  return {
+    ok: false as const,
+    error: {
+      code: "NO_SUPPORTED_ASSESSMENT_PAGE",
+      message: "Current page is not a supported assessment page."
+    }
+  };
+}
+
 export async function startContentRuntime(
-  dependencies: ContentRuntimeDependencies = resolveDefaultDependencies(),
+  dependencies: ContentRuntimeDependencies = resolveDefaultDependencies()
 ): Promise<void> {
   dependencies.runtime?.onMessage?.addListener((message, _sender, sendResponse) => {
     if (!isSupportedContentCommand(message)) {
       return undefined;
+    }
+
+    if (message.type === CONTENT_COMMAND_TYPES.questionExtractionRun) {
+      void runQuestionExtraction(dependencies, dependencies.sendMessage).then(sendResponse);
+      return true;
     }
 
     sendResponse(
@@ -114,50 +191,13 @@ export async function startContentRuntime(
     return true;
   });
 
-  const page = collectContentPageMetadata(
-    dependencies.document,
-    dependencies.location,
-    dependencies.window,
-  );
-  const result = await reportContentPageMetadata(page, dependencies.sendMessage);
+  const result = await runQuestionExtraction(dependencies, dependencies.sendMessage);
 
-  if (result.ok) {
-    const extractionResult = await resolveExtractionResult(dependencies, page);
-
-    if (extractionResult.kind === "extracted") {
-      const extractionMessageResult = await reportExtractedQuestions(
-        {
-          siteId: extractionResult.siteId,
-          page,
-          questions: extractionResult.questions
-        },
-        dependencies.sendMessage
-      );
-
-      if (!extractionMessageResult.ok) {
-        throw new Error(extractionMessageResult.error.message);
-      }
-    }
-
-    if (extractionResult.kind === "failed") {
-      const failureResult = await reportQuestionExtractionFailure(
-        {
-          siteId: extractionResult.siteId,
-          page,
-          phase: extractionResult.phase,
-          message: extractionResult.message,
-          payload: extractionResult.payload
-        },
-        dependencies.sendMessage
-      );
-
-      if (!failureResult.ok) {
-        throw new Error(failureResult.error.message);
-      }
-    }
-  }
-
-  if (!result.ok) {
+  if (
+    !result.ok &&
+    result.error.code !== "NO_SUPPORTED_ASSESSMENT_PAGE" &&
+    result.error.code !== "QUESTION_EXTRACTION_FAILED"
+  ) {
     throw new Error(result.error.message);
   }
 

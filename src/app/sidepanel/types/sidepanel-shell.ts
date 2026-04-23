@@ -69,9 +69,11 @@ export interface SidePanelShellModel {
   readonly sessionProgress: SessionProgressState | null;
   readonly recommendationPreviewStatus: RecommendationPreviewState;
   readonly isRunAnswerPlanningDisabled: boolean;
+  readonly isReextractDisabled: boolean;
   setProfileDraftNarrativeSummary: (narrativeSummary: string) => void;
   setProfileDraftEvidenceText: (evidenceText: string) => void;
   runAnswerPlanning: () => Promise<void>;
+  rerunQuestionExtraction: () => Promise<void>;
   refreshRecommendationPreview: () => Promise<void>;
   saveProfileDraft: () => Promise<void>;
 }

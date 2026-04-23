@@ -2,24 +2,26 @@ import type {
   AnswerFillRunMessage,
   AnswerFillRunResult,
   AnswerPlanningRunMessage,
+  ContentExtractionRunMessage,
   AppResult
 } from "../../../shared/types";
 import { MESSAGE_TYPES } from "../../../shared/types";
 
 export type AssessmentSessionMessageSender = (
-  message: AnswerPlanningRunMessage | AnswerFillRunMessage,
+  message: AnswerPlanningRunMessage | AnswerFillRunMessage | ContentExtractionRunMessage,
 ) => Promise<AppResult> | AppResult;
 
 export interface AssessmentSessionClient {
   runAnswerPlanning: (sessionId: string) => Promise<{ answerPlanCount: number }>;
   applyReviewedAnswers: (sessionId: string) => Promise<AnswerFillRunResult>;
+  rerunQuestionExtraction: (sessionId: string) => Promise<{ questionCount: number }>;
 }
 
 type RuntimeWithMessaging = typeof globalThis & {
   chrome?: {
     runtime?: {
       sendMessage?: (
-        message: AnswerPlanningRunMessage | AnswerFillRunMessage,
+        message: AnswerPlanningRunMessage | AnswerFillRunMessage | ContentExtractionRunMessage,
       ) => Promise<AppResult> | AppResult;
     };
   };
@@ -61,6 +63,16 @@ export function createAssessmentSessionClient(
       return unwrapResult<AnswerFillRunResult>(
         await sendMessage({
           type: MESSAGE_TYPES.answerFillRun,
+          payload: {
+            sessionId
+          }
+        })
+      );
+    },
+    async rerunQuestionExtraction(sessionId) {
+      return unwrapResult<{ questionCount: number }>(
+        await sendMessage({
+          type: MESSAGE_TYPES.contentExtractionRun,
           payload: {
             sessionId
           }

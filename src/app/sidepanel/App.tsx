@@ -32,8 +32,12 @@ export function SidePanelView({ model }: SidePanelViewProps) {
               state={model.profilePanel}
             />
             <PageDetectionStatusCard
+              isReextractDisabled={model.isReextractDisabled}
               onRefresh={() => {
                 void model.refreshRecommendationPreview();
+              }}
+              onReextract={() => {
+                void model.rerunQuestionExtraction();
               }}
               state={model.pageDetectionStatus}
             />

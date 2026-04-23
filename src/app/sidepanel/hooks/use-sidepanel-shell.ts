@@ -336,6 +336,7 @@ export function useSidePanelShell(
     isRunAnswerPlanningDisabled:
       latestSession == null ||
       (settings != null && getProviderConfigurationState(settings).isReady === false),
+    isReextractDisabled: latestSession == null,
     setProfileDraftNarrativeSummary(narrativeSummary) {
       setDraftNarrativeSummary(narrativeSummary);
     },
@@ -386,6 +387,26 @@ export function useSidePanelShell(
         setSessionStatus({
           kind: "error",
           message: error instanceof Error ? error.message : "无法执行 AI 规划。"
+        });
+      }
+    },
+    async rerunQuestionExtraction() {
+      if (!latestSession) {
+        setPageDetectionStatus({
+          kind: "error",
+          message: "当前没有可重新提取的活动会话。"
+        });
+        return;
+      }
+
+      try {
+        setPlanningRequestState("idle");
+        await stableAssessmentSessionClient.rerunQuestionExtraction(latestSession.id);
+        await refreshRecommendationPreview(settings);
+      } catch (error) {
+        setPageDetectionStatus({
+          kind: "error",
+          message: error instanceof Error ? error.message : "无法重新提取当前页题目。"
         });
       }
     },

@@ -23,6 +23,7 @@ describe("side panel shell", () => {
 
     expect(markup).toContain("ATTI AI");
     expect(markup).toContain("页面识别");
+    expect(markup).toContain("重新提取题目");
     expect(markup).toContain("执行会话");
     expect(markup).toContain("AI 推荐预览");
     expect(markup).toContain("请先创建一份最小可用的本地画像草稿。");

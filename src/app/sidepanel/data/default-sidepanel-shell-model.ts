@@ -24,9 +24,11 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
     message: "开始 AI 规划后，这里会出现推荐预览。"
   },
   isRunAnswerPlanningDisabled: true,
+  isReextractDisabled: true,
   setProfileDraftNarrativeSummary: () => undefined,
   setProfileDraftEvidenceText: () => undefined,
   runAnswerPlanning: async () => undefined,
+  rerunQuestionExtraction: async () => undefined,
   refreshRecommendationPreview: async () => undefined,
   saveProfileDraft: async () => undefined
 };

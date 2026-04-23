@@ -4,7 +4,7 @@ import type {
   AnswerFillSelection
 } from "../adapters/base/site-adapter";
 import { adapterRegistry, type AdapterRegistry } from "../adapters/registry/adapter-registry";
-import { answerFillApplyCommandSchema } from "../shared/schemas";
+import { answerFillApplyCommandSchema, questionExtractionRunCommandSchema } from "../shared/schemas";
 import type { AnswerFillApplyCommand, AppResult, ContentCommand } from "../shared/types";
 import { CONTENT_COMMAND_TYPES } from "../shared/types";
 
@@ -89,5 +89,8 @@ export function applyAnswerFillCommand(
 }
 
 export function isSupportedContentCommand(message: unknown): message is ContentCommand {
-  return answerFillApplyCommandSchema.safeParse(message).success;
+  return (
+    answerFillApplyCommandSchema.safeParse(message).success ||
+    questionExtractionRunCommandSchema.safeParse(message).success
+  );
 }
