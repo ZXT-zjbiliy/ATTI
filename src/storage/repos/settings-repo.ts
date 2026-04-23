@@ -8,6 +8,9 @@ export const defaultSettings: Settings = {
   debugMode: false,
   activeProvider: "openai",
   openAiApiKey: null,
+  providerApiKey: null,
+  providerBaseUrl: null,
+  providerModel: null,
   approvedDomains: [],
   lastActiveProfileId: null,
   featureFlags: {}
@@ -32,6 +35,36 @@ function cloneSettings(settings: Settings): Settings {
     approvedDomains: [...settings.approvedDomains],
     featureFlags: { ...settings.featureFlags }
   };
+}
+
+function trimToNull(value: string | null): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  return trimmedValue.length > 0 ? trimmedValue : null;
+}
+
+function normalizeProviderBaseUrl(providerBaseUrl: string | null): string | null {
+  const trimmedProviderBaseUrl = trimToNull(providerBaseUrl);
+
+  if (!trimmedProviderBaseUrl) {
+    return null;
+  }
+
+  try {
+    const normalizedUrl = new URL(trimmedProviderBaseUrl);
+
+    if (normalizedUrl.pathname === "/" || normalizedUrl.pathname.length === 0) {
+      normalizedUrl.pathname = "/v1/chat/completions";
+    }
+
+    return normalizedUrl.toString();
+  } catch {
+    return trimmedProviderBaseUrl;
+  }
 }
 
 function resolveSettingsStorageArea(): SettingsStorageArea {
@@ -59,7 +92,14 @@ export class SettingsRepository {
   }
 
   async saveSettings(settings: Settings): Promise<Settings> {
-    const validatedSettings = settingsSchema.parse(settings);
+    const normalizedSettings: Settings = {
+      ...settings,
+      openAiApiKey: trimToNull(settings.openAiApiKey),
+      providerApiKey: trimToNull(settings.providerApiKey),
+      providerBaseUrl: normalizeProviderBaseUrl(settings.providerBaseUrl),
+      providerModel: trimToNull(settings.providerModel)
+    };
+    const validatedSettings = settingsSchema.parse(normalizedSettings);
 
     await Promise.resolve(
       this.storageArea.set({

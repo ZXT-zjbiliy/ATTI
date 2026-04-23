@@ -102,7 +102,10 @@ export const handleAnswerPlanningRunMessage: BackgroundMessageHandler<
   try {
     const provider = context.assessmentProviderResolver.resolve({
       activeProvider: settings.activeProvider,
-      openAiApiKey: settings.openAiApiKey
+      openAiApiKey: settings.openAiApiKey,
+      providerApiKey: settings.providerApiKey,
+      providerBaseUrl: settings.providerBaseUrl,
+      providerModel: settings.providerModel
     });
     const runner = createAssessmentProviderRunner(provider);
     const planningResult = await runner.planAnswers(session.id, questions, profile);

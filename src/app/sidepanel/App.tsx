@@ -31,8 +31,14 @@ export function SidePanelView({ model }: SidePanelViewProps) {
               }}
               state={model.profilePanel}
             />
-            <PageDetectionStatusCard state={model.pageDetectionStatus} />
+            <PageDetectionStatusCard
+              onRefresh={() => {
+                void model.refreshRecommendationPreview();
+              }}
+              state={model.pageDetectionStatus}
+            />
             <SessionStatusCard
+              progress={model.sessionProgress}
               isRunAnswerPlanningDisabled={model.isRunAnswerPlanningDisabled}
               onRunAnswerPlanning={() => {
                 void model.runAnswerPlanning();

@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { parseOpenAiAnswerPlanningResponse } from "../../src/llm/parsers/openai-answer-planning-parser";
+import { buildOpenAiAnswerPlanningPrompt } from "../../src/llm/prompts/openai-answer-planning-prompt";
 import { createAssessmentProviderRunner } from "../../src/llm/providers/assessment-provider-runner";
 import { fakeAssessmentProvider } from "../../src/llm/providers/fake-assessment-provider";
 import { createOpenAiAssessmentProvider } from "../../src/llm/providers/openai-assessment-provider";
@@ -278,5 +280,57 @@ describe("provider boundaries", () => {
       expect(content).not.toContain("/background/");
       expect(content).not.toContain("/adapters/");
     }
+  });
+
+  it("keeps answer-planning prompts scoped to normalized questions instead of site DOM context", () => {
+    const prompt = buildOpenAiAnswerPlanningPrompt({
+      sessionId: "session-1",
+      profile: sampleProfile,
+      questions: [sampleQuestion]
+    });
+
+    expect(prompt).toContain("How do you approach teamwork?");
+    expect(prompt).toContain("Collaborative");
+    expect(prompt).not.toContain(sampleQuestion.siteId);
+    expect(prompt).not.toContain(sampleQuestion.pageUrl);
+    expect(prompt).not.toContain("selector");
+    expect(prompt).not.toContain("querySelector");
+    expect(prompt).not.toContain("document.");
+  });
+
+  it("keeps answer-planning parsing focused on normalized recommendation output only", () => {
+    const result = parseOpenAiAnswerPlanningResponse({
+      rawText: JSON.stringify({
+        answerPlans: [
+          {
+            questionId: "question-1",
+            recommendedOptionIds: ["option-1"],
+            confidence: 0.74,
+            rationale: "  Prefers collaborative work based on profile evidence.  ",
+            requiresConfirmation: false
+          }
+        ]
+      }),
+      providerId: "openai-assessment-provider",
+      promptVersion: "openai-v1",
+      questions: [sampleQuestion],
+      sessionId: "session-1"
+    });
+    const parserContent = readFileSync(
+      resolve(process.cwd(), "src/llm/parsers/openai-answer-planning-parser.ts"),
+      "utf8"
+    );
+
+    expect(result.answerPlans[0]).toMatchObject({
+      questionId: "question-1",
+      recommendedOptionIds: ["option-1"],
+      rationale: "Prefers collaborative work based on profile evidence."
+    });
+    expect(parserContent).not.toContain("truity");
+    expect(parserContent).not.toContain("sixteen-personalities");
+    expect(parserContent).not.toContain("querySelector");
+    expect(parserContent).not.toContain("document.");
+    expect(parserContent).not.toContain("siteId");
+    expect(parserContent).not.toContain("pageUrl");
   });
 });

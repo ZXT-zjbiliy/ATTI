@@ -91,4 +91,73 @@ describe("options debug client", () => {
     expect(sessionClient.fetchLatestSession).toHaveBeenCalledTimes(1);
     expect(sessionClient.fetchRecentSessionHistory).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps site origin visible in recent session history across multiple supported test websites", async () => {
+    const sessionClient: SessionDebugClient = {
+      fetchLatestSession: vi.fn(async () => ({
+        id: "session-16p",
+        siteId: "sixteen-personalities",
+        pageUrl: "https://www.16personalities.com/free-personality-test",
+        status: "answer-planning-complete",
+        profileId: "profile-1",
+        questionIds: [],
+        answerPlanIds: ["plan-1"],
+        executionLog: [],
+        startedAt: "2025-01-02T00:00:00.000Z"
+      })),
+      fetchRecentSessionHistory: vi.fn(async () => [
+        {
+          id: "session-16p",
+          siteId: "sixteen-personalities",
+          status: "answer-planning-complete",
+          pageUrl: "https://www.16personalities.com/free-personality-test",
+          startedAt: "2025-01-02T00:00:00.000Z",
+          questionCount: 0,
+          recommendationCount: 1
+        },
+        {
+          id: "session-truity",
+          siteId: "truity-enneagram",
+          status: "questions-extracted",
+          pageUrl: "https://www.truity.com/test/enneagram-personality-test",
+          startedAt: "2025-01-01T00:00:00.000Z",
+          questionCount: 2,
+          recommendationCount: 0
+        }
+      ])
+    };
+    const client = createOptionsDebugClient(
+      {
+        fetchSettings: vi.fn(async () => ({
+          extensionEnabled: true,
+          debugMode: true,
+          activeProvider: "local",
+          openAiApiKey: null,
+          approvedDomains: [],
+          lastActiveProfileId: "profile-1",
+          featureFlags: {}
+        })),
+        updateSettings: vi.fn(async () => {
+          throw new Error("debug client must stay read-only");
+        })
+      },
+      {
+        fetchActiveProfile: vi.fn(async () => null),
+        saveProfileDraft: vi.fn(async () => {
+          throw new Error("debug client must stay read-only");
+        })
+      },
+      sessionClient
+    );
+
+    const snapshot = await client.fetchDebugSnapshot();
+
+    expect(snapshot.lastSessionSummary).toBe(
+      "sixteen-personalities / answer-planning-complete / 2025-01-02T00:00:00.000Z"
+    );
+    expect(snapshot.recentSessionHistory.map((entry) => entry.siteId)).toEqual([
+      "sixteen-personalities",
+      "truity-enneagram"
+    ]);
+  });
 });

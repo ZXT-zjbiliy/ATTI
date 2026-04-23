@@ -33,6 +33,14 @@ export interface RecommendationPreviewEntryState extends RecommendationPreviewIt
   readonly recommendedOptionLabels: string[];
 }
 
+export interface SessionProgressState {
+  readonly completedCount: number;
+  readonly totalCount: number;
+  readonly label: string;
+  readonly requestIcon: string;
+  readonly requestLabel: string;
+}
+
 export type RecommendationPreviewState =
   | {
       kind: "loading";
@@ -58,6 +66,7 @@ export interface SidePanelShellModel {
   readonly profilePanel: SidePanelProfilePanelState;
   readonly pageDetectionStatus: SidePanelSectionState;
   readonly sessionStatus: SidePanelSectionState;
+  readonly sessionProgress: SessionProgressState | null;
   readonly recommendationPreviewStatus: RecommendationPreviewState;
   readonly isRunAnswerPlanningDisabled: boolean;
   setProfileDraftNarrativeSummary: (narrativeSummary: string) => void;

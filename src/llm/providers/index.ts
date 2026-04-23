@@ -7,6 +7,7 @@ export type {
 export type { AssessmentProviderResolver } from "./assessment-provider-resolver";
 export { createAssessmentProviderResolver } from "./assessment-provider-resolver";
 export { createAssessmentProviderRunner } from "./assessment-provider-runner";
+export { createCompatibleChatAssessmentProvider } from "./compatible-chat-assessment-provider";
 export { fakeAssessmentProvider } from "./fake-assessment-provider";
 export { createOpenAiAssessmentProvider } from "./openai-assessment-provider";
 export { ProviderExecutionError } from "./provider-error";

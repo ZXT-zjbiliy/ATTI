@@ -12,15 +12,16 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
   },
   pageDetectionStatus: {
     kind: "loading",
-    message: "正在等待可识别的测评页面。",
+    message: "正在等待可识别的测评页面。"
   },
   sessionStatus: {
     kind: "empty",
-    message: "当前还没有可用的活动会话。",
+    message: "当前还没有可用的活动会话。"
   },
+  sessionProgress: null,
   recommendationPreviewStatus: {
     kind: "empty",
-    message: "开始 AI 规划后，这里会出现推荐预览。",
+    message: "开始 AI 规划后，这里会出现推荐预览。"
   },
   isRunAnswerPlanningDisabled: true,
   setProfileDraftNarrativeSummary: () => undefined,

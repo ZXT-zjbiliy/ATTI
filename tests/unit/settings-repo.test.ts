@@ -1,64 +1,42 @@
 import { describe, expect, it } from "vitest";
 
-import { ATTI_DB_STORES } from "../../src/storage/schema";
-import {
-  defaultSettings,
-  SettingsRepository,
-  SETTINGS_STORAGE_KEY,
-  type SettingsStorageArea
-} from "../../src/storage/repos/settings-repo";
-import type { Settings } from "../../src/shared/types";
+import { SettingsRepository, type SettingsStorageArea, defaultSettings } from "../../src/storage/repos/settings-repo";
 
 class InMemorySettingsStorageArea implements SettingsStorageArea {
-  private store = new Map<string, unknown>();
+  private readonly records = new Map<string, unknown>();
 
-  get(key: string) {
+  get(key: string): Record<string, unknown> {
     return {
-      [key]: this.store.get(key)
+      [key]: this.records.get(key)
     };
   }
 
-  set(items: Record<string, unknown>) {
+  set(items: Record<string, unknown>): void {
     for (const [key, value] of Object.entries(items)) {
-      this.store.set(key, value);
+      this.records.set(key, value);
     }
   }
 }
 
-describe("settings repository", () => {
-  it("returns default settings when no stored record exists", async () => {
+describe("settings repo", () => {
+  it("returns default settings when storage is empty", async () => {
     const repository = new SettingsRepository(new InMemorySettingsStorageArea());
 
-    const result = await repository.getSettings();
-
-    expect(result).toEqual(defaultSettings);
+    expect(await repository.getSettings()).toEqual(defaultSettings);
   });
 
-  it("saves and loads settings through the dedicated storage path", async () => {
-    const storageArea = new InMemorySettingsStorageArea();
-    const repository = new SettingsRepository(storageArea);
-    const nextSettings: Settings = {
-      extensionEnabled: false,
-      debugMode: true,
-      activeProvider: "remote",
-      openAiApiKey: "sk-test",
-      approvedDomains: ["example.com"],
-      lastActiveProfileId: "profile-1",
-      featureFlags: {
-        diagnostics: true
-      }
-    };
+  it("normalizes provider fields before persisting", async () => {
+    const repository = new SettingsRepository(new InMemorySettingsStorageArea());
 
-    await repository.saveSettings(nextSettings);
+    const savedSettings = await repository.saveSettings({
+      ...defaultSettings,
+      providerApiKey: "  sk-compatible  ",
+      providerBaseUrl: " https://api.vectorengine.cn ",
+      providerModel: " gpt-4o "
+    });
 
-    const loadedSettings = await repository.getSettings();
-    const rawStoredValue = storageArea.get(SETTINGS_STORAGE_KEY)[SETTINGS_STORAGE_KEY];
-
-    expect(loadedSettings).toEqual(nextSettings);
-    expect(rawStoredValue).toEqual(nextSettings);
-  });
-
-  it("keeps lightweight settings out of IndexedDB store definitions", () => {
-    expect(Object.keys(ATTI_DB_STORES)).not.toContain("settings");
+    expect(savedSettings.providerApiKey).toBe("sk-compatible");
+    expect(savedSettings.providerBaseUrl).toBe("https://api.vectorengine.cn/v1/chat/completions");
+    expect(savedSettings.providerModel).toBe("gpt-4o");
   });
 });

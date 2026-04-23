@@ -4,7 +4,9 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { createAdapterRegistry } from "../../src/adapters/registry/adapter-registry";
+import { siteAdapterCatalog } from "../../src/adapters/registry/adapter-catalog";
 import { placeholderSiteAdapter } from "../../src/adapters/sites/placeholder-site-adapter";
+import { sixteenPersonalitiesSiteAdapter } from "../../src/adapters/sites/sixteen-personalities-site-adapter";
 import {
   extractTruityEnneagramQuestions,
   locateTruityEnneagramQuestionRegions,
@@ -27,6 +29,14 @@ const truityEnneagramLivePageFixture = readFileSync(
 );
 
 describe("adapter registry", () => {
+  it("exposes an explicit adapter catalog instead of hiding site registration in runtime code", () => {
+    expect(siteAdapterCatalog).toEqual([
+      truityEnneagramSiteAdapter,
+      sixteenPersonalitiesSiteAdapter,
+      placeholderSiteAdapter,
+    ]);
+  });
+
   it("resolves the Truity Enneagram adapter when the real-site match rule fits", () => {
     const registry = createAdapterRegistry();
 
@@ -51,6 +61,18 @@ describe("adapter registry", () => {
     expect(adapter?.descriptor.siteId).toBe("placeholder-assessment");
   });
 
+  it("resolves the 16Personalities adapter when the match rule fits", () => {
+    const registry = createAdapterRegistry();
+
+    const adapter = registry.findMatchingAdapter({
+      url: "https://www.16personalities.com/free-personality-test",
+      title: "Free Personality Test | 16Personalities",
+    });
+
+    expect(adapter).toBe(sixteenPersonalitiesSiteAdapter);
+    expect(adapter?.descriptor.siteId).toBe("sixteen-personalities");
+  });
+
   it("returns null when no adapter matches", () => {
     const registry = createAdapterRegistry();
 
@@ -60,6 +82,41 @@ describe("adapter registry", () => {
     });
 
     expect(adapter).toBeNull();
+  });
+
+  it("can resolve a registered adapter by siteId", () => {
+    const registry = createAdapterRegistry();
+
+    expect(registry.getAdapterBySiteId("truity-enneagram")).toBe(truityEnneagramSiteAdapter);
+    expect(registry.getAdapterBySiteId("sixteen-personalities")).toBe(
+      sixteenPersonalitiesSiteAdapter,
+    );
+    expect(registry.getAdapterBySiteId("placeholder-assessment")).toBe(placeholderSiteAdapter);
+    expect(registry.getAdapterBySiteId("unknown-site")).toBeNull();
+  });
+
+  it("lists adapter descriptors without exposing adapter implementation ownership to runtime callers", () => {
+    const registry = createAdapterRegistry();
+
+    expect(registry.listAdapterDescriptors()).toEqual([
+      truityEnneagramSiteAdapter.descriptor,
+      sixteenPersonalitiesSiteAdapter.descriptor,
+      placeholderSiteAdapter.descriptor,
+    ]);
+  });
+
+  it("rejects duplicate site registrations", () => {
+    expect(() =>
+      createAdapterRegistry([
+        truityEnneagramSiteAdapter,
+        {
+          ...truityEnneagramSiteAdapter,
+          descriptor: {
+            ...truityEnneagramSiteAdapter.descriptor,
+          },
+        },
+      ]),
+    ).toThrowError("Duplicate adapter siteId registration: truity-enneagram");
   });
 });
 
@@ -244,12 +301,19 @@ describe("adapter boundaries", () => {
       resolve(process.cwd(), "src/adapters/registry/adapter-registry.ts"),
       "utf8",
     );
+    const catalogContent = readFileSync(
+      resolve(process.cwd(), "src/adapters/registry/adapter-catalog.ts"),
+      "utf8",
+    );
     const contentRuntime = readFileSync(
       resolve(process.cwd(), "src/content/runtime.ts"),
       "utf8",
     );
 
     expect(registryContent).not.toContain("/content/");
+    expect(catalogContent).not.toContain("/content/");
+    expect(catalogContent).not.toContain("/background/");
+    expect(catalogContent).not.toContain("/llm/");
     expect(contentRuntime).not.toContain("/adapters/");
     expect(contentRuntime).not.toContain("createAdapterRegistry");
   });

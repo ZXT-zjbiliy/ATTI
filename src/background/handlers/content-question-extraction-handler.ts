@@ -9,6 +9,10 @@ function createProfilePointer(profileId: string | null): string {
   return profileId ?? "profile-pending";
 }
 
+function createAdapterSelectorVersion(siteId: string): string {
+  return `${siteId}-v1`;
+}
+
 export const handleContentQuestionsExtractedMessage: BackgroundMessageHandler<
   ContentQuestionsExtractedMessage
 > = async (message, context): Promise<AppResult> => {
@@ -70,7 +74,7 @@ export const handleContentQuestionExtractionFailedMessage: BackgroundMessageHand
   await context.adapterDiagnosticsRepository.writeDiagnostic({
     sessionId: session.id,
     siteId: message.payload.siteId,
-    selectorVersion: "truity-enneagram-v1",
+    selectorVersion: createAdapterSelectorVersion(message.payload.siteId),
     phase: message.payload.phase,
     message: message.payload.message,
     payload: message.payload.payload

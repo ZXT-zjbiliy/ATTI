@@ -65,7 +65,7 @@ function resolveFetch(fetchImpl?: FetchLike): FetchLike {
   }
 
   if (typeof fetch === "function") {
-    return fetch;
+    return fetch.bind(globalThis);
   }
 
   throw new ProviderExecutionError({

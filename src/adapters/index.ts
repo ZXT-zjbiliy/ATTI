@@ -1,4 +1,5 @@
 export { adapterRegistry, createAdapterRegistry } from "./registry/adapter-registry";
+export { siteAdapterCatalog } from "./registry/adapter-catalog";
 export type {
   AdapterCapabilities,
   ExtractedQuestionDraft,
@@ -11,4 +12,12 @@ export type {
   SiteAdapterDescriptor,
 } from "./base/site-adapter";
 export { placeholderSiteAdapter } from "./sites/placeholder-site-adapter";
+export {
+  sixteenPersonalitiesSiteAdapter,
+  extractSixteenPersonalitiesQuestions,
+  fillSixteenPersonalitiesAnswers,
+  isSupportedSixteenPersonalitiesAssessmentPage,
+  locateSixteenPersonalitiesQuestionRegions,
+  matchesSixteenPersonalitiesTestUrl,
+} from "./sites/sixteen-personalities-site-adapter";
 export { truityEnneagramSiteAdapter } from "./sites/truity-enneagram";

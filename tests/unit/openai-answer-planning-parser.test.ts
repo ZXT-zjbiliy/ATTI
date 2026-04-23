@@ -72,6 +72,69 @@ describe("openai answer planning parser", () => {
     expect(result.answerPlans[0]?.qualityIssues).toEqual([]);
   });
 
+  it("accepts compatible-provider output when the JSON is wrapped in a markdown fence", () => {
+    const result = parseOpenAiAnswerPlanningResponse({
+      rawText: [
+        "Here is the answer planning result:",
+        "```json",
+        JSON.stringify({
+          answerPlans: [
+            {
+              questionId: "question-2",
+              recommendedOptionIds: ["5"],
+              confidence: 0.82,
+              rationale: "Evidence points to active helpfulness.",
+              requiresConfirmation: false
+            },
+            {
+              questionId: "question-1",
+              recommendedOptionIds: ["2"],
+              confidence: 0.61,
+              rationale: "The profile shows some structure but not rigidity.",
+              requiresConfirmation: false
+            }
+          ]
+        }),
+        "```"
+      ].join("\n"),
+      providerId: "compatible-assessment-provider",
+      promptVersion: "compatible-assessment-provider-v1",
+      questions: sampleQuestions,
+      sessionId: "session-1"
+    });
+
+    expect(result.answerPlans).toHaveLength(2);
+    expect(result.answerPlans.map((plan) => plan.questionId)).toEqual(["question-1", "question-2"]);
+  });
+
+  it("accepts compatible-provider output that uses answers instead of answerPlans", () => {
+    const result = parseOpenAiAnswerPlanningResponse({
+      rawText: JSON.stringify({
+        answers: [
+          {
+            questionId: "question-2",
+            recommendedOptionIds: ["5"],
+            confidence: 0.82,
+            rationale: "Evidence points to active helpfulness."
+          },
+          {
+            questionId: "question-1",
+            recommendedOptionIds: ["2"],
+            confidence: 0.61,
+            rationale: "The profile shows some structure but not rigidity."
+          }
+        ]
+      }),
+      providerId: "compatible-assessment-provider",
+      promptVersion: "compatible-assessment-provider-v1",
+      questions: sampleQuestions,
+      sessionId: "session-1"
+    });
+
+    expect(result.answerPlans).toHaveLength(2);
+    expect(result.answerPlans.every((plan) => plan.requiresConfirmation === false)).toBe(true);
+  });
+
   it("rejects provider output when the question count or option ids are invalid", () => {
     expect(() =>
       parseOpenAiAnswerPlanningResponse({

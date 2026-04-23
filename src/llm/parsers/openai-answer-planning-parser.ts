@@ -8,15 +8,76 @@ const openAiAnswerPlanDraftSchema = z.object({
   recommendedOptionIds: z.array(z.string().min(1)).min(1),
   confidence: z.number().min(0).max(1),
   rationale: z.string().min(1),
-  requiresConfirmation: z.boolean()
+  requiresConfirmation: z.boolean().optional()
 });
 
-const openAiAnswerPlanningResponseSchema = z.object({
-  answerPlans: z.array(openAiAnswerPlanDraftSchema)
-});
+const openAiAnswerPlanningResponseSchema = z
+  .object({
+    answerPlans: z.array(openAiAnswerPlanDraftSchema).optional(),
+    answers: z.array(openAiAnswerPlanDraftSchema).optional()
+  })
+  .refine((value) => Array.isArray(value.answerPlans) || Array.isArray(value.answers), {
+    message: "Answer planning response must include answerPlans or answers."
+  });
+
+type NormalizedAnswerPlanDraft = z.infer<typeof openAiAnswerPlanDraftSchema> & {
+  readonly requiresConfirmation: boolean;
+};
+
+function tryParseJsonText(rawText: string): unknown {
+  return JSON.parse(rawText);
+}
+
+function extractJsonText(rawText: string): string {
+  const trimmedText = rawText.trim();
+
+  try {
+    tryParseJsonText(trimmedText);
+    return trimmedText;
+  } catch {
+    const fencedJsonMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+
+    if (fencedJsonMatch?.[1]) {
+      const fencedPayload = fencedJsonMatch[1].trim();
+
+      try {
+        tryParseJsonText(fencedPayload);
+        return fencedPayload;
+      } catch {
+        // Fall through to object scanning below.
+      }
+    }
+
+    const firstBraceIndex = trimmedText.indexOf("{");
+    const lastBraceIndex = trimmedText.lastIndexOf("}");
+
+    if (firstBraceIndex >= 0 && lastBraceIndex > firstBraceIndex) {
+      const objectPayload = trimmedText.slice(firstBraceIndex, lastBraceIndex + 1);
+
+      try {
+        tryParseJsonText(objectPayload);
+        return objectPayload;
+      } catch {
+        // Fall through to final error below.
+      }
+    }
+
+    throw new Error("Answer planning response did not contain a valid JSON object.");
+  }
+}
 
 function normalizeRationale(rationale: string): string {
   return rationale.trim().replace(/\s+/g, " ");
+}
+
+function getNormalizedAnswerPlanDrafts(rawText: string): NormalizedAnswerPlanDraft[] {
+  const parsed = openAiAnswerPlanningResponseSchema.parse(JSON.parse(extractJsonText(rawText)));
+  const drafts = parsed.answerPlans ?? parsed.answers ?? [];
+
+  return drafts.map((draft) => ({
+    ...draft,
+    requiresConfirmation: draft.requiresConfirmation ?? false
+  }));
 }
 
 export function parseOpenAiAnswerPlanningResponse(args: {
@@ -26,17 +87,17 @@ export function parseOpenAiAnswerPlanningResponse(args: {
   questions: Question[];
   sessionId: string;
 }): AnswerPlanningResult {
-  const parsed = openAiAnswerPlanningResponseSchema.parse(JSON.parse(args.rawText));
+  const normalizedAnswerPlans = getNormalizedAnswerPlanDrafts(args.rawText);
   const questionMap = new Map(args.questions.map((question) => [question.id, question]));
   const responseQuestionIds = new Set<string>();
 
-  if (parsed.answerPlans.length !== args.questions.length) {
+  if (normalizedAnswerPlans.length !== args.questions.length) {
     throw new Error(
-      `OpenAI answer planning returned ${parsed.answerPlans.length} plans for ${args.questions.length} questions.`
+      `OpenAI answer planning returned ${normalizedAnswerPlans.length} plans for ${args.questions.length} questions.`
     );
   }
 
-  for (const answerPlanDraft of parsed.answerPlans) {
+  for (const answerPlanDraft of normalizedAnswerPlans) {
     const question = questionMap.get(answerPlanDraft.questionId);
 
     if (!question) {
@@ -65,7 +126,7 @@ export function parseOpenAiAnswerPlanningResponse(args: {
   }
 
   const orderedAnswerPlans = args.questions.map((question) => {
-    const answerPlanDraft = parsed.answerPlans.find(
+    const answerPlanDraft = normalizedAnswerPlans.find(
       (candidate) => candidate.questionId === question.id
     );
 

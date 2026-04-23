@@ -24,6 +24,7 @@ This checkpoint reflects the repository reality after the first architecture aud
   - single-site extraction, provider-backed answer planning, recommendation preview, and fill execution modules are implemented for the locked MVP path
   - the single-site MVP usability checkpoint is now passed for the locked Truity path with real-provider planning support: extract -> plan -> preview -> auto-fill is working end-to-end, with OpenAI as the primary planning path and the fake provider retained only as a local fallback
   - the repository has now also entered an explicit AI-first transition phase at the product and documentation level: UI copy and roadmap planning are being prepared for future multi-site support, while the only stable real automation path remains the Truity adapter-backed flow
+  - a second minimal test-website adapter sample now exists for the `16Personalities` free MBTI-style test route, reusing the same normalized question, answer-plan, session, and fill contracts without rewriting the Truity adapter
 
 ## 3. Current Repository Structure Reality
 
@@ -70,6 +71,9 @@ Fields:
 - `debugMode: boolean`
 - `activeProvider: string`
 - `openAiApiKey: string | null`
+- `providerApiKey: string | null`
+- `providerBaseUrl: string | null`
+- `providerModel: string | null`
 - `approvedDomains: string[]`
 - `lastActiveProfileId: string | null`
 - `featureFlags: Record<string, boolean>`
@@ -335,6 +339,7 @@ Current session record flow boundary:
 - session records remain isolated from profile records even when stored in the same IndexedDB database
 - session records can now track `questionIds`, `answerPlanIds`, and execution-log entries for extraction, planning, and fill phases
 - the current session flow now supports single-site extraction, answer-planning, preview, review, and fill orchestration for the locked MVP path
+- multi-site session history still remains intentionally small: `SessionHistoryEntry` keeps `siteId`, `pageUrl`, status, timing, question count, and recommendation count so different supported test sites remain distinguishable without introducing a new history subsystem
 
 Current adapter diagnostics flow boundary:
 
@@ -345,6 +350,24 @@ Current adapter diagnostics flow boundary:
 - Truity adapter extraction and fill failures now use more specific adapter-boundary error messages with stable prompt-key references and selector-path summaries, while still avoiding raw HTML or full page-content leakage
 - answer-planning diagnostics now include structured failure metadata for `providerId`, `errorCode`, `failureBoundary`, `failureStage`, `retryable`, `statusCode`, and a truncated `cause` when available
 - answer-planning and answer-fill diagnostics may now also classify recommendation-quality degradation through `failureCategory: "quality"` and `qualityIssues`
+- multi-site diagnostics remain concrete rather than centralized: each record still carries both `sessionId` and `siteId`, plus a site-scoped `selectorVersion`, so adapter-boundary failures remain attributable to one supported test site without adding a separate diagnostics console or cross-site rules engine
+
+## 8.4 Multi-Test-Site Session And Diagnostics Audit
+
+Checkpoint date: `2026-04-23`
+
+Audit conclusion at this checkpoint:
+
+- `siteId` is already a first-class field on `sessions`, `questions`, and `adapterDiagnostics`, so supported test sites remain distinguishable at the persistence boundary
+- session history remains readable because `SessionHistoryEntry` already exposes `siteId` and `pageUrl` alongside status and counts, which is sufficient to show site origin without expanding the UI into a new multi-site dashboard
+- diagnostics remain attributable to a concrete site boundary because each diagnostic record carries `sessionId`, `siteId`, `selectorVersion`, `phase`, and sanitized payload metadata
+- current repository tests now explicitly verify that recent-session history and adapter diagnostics remain separated across `truity-enneagram` and `sixteen-personalities`
+
+What this audit does not introduce:
+
+- no new history database tables
+- no giant diagnostics center
+- no cross-site aggregation workflow beyond the existing read-only history list and per-session diagnostics records
 
 Current options page shell boundary:
 
@@ -377,14 +400,18 @@ Current adapter shell boundary:
 
 - adapters implement a shared `SiteAdapter` interface
 - adapter matching is resolved through a dedicated registry
+- adapter registration now also flows through an explicit adapter catalog boundary so future sites are added as one independent adapter module plus one catalog registration, instead of scattering site lists across runtime code
 - site-specific behavior must remain inside `src/adapters/sites/*`
 - the current Truity Enneagram adapter is the first real-site adapter boundary and currently supports URL matching, assessment-page recognition, normalized question extraction, and answer fill against both fixture-style blocks and the live radio-group markup shape
+- the current `16Personalities` adapter is the second minimal test-website sample boundary and currently targets only the public `/free-personality-test` route with fixture-backed extraction and fill heuristics over the existing seven-point single-choice model
 - the Truity adapter now shares a single prompt-normalization and prompt-key strategy across question-region location, extraction, and fill so light casing, whitespace, and wrapper drift can be tolerated without moving selector fallback into content or background modules
 - Truity extraction and fill now each try multiple adapter-local paths for question block and radio-group resolution, but this remains a single-site implementation and is not a generic cross-site selector framework
 - the current AI-first multi-site direction does not remove this boundary yet; it only establishes the product/documentation direction that future site expansion should lean more on normalized AI planning and lighter site-specific logic, without pretending the current repository already has generic all-site extraction/fill
 - the placeholder adapter remains as a non-production boundary example
 - the current real-site adapter still does not perform provider planning, preview, or orchestration directly; those remain background responsibilities
-- adapter registry remains decoupled from content runtime startup logic
+- adapter registry and adapter catalog remain decoupled from content runtime startup logic
+- registry-owned metadata lookup by `siteId` is now allowed, but site-specific selectors, DOM heuristics, and adapter implementation imports must still not leak into content, background, storage, or UI modules
+- current second-site fixture coverage does not imply that this environment has continuous live-network verification against `16Personalities`; the site currently blocks this environment through Cloudflare, so confidence for that route is lower than the Truity path
 
 Current provider shell boundary:
 
@@ -392,16 +419,21 @@ Current provider shell boundary:
 - the provider contract currently covers profile summarization, question interpretation, and answer planning
 - the current `fakeAssessmentProvider` remains available for placeholder and contract testing
 - the current `openaiAssessmentProvider` is the first real provider integration and uses the OpenAI Responses API behind the shared provider interface
-- provider selection now normalizes legacy alias values to the current canonical MVP labels (`openai`, `local`) before resolving the runtime provider
+- provider selection now normalizes legacy alias values to the current canonical labels and can resolve `openai`, `deepseek`, `doubao`, `compatible`, and `local`
+- the current remote-provider settings boundary now stores generic `providerApiKey`, `providerBaseUrl`, and `providerModel` values in addition to the legacy `openAiApiKey` field so common OpenAI-compatible engines can reuse the same normalized planning flow
+- `openai` continues to use the OpenAI Responses API provider boundary, while `deepseek`, `doubao`, and `compatible` now route through one shared OpenAI-compatible `chat/completions` provider boundary instead of creating site- or provider-specific planning code in runtime modules
 - background planning resolves the active provider through a dedicated `assessmentProviderResolver` boundary instead of importing a concrete provider directly into UI or storage modules
 - provider prompt construction currently lives inside `src/llm/prompts/*`
 - provider response parsing currently lives inside `src/llm/parsers/*`
+- provider prompt construction remains normalized-input-only: current answer-planning prompts serialize question `id`, `text`, and `options` plus profile/session context, but do not carry `siteId`, `pageUrl`, raw HTML, selectors, or other adapter DOM details
+- provider parsers remain recommendation-result-only: current answer-planning parsing validates question/option references inside normalized provider output and must not branch on supported site names, selectors, or page markup variants
 - the OpenAI answer-planning parser now validates that provider output returns exactly one plan per extracted question and only references option ids that exist on that question
 - background orchestration now performs a second answer-plan validation pass before persistence so dirty output from any provider cannot silently enter repositories
 - provider inputs are validated through existing shared schemas before outbound calls
 - provider failures are wrapped in structured `ProviderExecutionError` objects instead of raw crashes
 - missing OpenAI API keys and rejected OpenAI credentials now surface through clearer actionable provider errors so UI/runtime flows can guide the user back to Options without exposing raw secrets
 - provider output remains normalized recommendation data only; the current AI-first multi-site direction must not turn `src/llm/*` into a site-selector or DOM-control layer
+- AI-first multi-test-site expansion still treats providers as replaceable planning engines rather than adapter substitutes; site detection, extraction, selector drift handling, and fill execution remain adapter-owned even when more test websites are added
 - provider consumers must depend on the provider interface instead of the fake implementation
 - UI runtimes must not directly invoke provider modules
 
@@ -428,15 +460,32 @@ Current testing limits at this checkpoint:
 
 ## 8.3 AI-First Multi-Site Transition Note
 
-Checkpoint date: `2026-04-22`
+Checkpoint date: `2026-04-23`
 
 Transition reality at this checkpoint:
 
 - product copy, user-facing docs, and internal roadmap now explicitly describe an AI-first multi-site direction
 - the current shipped implementation is still not a generic all-site automation engine
 - stable real extraction and fill are still locked to the Truity Enneagram adapter boundary
-- OpenAI remains the primary planning provider, but provider modules still consume normalized profile/question inputs rather than raw site DOM
+- OpenAI remains the highest-confidence primary planning provider, while DeepSeek, Doubao, and other compatible endpoints are now supported through the same normalized provider boundary rather than through site-specific logic
 - the UI refresh to Chinese-first copy and shared visual styling is part of this transition checkpoint, not a claim that multi-site runtime support is already complete
+- AI-first multi-site is a roadmap constraint for future expansion work, not a statement that all future test websites are already implemented, shipped, or broadly ready for formal rollout today
+- the intended long-term target class for AI-first expansion is public assessment or test websites only; other website types remain outside the supported product direction
+
+What this transition phase is allowed to evolve toward:
+
+- expanding normalized question, option, answer-plan, diagnostics, and session contracts so future adapters can plug into the same background planning flow
+- keeping provider prompts and parsers focused on normalized profile/question interpretation so one provider path can eventually serve multiple site adapters
+- improving adapter registry, runtime orchestration, and diagnostics so additional site adapters can be introduced one by one without changing UI or storage ownership
+- introducing small, auditable adapter-level experiments for a second site only after the multi-site trial gate below is passed
+- gradually broadening support from one locked site toward multiple supported test websites, without expanding the product promise to arbitrary non-test sites
+
+What must stay single-site locked at this checkpoint:
+
+- production extraction and fill remain locked to the Truity Enneagram assessment path
+- no promise of arbitrary-site, non-test-site, or unsupported-site automatic filling is allowed in code, copy, or roadmap wording
+- selector matching, DOM extraction, and DOM fill behavior must stay adapter-owned instead of being pushed into provider prompts or background orchestration
+- release readiness, e2e release gates, and quality language must still be evaluated against the Truity-only locked path rather than an implied multi-site bar
 
 What this transition phase does allow:
 
@@ -449,6 +498,14 @@ What it still does not allow:
 - claiming unsupported-site runtime coverage today
 - moving DOM extraction or fill logic into provider code
 - expanding the release checkpoint beyond the locked Truity single-site bar
+- introducing a giant review console, centralized permission center, cloud sync layer, or multi-profile collaboration workflow in the name of future multi-site support
+
+Boundary rules that must remain true during any future multi-site work:
+
+- `provider`: owns profile/question interpretation and answer planning only; it must not own DOM discovery, selector fallback, field matching, or browser action execution
+- `adapter`: owns site detection, DOM extraction, DOM fill, and adapter-local selector drift handling only; it must not own provider invocation, session persistence, or cross-site orchestration
+- `runtime`: UI stays message-driven, background stays orchestration-driven, content stays page-bridge-driven; no runtime may become a giant mixed layer that embeds provider, adapter, and storage behavior together
+- `storage`: persists normalized entities and diagnostics only; it must not persist raw page DOM snapshots or become a cross-site rules engine
 
 ## 8.1 Single-Site Recommendation Quality Checkpoint
 
@@ -493,6 +550,34 @@ Checkpoint conclusion:
 
 - current implementation now meets the repository's small-range trial-release bar: the locked single-site scope is explicit, provider and local-data boundaries remain clear, the no-auto-submit rule is still enforced, the extract -> plan -> preview -> fill -> error-handling loop is covered by the current automated gate, and the accepted pre-fill strategy is documented consistently across implementation and companion docs
 - this checkpoint does not certify broader formal rollout readiness; always-on live-network OpenAI verification and the other deferred items below remain explicitly open
+
+## 8.5 Multi-Test-Site Trial Checkpoint
+
+Checkpoint date: `2026-04-23`
+
+Current status: `passed for small-range multi-test-site trial release`
+
+Current explicitly supported test-website scope at this checkpoint:
+
+- `Truity / Enneagram Personality Test / https://www.truity.com/test/enneagram-personality-test`
+- `16Personalities / Free Personality Test / https://www.16personalities.com/free-personality-test`
+- support remains limited to the adapter-scoped public assessment routes above; non-test websites and unsupported test routes are still outside the product promise
+
+Reached the small-range multi-test-site trial bar at this checkpoint:
+
+- current supported-site scope is now explicitly written as a two-site test-website scope rather than an implied arbitrary-site promise
+- `Truity` remains the stronger trial-ready path because it has the most mature adapter drift handling and the strongest real-site confidence in this repository
+- `16Personalities` now reaches the repository's small-range trial bar as a second adapter-scoped sample because it has a dedicated adapter module, normalized extract/fill contracts, unit coverage for site recognition and extract, and a separate browser-level trial gate covering preview, fill, provider-failure visibility, and degraded-plan fill blocking
+- provider, storage, adapter, and UI boundaries remain clear across both supported test websites: providers still consume normalized profile/question data only, storage still persists normalized entities and diagnostics only, adapters still own site detection/extract/fill, and UI runtimes remain message-driven rather than importing provider or adapter implementation code directly
+- `no auto-submit` still holds across the current multi-test-site trial scope: `Run answer planning` may trigger adapter-scoped fill after user initiation, but the product still does not submit the page on either supported test website
+- session history and diagnostics remain site-scoped through `siteId`, `pageUrl`, `sessionId`, and site-scoped `selectorVersion`, so the current multi-test-site trial does not require a new review center, permission hub, or diagnostics subsystem
+
+Not yet at broader formal-rollout confidence at this checkpoint:
+
+- `Truity` is trial-ready, but its broader formal-rollout confidence is still limited by the already deferred always-on live-network OpenAI verification gap
+- `16Personalities` is trial-ready only as a narrow second sample; confidence for that path remains lower than `Truity` because this environment is still blocked by Cloudflare for continuous live-network verification, so the committed gate relies on fixture-backed routing plus mocked provider coverage rather than always-on live-site checks
+- no conclusion in this checkpoint upgrades the product into universal support for other test websites, other routes on the two supported domains, or any non-test website category
+- the repository still does not certify a broad formal multi-site release; it certifies only a small-range adapter-scoped trial across the two explicitly named public test routes above
 
 ## 9. First Architecture Checkpoint Audit
 
@@ -616,10 +701,12 @@ The following capabilities remain intentionally deferred even after entering the
 - support for any second assessment site
 - generic cross-site automation
 - generic unsupported-site fallback extraction
+- support for non-assessment or non-test website types
 - automatic page submit after fill
 - real result-page interpretation
 - cloud sync
 - multi-profile collaboration
+- giant review consoles or centralized permission-center style admin surfaces
 - broad reusable selector systems intended to cover multiple unrelated sites at once
 - richer domain expansion unrelated to the single-site MVP path
 
@@ -628,6 +715,8 @@ The following capabilities remain intentionally deferred even after entering the
 - all Truity-specific DOM matching, question extraction, and fill logic must remain inside a single dedicated Truity adapter module
 - no other module may hard-code Truity selectors
 - background, UI, repositories, and providers must continue to consume normalized data rather than site-specific DOM structures
+- future multi-site work may add more adapter modules, but it must not collapse multiple unrelated sites into one giant provider-driven selector layer
+- future multi-site work may extend the adapter catalog and registry contracts, but each newly supported site must still enter through its own adapter module rather than being appended into an existing unrelated adapter file
 
 ### 10.8 Provider Boundary Rule For This MVP
 
@@ -635,6 +724,46 @@ The following capabilities remain intentionally deferred even after entering the
 - provider calls must remain behind the `AssessmentProvider` interface
 - prompt construction and response parsing must remain inside `src/llm/*`
 - UI runtimes must still not call the provider directly
+- provider outputs must remain normalized recommendation data only; provider modules must not embed site DOM extraction, selector lookup, or fill execution logic
+
+### 10.9 Multi-Site Trial Gate
+
+The repository may only change its language from `single-site locked` to `multi-site trial` when all of the following are true:
+
+- at least one second site is added as a separate adapter module without weakening the existing Truity adapter boundary
+- the second site reuses the same normalized question, answer-plan, diagnostics, and session contracts instead of introducing site-shaped storage entities
+- provider inputs and outputs remain normalized and unchanged in responsibility, with no DOM extraction or fill logic moved into `src/llm/*`
+- background orchestration can route adapter selection, planning, preview, and fill without adding site-specific branches into UI stores or repository code
+- committed automated coverage exists for the new adapter at unit or fixture level, plus a browser-level trial path that proves extract -> plan -> preview -> fill without auto-submit
+- unsupported or non-test sites still fail safely and explicitly, rather than falling back to a fake generic automation promise
+- product copy, options copy, and user-guide language still state that support is adapter-scoped, test-website-scoped, and trial-limited rather than universal
+
+Current audit status on `2026-04-23`: `met for a small-range multi-test-site trial`.
+
+- the gate is now considered met for the two explicitly named supported test routes in section `8.5`
+- this status does not remove the broader formal-rollout deferrals listed above and elsewhere in this file
+
+### 10.10 Test Website Admission Standard
+
+Future site expansion is admission-based, not universal. A candidate site may only be considered for support when all of the following are true:
+
+- it is a public assessment or test website, not a non-test website type such as a general form tool, job site, payment flow, shopping flow, or back-office system
+- the relevant assessment pages are publicly accessible for the intended trial path and do not require account login, CAPTCHA solving, paid unlocks, or similar access gates before the question flow can be reached
+- the question structure is stable enough that an adapter can recognize page scope, locate question regions, and survive light DOM drift without moving selector logic into provider code
+- the assessment primarily uses a repeated single-question, single-choice interaction model rather than free-text, multi-select, drag-and-drop, or heavily heterogeneous composite widgets
+- the assessment fits the current `profile -> recommendation -> fill` model, meaning the saved profile can plausibly drive answer planning and the page can consume normalized recommended options without introducing a new decision workflow
+- the site can be integrated through an independent adapter boundary, with site detection, extraction, and fill all remaining adapter-owned instead of relying on provider prompts to interpret raw DOM
+- the site can continue to reuse the current normalized `questions`, `answerPlans`, `sessions`, and `adapterDiagnostics` data contracts rather than forcing site-shaped storage entities or a custom review system
+
+The following conditions are immediate disqualifiers for the current roadmap phase:
+
+- the site is outside the assessment or test website category
+- the usable question flow is blocked by login, CAPTCHA, paywall, or anti-bot interstitials
+- the site requires provider-side DOM understanding to function
+- the site requires a new broad question-type system before minimal support is possible
+- the site cannot fit the existing normalized question, answer-plan, session, and diagnostics model without widening the MVP into a multi-domain platform
+
+Passing this admission standard does not mean the site is automatically supported. It only means the site is eligible to be considered for a future dedicated adapter implementation under the existing multi-site trial gate.
 
 ## 11. Required Update Rule
 
@@ -670,6 +799,7 @@ Current project state:
 - content script shell established with passive page metadata reporting only
 - content script real question extraction flow established for the locked Truity MVP path with background persistence through shared message contracts
 - adapter interface and registry shell established with placeholder and single-site real adapter boundaries
+- second minimal real-site sample adapter established for `16Personalities` without changing the normalized assessment model or Truity-specific ownership
 - provider interface shell established with fake and real OpenAI-backed provider implementations
 - prompt construction and response parser modules established inside `src/llm/*`
 - minimal local profile draft flow established through repository-backed save and side panel display
@@ -684,7 +814,7 @@ Current project state:
 - Truity question extraction now tolerates browser-serialized `<input>` markup without XHTML self-closing tags
 - Truity question extraction and fill now also tolerate lightweight prompt wrapper changes, prompt line splitting, case/whitespace drift, and non-fieldset radiogroup containers by reusing adapter-local prompt keys and multi-path container resolution
 - answer planning now falls back to `settings.lastActiveProfileId` and rebinds the session profile when the profile is saved after extraction
-- settings now also persist `openAiApiKey`, and the default provider path is now `openai`; `local` remains available as a dev fallback
+- settings now also persist legacy `openAiApiKey` plus generic `providerApiKey`, `providerBaseUrl`, and `providerModel`; the default provider path remains `openai`, while `deepseek`, `doubao`, and `compatible` are now available without changing the normalized planning contracts
 - shared provider-configuration state now exposes whether the selected provider is ready, whether an OpenAI key is saved locally, and whether planning should be blocked before a guaranteed config failure
 - adapter diagnostics persistence established through repository-backed write/query behavior
 - shared answer-plan schemas now require at least one recommended option and constrain `confidence` to the `0..1` interval
@@ -712,6 +842,8 @@ Current project state:
 - OpenAI answer-planning prompt and parser boundaries remain isolated under `src/llm/*`, with options/background only passing normalized settings and normalized result data
 - automated verification now covers parser rejection for dirty provider output, router-level answer-plan validation rejection before persistence, real OpenAI provider contract execution with mocked Responses payloads, background planning plus fill orchestration with the real provider, the browser E2E auto-fill flow on the locked site using the local fallback provider, and built-extension browser coverage for mocked OpenAI-backed rationale rendering and provider-failure visibility through the extension service worker
 - automated verification now also covers quality degradation classification for low-confidence and placeholder-style recommendations, plus browser-visible degraded preview behavior and quality-gated fill blocking
+- automated verification now also covers fixture-backed page recognition and normalized extraction for the second `16Personalities` test-site sample through the shared content runtime and adapter-registry boundaries
+- automated verification for the second `16Personalities` sample now also has its own browser-level trial gate file covering recommendation preview rendering, successful fill, provider-failure visibility, and degraded-plan fill blocking, instead of stacking every supported-site path into one long E2E spec
 - single-site recommendation quality checkpoint completed: provider-backed recommendation generation, browser-side rationale rendering, and failure handling are quality-usable under the mocked service-worker OpenAI harness, while always-on live-network OpenAI verification remains explicitly deferred
 - single-site MVP usability checkpoint audit completed and currently marked `passed`
 - single-site MVP trial-release checkpoint audit completed and currently marked `passed for small-range trial release`; broader formal rollout is still deferred because always-on live-network OpenAI verification remains open even though the committed Playwright release gate is green and the locked trial auto-fill strategy is now explicitly documented

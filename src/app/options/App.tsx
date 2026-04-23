@@ -36,10 +36,18 @@ export function OptionsView({ model }: OptionsViewProps) {
             <ProviderSelectionSection
               activeProvider={model.providerConfiguration?.normalizedActiveProvider ?? "openai"}
               disabled={model.isLoading || model.isSaving}
-              openAiApiKey={settings?.openAiApiKey ?? ""}
+              providerApiKey={settings?.providerApiKey ?? settings?.openAiApiKey ?? ""}
+              providerBaseUrl={settings?.providerBaseUrl ?? ""}
+              providerModel={settings?.providerModel ?? ""}
               providerStatus={model.providerConfiguration}
-              onOpenAiApiKeyChange={(openAiApiKey) => {
-                void model.updateOpenAiApiKey(openAiApiKey);
+              onProviderApiKeyChange={(providerApiKey) => {
+                void model.updateProviderApiKey(providerApiKey);
+              }}
+              onProviderBaseUrlChange={(providerBaseUrl) => {
+                void model.updateProviderBaseUrl(providerBaseUrl);
+              }}
+              onProviderModelChange={(providerModel) => {
+                void model.updateProviderModel(providerModel);
               }}
               onSelect={(activeProvider) => {
                 void model.updateProvider(activeProvider);

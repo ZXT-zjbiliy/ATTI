@@ -5,6 +5,11 @@ export default defineConfig({
     name: "ATTI",
     description: "A local-first Edge extension shell for ATTI.",
     permissions: ["storage", "tabs"],
-    host_permissions: ["https://api.openai.com/*"]
+    host_permissions: [
+      "https://api.openai.com/*",
+      "https://api.deepseek.com/*",
+      "https://ark.cn-beijing.volces.com/*",
+      "https://api.vectorengine.cn/*"
+    ]
   }
 });

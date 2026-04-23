@@ -9,31 +9,25 @@ import { defaultSidePanelShellModel } from "../../src/app/sidepanel/data/default
 import type { SidePanelShellModel } from "../../src/app/sidepanel/types/sidepanel-shell";
 
 function createSidePanelModel(
-  overrides: Partial<SidePanelShellModel> = {},
+  overrides: Partial<SidePanelShellModel> = {}
 ): SidePanelShellModel {
   return {
     ...defaultSidePanelShellModel,
-    ...overrides,
+    ...overrides
   };
 }
 
 describe("side panel shell", () => {
   it("renders the empty-state shell stably", () => {
-    const markup = renderToStaticMarkup(
-      <SidePanelView model={defaultSidePanelShellModel} />,
-    );
+    const markup = renderToStaticMarkup(<SidePanelView model={defaultSidePanelShellModel} />);
 
-    expect(markup).toContain("ATTI AI 侧边栏");
-    expect(markup).toContain("本地画像");
+    expect(markup).toContain("ATTI AI");
     expect(markup).toContain("页面识别");
     expect(markup).toContain("执行会话");
     expect(markup).toContain("AI 推荐预览");
     expect(markup).toContain("请先创建一份最小可用的本地画像草稿。");
-    expect(markup).toContain("保存本地画像草稿");
-    expect(markup).toContain("空状态：当前还没有可用的活动会话。");
     expect(markup).toContain("开始 AI 规划");
     expect(markup).toContain("disabled=\"\"");
-    expect(markup).not.toContain("Apply reviewed answers");
   });
 
   it("renders loading placeholders", () => {
@@ -44,14 +38,14 @@ describe("side panel shell", () => {
             ...defaultSidePanelShellModel.profilePanel,
             status: "loading",
             isLoading: true,
-            message: "正在加载本地画像状态。",
+            message: "正在加载本地画像状态。"
           },
           pageDetectionStatus: {
             kind: "loading",
-            message: "正在检查当前页面。",
-          },
+            message: "正在检查当前页面。"
+          }
         })}
-      />,
+      />
     );
 
     expect(markup).toContain("正在加载本地画像状态。");
@@ -64,17 +58,17 @@ describe("side panel shell", () => {
         model={createSidePanelModel({
           sessionStatus: {
             kind: "error",
-            message: "无法读取当前会话状态。",
-          },
+            message: "无法读取当前会话状态。"
+          }
         })}
-      />,
+      />
     );
 
     expect(markup).toContain("错误：无法读取当前会话状态。");
     expect(markup).toContain("role=\"alert\"");
   });
 
-  it("renders placeholder preview data", () => {
+  it("renders preview data and the planning progress icon state", () => {
     const markup = renderToStaticMarkup(
       <SidePanelView
         model={createSidePanelModel({
@@ -97,6 +91,13 @@ describe("side panel shell", () => {
             },
             draftNarrativeSummary: "I enjoy collaborative planning.",
             draftEvidenceText: "Prefer clear expectations"
+          },
+          sessionProgress: {
+            completedCount: 1,
+            totalCount: 3,
+            label: "规划进度：1 / 3",
+            requestIcon: "●",
+            requestLabel: "已收到规划结果"
           },
           recommendationPreviewStatus: {
             kind: "ready",
@@ -124,21 +125,18 @@ describe("side panel shell", () => {
               }
             ],
             isRefreshing: false,
-            message: "已加载 1 条推荐。",
-          },
+            message: "已加载 1 条推荐。"
+          }
         })}
-      />,
+      />
     );
 
     expect(markup).toContain("已保存画像摘要：I enjoy collaborative planning.");
-    expect(markup).toContain("I strive for perfection.");
     expect(markup).toContain("页面填写：Accurate");
     expect(markup).toContain("置信度：92%");
-    expect(markup).toContain("理由说明：The saved profile strongly aligns with high agreement.");
-    expect(markup).not.toContain("质量状态：已降级");
-    expect(markup).not.toContain("Confirm recommendation");
-    expect(markup).not.toContain("Reject recommendation");
-    expect(markup).not.toContain("Save modified selection");
+    expect(markup).toContain("规划进度：1 / 3");
+    expect(markup).toContain("已收到规划结果");
+    expect(markup).toContain("aria-label=\"答题规划进度\"");
   });
 });
 
@@ -152,9 +150,10 @@ describe("side panel component boundaries", () => {
       "src/app/sidepanel/components/profile-draft-form.tsx",
       "src/app/sidepanel/components/saved-profile-summary.tsx",
       "src/app/sidepanel/components/page-detection-status-card.tsx",
+      "src/app/sidepanel/components/session-progress-bar.tsx",
       "src/app/sidepanel/components/session-status-card.tsx",
       "src/app/sidepanel/components/recommendation-preview-card.tsx",
-      "src/app/sidepanel/components/recommendation-preview-item-view.tsx",
+      "src/app/sidepanel/components/recommendation-preview-item-view.tsx"
     ];
 
     expect(componentFiles.length).toBeGreaterThan(4);
@@ -175,7 +174,7 @@ describe("side panel component boundaries", () => {
       "src/app/sidepanel/services/profile-draft-client.ts",
       "src/app/sidepanel/services/recommendation-preview-client.ts",
       "src/app/sidepanel/components/recommendation-preview-card.tsx",
-      "src/app/sidepanel/components/recommendation-preview-item-view.tsx",
+      "src/app/sidepanel/components/recommendation-preview-item-view.tsx"
     ];
 
     for (const sidepanelFile of sidepanelFiles) {

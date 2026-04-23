@@ -1,21 +1,25 @@
-import type { SidePanelSectionState } from "../types/sidepanel-shell";
+import type { SessionProgressState, SidePanelSectionState } from "../types/sidepanel-shell";
 import { SectionStateView } from "./section-state-view";
+import { SessionProgressBar } from "./session-progress-bar";
 import { StatusCard } from "./status-card";
 
 interface SessionStatusCardProps {
   readonly state: SidePanelSectionState;
+  readonly progress: SessionProgressState | null;
   readonly isRunAnswerPlanningDisabled: boolean;
   readonly onRunAnswerPlanning: () => void;
 }
 
 export function SessionStatusCard({
   state,
+  progress,
   isRunAnswerPlanningDisabled,
   onRunAnswerPlanning
 }: SessionStatusCardProps) {
   return (
     <StatusCard title="执行会话">
       <SectionStateView state={state} />
+      {progress ? <SessionProgressBar state={progress} /> : null}
       <button
         className="atti-button"
         disabled={isRunAnswerPlanningDisabled}

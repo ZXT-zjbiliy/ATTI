@@ -1029,6 +1029,7 @@ describe("background message router", () => {
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0]).toMatchObject({
       siteId: "truity-enneagram",
+      selectorVersion: "truity-enneagram-v1",
       phase: "adapter-question-extraction",
       message:
         "Failed to locate Truity Enneagram question blocks after checking fieldset and live prompt markers.",
@@ -1040,6 +1041,78 @@ describe("background message router", () => {
     });
     expect(JSON.stringify(diagnostics[0])).not.toContain("<main>");
     expect(JSON.stringify(diagnostics[0])).not.toContain("I strive for perfection");
+  });
+
+  it("writes site-scoped selector diagnostics for the 16Personalities extraction boundary", async () => {
+    const settingsRepository = await createSettingsRepository();
+    const adapterDiagnosticsRepository =
+      await createAdapterDiagnosticsRepository("background-router-16p-question-failure");
+    const answerPlanRepository =
+      await createAnswerPlanRepository("background-router-16p-question-failure");
+    const profileRepository =
+      await createProfileRepository("background-router-16p-question-failure");
+    const questionRepository =
+      await createQuestionRepository("background-router-16p-question-failure");
+    const sessionRepository =
+      await createSessionRepository("background-router-16p-question-failure");
+    const router = new BackgroundMessageRouter({
+      adapterDiagnosticsRepository,
+      answerPlanRepository,
+      assessmentProviderResolver: createFixedProviderResolver({
+        providerId: "test-provider",
+        async summarizeProfile() {
+          throw new Error("not used");
+        },
+        async interpretQuestion() {
+          throw new Error("not used");
+        },
+        async planAnswers() {
+          throw new Error("not used");
+        }
+      }),
+      profileRepository,
+      questionRepository,
+      sessionRepository,
+      settingsRepository
+    });
+
+    await router.routeMessage({
+      type: MESSAGE_TYPES.contentQuestionExtractionFailed,
+      payload: {
+        siteId: "sixteen-personalities",
+        page: {
+          url: "https://www.16personalities.com/free-personality-test",
+          title: "Free Personality Test | 16Personalities",
+          readyState: "complete",
+          isTopLevel: true
+        },
+        phase: "adapter-question-extraction",
+        message: "Failed to locate 16Personalities question blocks within the adapter boundary.",
+        payload: {
+          pageReadyState: "title-present",
+          htmlLength: 256,
+          isTopLevelCandidate: true
+        }
+      }
+    });
+
+    const latestSession = await sessionRepository.getLatestSession();
+
+    expect(latestSession).not.toBeNull();
+
+    if (!latestSession) {
+      throw new Error("Expected a 16Personalities failed extraction session to be created");
+    }
+
+    const diagnostics = await adapterDiagnosticsRepository.listBySessionId(latestSession.id);
+
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      siteId: "sixteen-personalities",
+      selectorVersion: "sixteen-personalities-v1",
+      phase: "adapter-question-extraction",
+      message: "Failed to locate 16Personalities question blocks within the adapter boundary."
+    });
   });
 
   it("generates and persists answer plans from saved profile and extracted questions", async () => {

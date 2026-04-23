@@ -226,4 +226,63 @@ describe("session repository", () => {
 
     database.close();
   });
+
+  it("keeps recent session history site-scoped across multiple supported test websites", async () => {
+    const database = createAttiDatabase("session-repo-multi-site-history");
+    const repository = new SessionRepository(database);
+    const truitySession = await repository.createSession({
+      siteId: "truity-enneagram",
+      pageUrl: "https://www.truity.com/test/enneagram-personality-test",
+      profileId: "profile-1",
+      status: "questions-extracted"
+    });
+    await repository.updateQuestionState({
+      sessionId: truitySession.id,
+      status: "questions-extracted",
+      questionIds: ["question-1", "question-2"]
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+
+    const mbtiSession = await repository.createSession({
+      siteId: "sixteen-personalities",
+      pageUrl: "https://www.16personalities.com/free-personality-test",
+      profileId: "profile-1",
+      status: "questions-extracted"
+    });
+    await repository.updatePlanningState({
+      sessionId: mbtiSession.id,
+      status: "answer-planning-complete",
+      answerPlanIds: ["plan-1", "plan-2"],
+      executionLogEntry: {
+        phase: "answer-planning",
+        source: "test"
+      }
+    });
+
+    const history = await repository.listRecentSessions(2);
+
+    expect(history).toEqual([
+      {
+        id: mbtiSession.id,
+        siteId: "sixteen-personalities",
+        status: "answer-planning-complete",
+        pageUrl: "https://www.16personalities.com/free-personality-test",
+        startedAt: mbtiSession.startedAt,
+        questionCount: 0,
+        recommendationCount: 2
+      },
+      {
+        id: truitySession.id,
+        siteId: "truity-enneagram",
+        status: "questions-extracted",
+        pageUrl: "https://www.truity.com/test/enneagram-personality-test",
+        startedAt: truitySession.startedAt,
+        questionCount: 2,
+        recommendationCount: 0
+      }
+    ]);
+
+    database.close();
+  });
 });

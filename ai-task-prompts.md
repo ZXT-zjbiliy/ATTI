@@ -1292,7 +1292,7 @@
 - 把当前 committed 自动化发布门重新拉绿；
 - 处理 `software-design-document.md` 中 `manual confirmation before fill` 与当前 side panel 自动 fill UX 的分歧。
 
-后续提示词只围绕这两项收口工作展开，不再扩展第二站点，不再引入非 MVP 新能力。
+后续提示词先围绕这两项单站点收口工作展开；当单站点试用发布标准稳定后，再进入 `multi-site-expansion-prompts.zh-CN.md` 中定义的 AI-first 多测试网站路线，不引入非 MVP 新能力，也不把范围扩张到任意网站。
 
 ---
 

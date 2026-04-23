@@ -7,7 +7,7 @@ import {
 } from "../../../shared/utils/provider-configuration";
 import {
   createOptionsSettingsClient,
-  type OptionsSettingsClient,
+  type OptionsSettingsClient
 } from "../services/options-settings-client";
 import {
   createOptionsDebugClient,
@@ -25,12 +25,14 @@ export interface OptionsShellModel {
   readonly statusMessage: string | null;
   updateDebugMode: (debugMode: boolean) => Promise<void>;
   updateProvider: (activeProvider: string) => Promise<void>;
-  updateOpenAiApiKey: (openAiApiKey: string) => Promise<void>;
+  updateProviderApiKey: (providerApiKey: string) => Promise<void>;
+  updateProviderBaseUrl: (providerBaseUrl: string) => Promise<void>;
+  updateProviderModel: (providerModel: string) => Promise<void>;
 }
 
 export function useOptionsShell(
   settingsClient?: OptionsSettingsClient,
-  debugClient?: OptionsDebugClient,
+  debugClient?: OptionsDebugClient
 ): OptionsShellModel {
   const [stableSettingsClient] = useState<OptionsSettingsClient>(
     () => settingsClient ?? createOptionsSettingsClient()
@@ -76,6 +78,7 @@ export function useOptionsShell(
 
         setSettings(nextSettings);
         setStatusMessage(null);
+
         if (nextSettings.debugMode) {
           setIsDebugViewLoading(true);
           const snapshot = await stableDebugClient.fetchDebugSnapshot();
@@ -94,9 +97,7 @@ export function useOptionsShell(
           return;
         }
 
-        const message =
-          error instanceof Error ? error.message : "无法读取设置。";
-        setStatusMessage(message);
+        setStatusMessage(error instanceof Error ? error.message : "无法读取设置。");
         setDebugSnapshot(null);
         setIsDebugViewLoading(false);
       } finally {
@@ -111,10 +112,7 @@ export function useOptionsShell(
     };
   }, [stableDebugClient, stableSettingsClient]);
 
-  const applySettingsPatch = async (
-    patch: Partial<Settings>,
-    successMessage: string
-  ) => {
+  const applySettingsPatch = async (patch: Partial<Settings>, successMessage: string) => {
     setIsSaving(true);
 
     try {
@@ -123,9 +121,7 @@ export function useOptionsShell(
       await refreshDebugSnapshot(nextSettings);
       setStatusMessage(successMessage);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "无法保存设置。";
-      setStatusMessage(message);
+      setStatusMessage(error instanceof Error ? error.message : "无法保存设置。");
     } finally {
       setIsSaving(false);
     }
@@ -146,21 +142,45 @@ export function useOptionsShell(
       const nextProvider = activeProvider === "remote" ? "openai" : activeProvider;
       const nextStatus = getProviderConfigurationState({
         activeProvider: nextProvider,
-        openAiApiKey: settings?.openAiApiKey ?? null
+        openAiApiKey: settings?.openAiApiKey ?? null,
+        providerApiKey: settings?.providerApiKey ?? null,
+        providerBaseUrl: settings?.providerBaseUrl ?? null,
+        providerModel: settings?.providerModel ?? null
       });
+
       await applySettingsPatch(
         { activeProvider: nextProvider },
         nextStatus.actionMessage ?? "规划引擎偏好已保存在本地。"
       );
     },
-    updateOpenAiApiKey: async (openAiApiKey) => {
-      const trimmedApiKey = openAiApiKey.trim() || null;
+    updateProviderApiKey: async (providerApiKey) => {
+      const trimmedProviderApiKey = providerApiKey.trim() || null;
+
       await applySettingsPatch(
-        { openAiApiKey: trimmedApiKey },
-        trimmedApiKey
-          ? "OpenAI API key 已保存在本地。"
-          : "已从本地设置中移除 OpenAI API key。"
+        {
+          providerApiKey: trimmedProviderApiKey,
+          openAiApiKey: trimmedProviderApiKey
+        },
+        trimmedProviderApiKey
+          ? "远程引擎 API key 已保存在本地。"
+          : "已从本地设置中移除远程引擎 API key。"
       );
     },
+    updateProviderBaseUrl: async (providerBaseUrl) => {
+      const trimmedProviderBaseUrl = providerBaseUrl.trim() || null;
+
+      await applySettingsPatch(
+        { providerBaseUrl: trimmedProviderBaseUrl },
+        trimmedProviderBaseUrl ? "兼容 API URL 已保存在本地。" : "已移除兼容 API URL。"
+      );
+    },
+    updateProviderModel: async (providerModel) => {
+      const trimmedProviderModel = providerModel.trim() || null;
+
+      await applySettingsPatch(
+        { providerModel: trimmedProviderModel },
+        trimmedProviderModel ? "模型名称已保存在本地。" : "已移除模型名称。"
+      );
+    }
   };
 }

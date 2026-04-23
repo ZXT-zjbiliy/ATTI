@@ -56,6 +56,54 @@ describe("adapter diagnostics repository", () => {
     database.close();
   });
 
+  it("keeps diagnostics records scoped to the concrete site boundary through siteId and selectorVersion", async () => {
+    const database = createAttiDatabase("adapter-diagnostics-multi-site-boundaries");
+    const repository = new AdapterDiagnosticsRepository(database);
+
+    await repository.writeDiagnostic({
+      sessionId: "session-truity",
+      siteId: "truity-enneagram",
+      selectorVersion: "truity-enneagram-v1",
+      phase: "adapter-question-extraction",
+      message: "Truity extraction failed.",
+      payload: {
+        failureBoundary: "adapter"
+      }
+    });
+    await repository.writeDiagnostic({
+      sessionId: "session-16p",
+      siteId: "sixteen-personalities",
+      selectorVersion: "sixteen-personalities-v1",
+      phase: "adapter-question-extraction",
+      message: "16Personalities extraction failed.",
+      payload: {
+        failureBoundary: "adapter"
+      }
+    });
+
+    const truityDiagnostics = await repository.listBySessionId("session-truity");
+    const mbtiDiagnostics = await repository.listBySessionId("session-16p");
+
+    expect(truityDiagnostics).toEqual([
+      expect.objectContaining({
+        sessionId: "session-truity",
+        siteId: "truity-enneagram",
+        selectorVersion: "truity-enneagram-v1",
+        phase: "adapter-question-extraction"
+      })
+    ]);
+    expect(mbtiDiagnostics).toEqual([
+      expect.objectContaining({
+        sessionId: "session-16p",
+        siteId: "sixteen-personalities",
+        selectorVersion: "sixteen-personalities-v1",
+        phase: "adapter-question-extraction"
+      })
+    ]);
+
+    database.close();
+  });
+
   it("validates diagnostics payload before persistence", () => {
     expect(() =>
       adapterDiagnosticsDraftSchema.parse({

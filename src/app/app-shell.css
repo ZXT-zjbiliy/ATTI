@@ -381,6 +381,21 @@ textarea:disabled {
   color: var(--atti-error);
 }
 
+.atti-progress {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(44, 36, 24, 0.08);
+}
+
+.atti-progress__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--atti-accent), #5ba892);
+  transition: width 180ms ease;
+}
+
 .atti-status-pair {
   display: grid;
   gap: 2px;

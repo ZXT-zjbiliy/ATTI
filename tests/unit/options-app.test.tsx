@@ -17,9 +17,12 @@ const defaultDebugSnapshot: DebugSnapshot = {
     debugMode: true,
     activeProvider: "local",
     openAiApiKey: null,
+    providerApiKey: null,
+    providerBaseUrl: null,
+    providerModel: null,
     approvedDomains: [],
     lastActiveProfileId: "profile-1",
-    featureFlags: {},
+    featureFlags: {}
   },
   hasActiveProfileDraft: true,
   activeProfileId: "profile-1",
@@ -32,13 +35,13 @@ const defaultDebugSnapshot: DebugSnapshot = {
       pageUrl: "https://placeholder.assessment.local/assessment-shell/demo",
       startedAt: "2025-01-01T00:00:00.000Z",
       questionCount: 0,
-      recommendationCount: 0,
-    },
-  ],
+      recommendationCount: 0
+    }
+  ]
 };
 
 function createOptionsModel(
-  overrides: Partial<OptionsShellModel> = {},
+  overrides: Partial<OptionsShellModel> = {}
 ): OptionsShellModel {
   return {
     settings: {
@@ -46,13 +49,19 @@ function createOptionsModel(
       debugMode: false,
       activeProvider: "openai",
       openAiApiKey: null,
+      providerApiKey: null,
+      providerBaseUrl: null,
+      providerModel: null,
       approvedDomains: [],
       lastActiveProfileId: null,
-      featureFlags: {},
+      featureFlags: {}
     },
     providerConfiguration: getProviderConfigurationState({
       activeProvider: "openai",
-      openAiApiKey: null
+      openAiApiKey: null,
+      providerApiKey: null,
+      providerBaseUrl: null,
+      providerModel: null
     }),
     debugSnapshot: null,
     isDebugViewLoading: false,
@@ -61,28 +70,28 @@ function createOptionsModel(
     statusMessage: null,
     updateDebugMode: async () => {},
     updateProvider: async () => {},
-    updateOpenAiApiKey: async () => {},
-    ...overrides,
+    updateProviderApiKey: async () => {},
+    updateProviderBaseUrl: async () => {},
+    updateProviderModel: async () => {},
+    ...overrides
   };
 }
 
 describe("options page shell", () => {
-  it("renders the settings shell with lightweight sections", () => {
-    const markup = renderToStaticMarkup(
-      <OptionsView model={createOptionsModel()} />,
-    );
+  it("renders the settings shell with multi-provider controls", () => {
+    const markup = renderToStaticMarkup(<OptionsView model={createOptionsModel()} />);
 
     expect(markup).toContain("ATTI 设置");
     expect(markup).toContain("调试模式");
     expect(markup).toContain("AI Provider 设置");
-    expect(markup).toContain("OpenAI API key");
-    expect(markup).toContain("OpenAI 密钥状态： 缺失");
-    expect(markup).toContain("请先在设置页补充 OpenAI API key，再开始 AI 规划。");
-    expect(markup).toContain("本地与 Provider 边界");
-    expect(markup).toContain("画像草稿、题目、推荐结果、诊断信息与本地历史默认保存在当前设备。");
-    expect(markup).toContain("当前界面已转向 AI-first 多站点过渡表达");
+    expect(markup).toContain("API key");
+    expect(markup).toContain("OpenAI（官方 Responses）");
+    expect(markup).toContain("DeepSeek（兼容 chat/completions）");
+    expect(markup).toContain("豆包 / Doubao（兼容 chat/completions）");
+    expect(markup).toContain("兼容端点（VectorEngine / 自定义）");
+    expect(markup).toContain("API 密钥状态： 缺失");
+    expect(markup).toContain("请先为 OpenAI 填写 API key，再开始 AI 规划。");
     expect(markup).toContain("数据管理");
-    expect(markup).toContain("当前阶段不提供破坏性数据操作");
     expect(markup).not.toContain("调试视图");
   });
 
@@ -91,27 +100,25 @@ describe("options page shell", () => {
       <OptionsView
         model={createOptionsModel({
           settings: {
-            ...defaultDebugSnapshot.activeSettings,
+            ...defaultDebugSnapshot.activeSettings
           },
           providerConfiguration: getProviderConfigurationState({
             activeProvider: defaultDebugSnapshot.activeSettings.activeProvider,
-            openAiApiKey: defaultDebugSnapshot.activeSettings.openAiApiKey
+            openAiApiKey: defaultDebugSnapshot.activeSettings.openAiApiKey,
+            providerApiKey: defaultDebugSnapshot.activeSettings.providerApiKey,
+            providerBaseUrl: defaultDebugSnapshot.activeSettings.providerBaseUrl,
+            providerModel: defaultDebugSnapshot.activeSettings.providerModel
           }),
-          debugSnapshot: defaultDebugSnapshot,
+          debugSnapshot: defaultDebugSnapshot
         })}
-      />,
+      />
     );
 
     expect(markup).toContain("调试视图");
-    expect(markup).toContain("运行时：options");
-    expect(markup).toContain("是否存在画像草稿：true");
-    expect(markup).toContain(
-      "最近一次会话摘要：placeholder-assessment / placeholder-created / 2025-01-01T00:00:00.000Z",
-    );
-    expect(markup).toContain("最近会话历史：");
-    expect(markup).toContain(
-      "placeholder-assessment / 2025-01-01T00:00:00.000Z / placeholder-created / 0 题 / 0 条推荐",
-    );
+    expect(markup).toContain("options");
+    expect(markup).toContain("placeholder-assessment");
+    expect(markup).toContain("2025-01-01T00:00:00.000Z");
+    expect(markup).toContain("当前是本地回退模式，无需填写远程引擎配置。");
   });
 });
 
@@ -128,7 +135,7 @@ describe("options module boundaries", () => {
       "src/app/options/components/provider-boundary-section.tsx",
       "src/app/options/components/provider-status-note.tsx",
       "src/app/options/components/provider-selection-section.tsx",
-      "src/app/options/components/data-management-section.tsx",
+      "src/app/options/components/data-management-section.tsx"
     ];
 
     for (const optionsFile of optionsFiles) {

@@ -16,7 +16,10 @@ function createPopupModel(overrides: Partial<PopupShellModel> = {}): PopupShellM
     extensionEnabled: true,
     providerConfiguration: getProviderConfigurationState({
       activeProvider: "openai",
-      openAiApiKey: null
+      openAiApiKey: null,
+      providerApiKey: null,
+      providerBaseUrl: null,
+      providerModel: null
     }),
     isLoading: false,
     isUpdating: false,
@@ -42,8 +45,8 @@ describe("popup view", () => {
     expect(markup).toContain("扩展已启用");
     expect(markup).toContain("启用扩展");
     expect(markup).toContain("打开侧边栏");
-    expect(markup).toContain("已选择 OpenAI，但当前设备尚未保存 API key。");
-    expect(markup).toContain("请先在设置页补充 OpenAI API key，再开始 AI 规划。");
+    expect(markup).toContain("已选择 OpenAI，但当前设备中的远程引擎配置尚未完成。");
+    expect(markup).toContain("请先为 OpenAI 填写 API key，再开始 AI 规划。");
     expect(markup).toContain("画像草稿、本地历史和推荐结果默认保存在当前设备。");
     expect(markup).toContain("当前产品正过渡到 AI-first 多站点路线");
     expect(markup).toContain("不会自动提交问卷");
@@ -64,6 +67,34 @@ describe("popup view", () => {
 });
 
 describe("popup settings client", () => {
+  it("prefers chrome.storage.local for popup settings reads to avoid a background round-trip", async () => {
+    const sendMessage = vi.fn();
+    const storageArea = {
+      get: vi.fn(async () => ({
+        settings: {
+          extensionEnabled: true,
+          debugMode: false,
+          activeProvider: "openai",
+          openAiApiKey: "sk-local",
+          providerApiKey: "sk-local",
+          providerBaseUrl: null,
+          providerModel: null,
+          approvedDomains: [],
+          lastActiveProfileId: null,
+          featureFlags: {}
+        }
+      })),
+      set: vi.fn(async () => {})
+    };
+    const client = createPopupSettingsClient(sendMessage, storageArea);
+
+    const settings = await client.fetchSettings();
+
+    expect(settings.openAiApiKey).toBe("sk-local");
+    expect(storageArea.get).toHaveBeenCalledTimes(1);
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
   it("reads the current settings through the shared message contract", async () => {
     const sendMessage = vi.fn(
       async (message: SettingsFetchMessage | SettingsUpdateMessage): Promise<AppResult> => {
@@ -75,6 +106,9 @@ describe("popup settings client", () => {
               debugMode: false,
               activeProvider: "local",
               openAiApiKey: null,
+              providerApiKey: null,
+              providerBaseUrl: null,
+              providerModel: null,
               approvedDomains: [],
               lastActiveProfileId: null,
               featureFlags: {},
@@ -111,6 +145,9 @@ describe("popup settings client", () => {
               debugMode: false,
               activeProvider: "local",
               openAiApiKey: null,
+              providerApiKey: null,
+              providerBaseUrl: null,
+              providerModel: null,
               approvedDomains: ["example.com"],
               lastActiveProfileId: null,
               featureFlags: {},
@@ -137,12 +174,56 @@ describe("popup settings client", () => {
           debugMode: false,
           activeProvider: "local",
           openAiApiKey: null,
+          providerApiKey: null,
+          providerBaseUrl: null,
+          providerModel: null,
           approvedDomains: ["example.com"],
           lastActiveProfileId: null,
           featureFlags: {},
         },
       },
     });
+  });
+
+  it("updates the popup extension toggle directly through chrome.storage.local when available", async () => {
+    const sendMessage = vi.fn();
+    const storageArea = {
+      get: vi.fn(async () => ({
+        settings: {
+          extensionEnabled: true,
+          debugMode: false,
+          activeProvider: "local",
+          openAiApiKey: null,
+          providerApiKey: null,
+          providerBaseUrl: null,
+          providerModel: null,
+          approvedDomains: ["example.com"],
+          lastActiveProfileId: null,
+          featureFlags: {}
+        }
+      })),
+      set: vi.fn(async () => {})
+    };
+    const client = createPopupSettingsClient(sendMessage, storageArea);
+
+    const settings = await client.updateExtensionEnabled(false);
+
+    expect(settings.extensionEnabled).toBe(false);
+    expect(storageArea.set).toHaveBeenCalledWith({
+      settings: {
+        extensionEnabled: false,
+        debugMode: false,
+        activeProvider: "local",
+        openAiApiKey: null,
+        providerApiKey: null,
+        providerBaseUrl: null,
+        providerModel: null,
+        approvedDomains: ["example.com"],
+        lastActiveProfileId: null,
+        featureFlags: {}
+      }
+    });
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 });
 

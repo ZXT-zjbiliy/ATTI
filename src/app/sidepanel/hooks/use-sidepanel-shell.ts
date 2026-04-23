@@ -20,6 +20,8 @@ import {
 } from "../services/assessment-session-client";
 import type { SidePanelShellModel } from "../types/sidepanel-shell";
 
+type PlanningRequestState = "idle" | "sending" | "sent";
+
 function mapProfileToDraft(profile: Profile): ProfileDraft {
   return {
     narrativeSummary: profile.narrativeSummary,
@@ -90,16 +92,63 @@ function mapSessionStatusState(
   return {
     kind: "placeholder",
     summary: `会话状态：${session.status}`,
-    detail: providerConfiguration?.isReady === false && providerConfiguration.actionMessage
-      ? `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。${providerConfiguration.actionMessage}`
-      : `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。`
+    detail:
+      providerConfiguration?.isReady === false && providerConfiguration.actionMessage
+        ? `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。${providerConfiguration.actionMessage}`
+        : `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。`
+  };
+}
+
+function createSessionProgress(
+  session: Session | null,
+  previewItemCount: number,
+  requestState: PlanningRequestState
+) {
+  if (!session) {
+    return null;
+  }
+
+  const totalCount = session.questionIds.length;
+
+  if (totalCount === 0) {
+    return null;
+  }
+
+  const completedCount = Math.max(0, Math.min(previewItemCount, totalCount));
+
+  if (requestState === "sending") {
+    return {
+      completedCount,
+      totalCount,
+      label: `规划进度：${completedCount} / ${totalCount}`,
+      requestIcon: "◔",
+      requestLabel: "已发送规划请求"
+    };
+  }
+
+  if (requestState === "sent") {
+    return {
+      completedCount,
+      totalCount,
+      label: `规划进度：${completedCount} / ${totalCount}`,
+      requestIcon: "●",
+      requestLabel: "已收到规划结果"
+    };
+  }
+
+  return {
+    completedCount,
+    totalCount,
+    label: `规划进度：${completedCount} / ${totalCount}`,
+    requestIcon: "○",
+    requestLabel: "尚未发送规划请求"
   };
 }
 
 export function useSidePanelShell(
   profileClient?: ProfileDraftClient,
   recommendationClient?: RecommendationPreviewClient,
-  assessmentSessionClient?: AssessmentSessionClient,
+  assessmentSessionClient?: AssessmentSessionClient
 ): SidePanelShellModel {
   const [stableProfileClient] = useState<ProfileDraftClient>(
     () => profileClient ?? createProfileDraftClient()
@@ -121,6 +170,8 @@ export function useSidePanelShell(
     useState<SidePanelShellModel["pageDetectionStatus"]>(defaultSidePanelShellModel.pageDetectionStatus);
   const [sessionStatus, setSessionStatus] =
     useState<SidePanelShellModel["sessionStatus"]>(defaultSidePanelShellModel.sessionStatus);
+  const [sessionProgress, setSessionProgress] =
+    useState<SidePanelShellModel["sessionProgress"]>(defaultSidePanelShellModel.sessionProgress);
   const [recommendationPreviewStatus, setRecommendationPreviewStatus] =
     useState<SidePanelShellModel["recommendationPreviewStatus"]>({
       kind: "loading",
@@ -128,6 +179,7 @@ export function useSidePanelShell(
     });
   const [settings, setSettings] = useState<Settings | null>(null);
   const [latestSession, setLatestSession] = useState<Session | null>(null);
+  const [planningRequestState, setPlanningRequestState] = useState<PlanningRequestState>("idle");
 
   async function refreshRecommendationPreview(currentSettings: Settings | null = settings) {
     setRecommendationPreviewStatus({
@@ -152,6 +204,8 @@ export function useSidePanelShell(
 
       if (!result) {
         setLatestSession(null);
+        setPlanningRequestState("idle");
+        setSessionProgress(null);
         setPageDetectionStatus({
           kind: "loading",
           message: "正在等待可识别的测评页面。"
@@ -167,7 +221,14 @@ export function useSidePanelShell(
         return;
       }
 
+      const nextRequestState =
+        planningRequestState === "sending" || result.preview.items.length > 0 ? "sent" : planningRequestState;
+
+      setPlanningRequestState(nextRequestState);
       setLatestSession(result.session);
+      setSessionProgress(
+        createSessionProgress(result.session, result.preview.items.length, nextRequestState)
+      );
       setPageDetectionStatus(mapPageDetectionState(result.session));
       setSessionStatus(
         mapSessionStatusState(result.session, result.preview.items.length, currentSettings)
@@ -190,10 +251,14 @@ export function useSidePanelShell(
       const nextMessage =
         error instanceof Error ? error.message : "无法加载推荐预览。";
 
+      setPlanningRequestState("sent");
       setRecommendationPreviewStatus({
         kind: "error",
         message: nextMessage
       });
+      setSessionProgress(
+        createSessionProgress(latestSession, 0, "sent")
+      );
       setSessionStatus({
         kind: "error",
         message: nextMessage
@@ -266,6 +331,7 @@ export function useSidePanelShell(
     },
     pageDetectionStatus,
     sessionStatus,
+    sessionProgress,
     recommendationPreviewStatus,
     isRunAnswerPlanningDisabled:
       latestSession == null ||
@@ -295,8 +361,12 @@ export function useSidePanelShell(
         return;
       }
 
+      setPlanningRequestState("sending");
+      setSessionProgress(createSessionProgress(latestSession, 0, "sending"));
+
       try {
         await stableAssessmentSessionClient.runAnswerPlanning(latestSession.id);
+        setPlanningRequestState("sent");
         await refreshRecommendationPreview(settings);
 
         try {
@@ -311,6 +381,8 @@ export function useSidePanelShell(
           });
         }
       } catch (error) {
+        setPlanningRequestState("sent");
+        setSessionProgress(createSessionProgress(latestSession, 0, "sent"));
         setSessionStatus({
           kind: "error",
           message: error instanceof Error ? error.message : "无法执行 AI 规划。"
