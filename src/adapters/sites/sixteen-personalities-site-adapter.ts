@@ -1,12 +1,12 @@
 import type {
-  AdapterFillContext,
-  AdapterMatchContext,
-  AdapterPageContext,
-  AnswerFillResult,
-  AnswerFillSelection,
-  ExtractedQuestionDraft,
-  QuestionRegionLocatorResult,
-  SiteAdapter,
+    AdapterFillContext,
+    AdapterMatchContext,
+    AdapterPageContext,
+    AnswerFillResult,
+    AnswerFillSelection,
+    ExtractedQuestionDraft,
+    QuestionRegionLocatorResult,
+    SiteAdapter,
 } from "../base/site-adapter";
 
 const SIXTEEN_PERSONALITIES_HOSTNAME = "www.16personalities.com";
@@ -95,6 +95,38 @@ export function isSupportedSixteenPersonalitiesAssessmentPage(
   );
 }
 
+function createDocument(html: string): Document | null {
+  if (typeof DOMParser === "undefined") {
+    return null;
+  }
+
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
+function collectQuestionContainers(doc: Document): HTMLElement[] {
+  const selectors = [
+    "section[data-atti-16p-question]",
+    ".question-card",
+    ".question-item",
+    "[data-question-id]",
+    "fieldset",
+    "section",
+    "article",
+  ];
+
+  return Array.from(doc.querySelectorAll<HTMLElement>(selectors.join(","))).filter(
+    (container) => {
+      const promptText = resolvePromptText(container);
+      if (!promptText || promptText.length < 10) {
+        return false;
+      }
+
+      const optionElements = collectOptionElements(container);
+      return optionElements.length >= 5;
+    },
+  );
+}
+
 function parseQuestionDescriptors(html: string): Array<{
   order: number;
   promptText: string;
@@ -107,22 +139,58 @@ function parseQuestionDescriptors(html: string): Array<{
     locatorHint: string;
     options: ExtractedQuestionDraft["options"];
   }> = [];
+
+  const document = createDocument(html);
+
+  if (document) {
+    const containers = collectQuestionContainers(document);
+    const seenKeys = new Set<string>();
+
+    for (const container of containers) {
+      const promptText = resolvePromptText(container);
+      const promptKey = createPromptKey(promptText);
+
+      if (!promptText || seenKeys.has(promptKey)) {
+        continue;
+      }
+
+      const optionElements = collectOptionElements(container);
+
+      if (optionElements.length < 5) {
+        continue;
+      }
+
+      descriptors.push({
+        order: descriptors.length,
+        promptText,
+        locatorHint: createLocatorHint(promptText),
+        options: FIXED_SIXTEEN_PERSONALITIES_OPTIONS.map((option) => ({ ...option })),
+      });
+      seenKeys.add(promptKey);
+    }
+  }
+
+  if (descriptors.length > 0) {
+    return descriptors;
+  }
+
   const blockPattern =
-    /<(section|article|div)\b[^>]*data-atti-16p-question[^>]*>[\s\S]*?<\/\1>/gim;
+    /<(section|article|fieldset|div)\b[^>]*(?:data-atti-16p-question\b|class=(?:"[^"]*\bquestion-card\b[^\"]*"|'[^']*\bquestion-card\b[^']*')|class=(?:"[^"]*\bquestion\b[^"]*"|'[^']*\bquestion\b[^']*'))[^>]*>[\s\S]*?<\/\1>/gim;
 
   for (const blockMatch of html.matchAll(blockPattern)) {
     const blockHtml = blockMatch[0] ?? "";
     const promptMatch =
       blockHtml.match(/data-atti-16p-prompt[^>]*>([\s\S]*?)<\/[^>]+>/i) ??
       blockHtml.match(
-        /<(?:h1|h2|h3|h4|p|span|div)\b[^>]*class=(?:"[^"]*question[^"]*"|'[^']*question[^']*')[^>]*>([\s\S]*?)<\/(?:h1|h2|h3|h4|p|span|div)>/i,
+        /<(?:h1|h2|h3|h4|p|span|div)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3|h4|p|span|div)>/i,
       );
 
     if (!promptMatch) {
       continue;
     }
 
-    const promptText = normalizeText(stripHtmlTags(promptMatch[1] ?? ""));
+    let promptText = normalizeText(stripHtmlTags(promptMatch[1] ?? ""));
+    promptText = promptText.replace(/^question\s*\d+\s*of\s*\d+\s*:?[\s\u00A0]*/i, "");
 
     if (promptText.length === 0) {
       continue;
@@ -196,11 +264,36 @@ function matchesSelectionPrompt(
 }
 
 function resolvePromptText(container: Element): string {
-  const promptElement = container.querySelector(
-    "[data-atti-16p-prompt], h1, h2, h3, h4, p, span, div",
-  );
+  const prioritizedSelectors = [
+    "[data-atti-16p-prompt]",
+    ".header",
+    ".statement",
+    "legend span",
+    "legend",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "p",
+    "span",
+    "div",
+  ];
 
-  return normalizeText(promptElement?.textContent ?? "");
+  for (const selector of prioritizedSelectors) {
+    const promptElement = container.querySelector(selector);
+    if (!promptElement) {
+      continue;
+    }
+
+    let promptText = normalizeText(promptElement.textContent ?? "");
+    promptText = promptText.replace(/^question\s*\d+\s*of\s*\d+\s*:??\s*/i, "");
+
+    if (promptText.length > 0) {
+      return promptText;
+    }
+  }
+
+  return "";
 }
 
 function collectOptionElements(container: Element): HTMLElement[] {
@@ -212,8 +305,18 @@ function collectOptionElements(container: Element): HTMLElement[] {
     return directValueButtons;
   }
 
-  return Array.from(
-    container.querySelectorAll<HTMLElement>("button, [role=\"radio\"], [role=\"button\"], label"),
+  const radioInputs = Array.from(
+    container.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]"),
+  );
+
+  if (radioInputs.length >= 5) {
+    return radioInputs as HTMLElement[];
+  }
+
+  const optionCandidates = Array.from(
+    container.querySelectorAll<HTMLElement>(
+      "button, [role=\"radio\"], [role=\"button\"], label, span.sp-radio, [class*=\"sp-radio\"]",
+    ),
   ).filter((candidate) => {
     if (candidate.tagName.toLowerCase() === "label") {
       return !!candidate.querySelector('input[type="radio"]');
@@ -221,6 +324,8 @@ function collectOptionElements(container: Element): HTMLElement[] {
 
     return true;
   });
+
+  return optionCandidates;
 }
 
 function resolveOptionElements(
@@ -235,6 +340,7 @@ function resolveOptionElements(
         ".question-item",
         ".question-card",
         "[data-question-id]",
+        "fieldset",
         "section",
         "article",
       ].join(", "),
@@ -248,7 +354,7 @@ function resolveOptionElements(
 
     const optionElements = collectOptionElements(container);
 
-    if (optionElements.length >= 7) {
+    if (optionElements.length >= 5) {
       return optionElements;
     }
   }
@@ -257,6 +363,21 @@ function resolveOptionElements(
 }
 
 function clickOptionElement(optionElement: HTMLElement): void {
+  const targetInput =
+    optionElement.tagName.toLowerCase() === "input"
+      ? (optionElement as HTMLInputElement)
+      : optionElement.querySelector<HTMLInputElement>('input[type="radio"]');
+
+  if (targetInput) {
+    if (!targetInput.checked) {
+      targetInput.click();
+    }
+
+    targetInput.dispatchEvent(new Event("input", { bubbles: true }));
+    targetInput.dispatchEvent(new Event("change", { bubbles: true }));
+    return;
+  }
+
   if (optionElement.tagName.toLowerCase() === "label") {
     const radioInput = optionElement.querySelector<HTMLInputElement>('input[type="radio"]');
 

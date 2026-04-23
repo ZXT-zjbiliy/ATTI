@@ -4,10 +4,10 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  extractSixteenPersonalitiesQuestions,
-  isSupportedSixteenPersonalitiesAssessmentPage,
-  locateSixteenPersonalitiesQuestionRegions,
-  matchesSixteenPersonalitiesTestUrl,
+    extractSixteenPersonalitiesQuestions,
+    isSupportedSixteenPersonalitiesAssessmentPage,
+    locateSixteenPersonalitiesQuestionRegions,
+    matchesSixteenPersonalitiesTestUrl,
 } from "../../src/adapters/sites/sixteen-personalities-site-adapter";
 
 const sixteenPersonalitiesFixture = readFileSync(
@@ -107,5 +107,59 @@ describe("16Personalities adapter", () => {
         order: 1,
       },
     ]);
+  });
+
+  it("extracts questions when the page does not include adapter-specific data markers", () => {
+    const htmlWithoutMarkers = sixteenPersonalitiesFixture
+      .replace(/data-atti-16p-question="[^"]*"/g, "")
+      .replace(/data-atti-16p-prompt/g, "");
+
+    const result = extractSixteenPersonalitiesQuestions({
+      url: "https://www.16personalities.com/free-personality-test",
+      title: "Free Personality Test | 16Personalities",
+      html: htmlWithoutMarkers,
+    });
+
+    expect(result.questionCount).toBe(2);
+    expect(result.questions.map((question) => question.text)).toEqual([
+      "You regularly make new friends.",
+      "You spend a lot of your free time exploring various random topics that pique your interest.",
+    ]);
+  });
+
+  it("extracts questions from actual 16Personalities fieldset-based quiz markup", () => {
+    const fieldsetHtml = `
+      <div>
+        <h1>Free Personality Test</h1>
+        <p>Be yourself and answer honestly to find out your personality type.</p>
+        <fieldset class="question" data-question="0">
+          <legend class="sr-only"><span>Question 1 of 60: You regularly make new friends.</span></legend>
+          <div class="input__label"><div class="statement"><span class="header">You regularly make new friends.</span></div></div>
+          <div class="group__options">
+            <div class="radios len--7">
+              <span class="sp-radio"><input type="radio" value="-3" /><span></span></span>
+              <span class="sp-radio"><input type="radio" value="-2" /><span></span></span>
+              <span class="sp-radio"><input type="radio" value="-1" /><span></span></span>
+              <span class="sp-radio"><input type="radio" value="0" /><span></span></span>
+              <span class="sp-radio"><input type="radio" value="1" /><span></span></span>
+              <span class="sp-radio"><input type="radio" value="2" /><span></span></span>
+              <span class="sp-radio"><input type="radio" value="3" /><span></span></span>
+            </div>
+            <div class="captions--desktop caption agree">Agree</div>
+            <div class="captions--desktop caption disagree">Disagree</div>
+          </div>
+        </fieldset>
+      </div>
+    `;
+
+    const result = extractSixteenPersonalitiesQuestions({
+      url: "https://www.16personalities.com/free-personality-test",
+      title: "Free Personality Test | 16Personalities",
+      html: fieldsetHtml,
+    });
+
+    expect(result.questionCount).toBe(1);
+    expect(result.questions[0].text).toBe("You regularly make new friends.");
+    expect(result.questions[0].options).toHaveLength(7);
   });
 });
