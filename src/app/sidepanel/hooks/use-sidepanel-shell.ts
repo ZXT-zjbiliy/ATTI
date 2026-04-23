@@ -21,6 +21,8 @@ import {
 import type { SidePanelShellModel } from "../types/sidepanel-shell";
 
 type PlanningRequestState = "idle" | "sending" | "sent";
+type PageDetectionAction = "refresh-detection" | "reextract-questions";
+type PageDetectionRequestState = "idle" | "sending" | "sent";
 
 function mapProfileToDraft(profile: Profile): ProfileDraft {
   return {
@@ -54,6 +56,10 @@ function createPreviewEntry(item: RecommendationPreviewItem) {
   };
 }
 
+function countRecommendedItems(items: RecommendationPreviewItem[]): number {
+  return items.filter((item) => item.hasRecommendation).length;
+}
+
 function wait(delayMs: number): Promise<void> {
   return new Promise((resolve) => {
     globalThis.setTimeout(resolve, delayMs);
@@ -77,7 +83,7 @@ function mapPageDetectionState(session: Session | null): SidePanelShellModel["pa
 
 function mapSessionStatusState(
   session: Session | null,
-  previewItemCount: number,
+  recommendedItemCount: number,
   settings: Settings | null
 ): SidePanelShellModel["sessionStatus"] {
   const providerConfiguration = settings ? getProviderConfigurationState(settings) : null;
@@ -89,19 +95,21 @@ function mapSessionStatusState(
     };
   }
 
+  const detail = `已提取 ${session.questionIds.length} 道题，当前有 ${recommendedItemCount} 条推荐。`;
+
   return {
     kind: "placeholder",
     summary: `会话状态：${session.status}`,
     detail:
       providerConfiguration?.isReady === false && providerConfiguration.actionMessage
-        ? `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。${providerConfiguration.actionMessage}`
-        : `已提取 ${session.questionIds.length} 道题，当前有 ${previewItemCount} 条推荐。`
+        ? `${detail} ${providerConfiguration.actionMessage}`
+        : detail
   };
 }
 
 function createSessionProgress(
   session: Session | null,
-  previewItemCount: number,
+  recommendedItemCount: number,
   requestState: PlanningRequestState
 ) {
   if (!session) {
@@ -114,7 +122,7 @@ function createSessionProgress(
     return null;
   }
 
-  const completedCount = Math.max(0, Math.min(previewItemCount, totalCount));
+  const completedCount = Math.max(0, Math.min(recommendedItemCount, totalCount));
 
   if (requestState === "sending") {
     return {
@@ -145,6 +153,36 @@ function createSessionProgress(
   };
 }
 
+function createPageDetectionProgress(
+  action: PageDetectionAction,
+  requestState: PageDetectionRequestState
+) {
+  if (requestState === "idle") {
+    return null;
+  }
+
+  const isRefreshAction = action === "refresh-detection";
+  const labelPrefix = isRefreshAction ? "页面识别刷新进度" : "重新提取进度";
+
+  if (requestState === "sending") {
+    return {
+      completedCount: 0,
+      totalCount: 1,
+      label: `${labelPrefix}：0 / 1`,
+      requestIcon: "◔",
+      requestLabel: isRefreshAction ? "已发送页面识别刷新请求" : "已发送重新提取请求"
+    };
+  }
+
+  return {
+    completedCount: 1,
+    totalCount: 1,
+    label: `${labelPrefix}：1 / 1`,
+    requestIcon: "●",
+    requestLabel: isRefreshAction ? "页面识别已刷新" : "题目已重新提取"
+  };
+}
+
 export function useSidePanelShell(
   profileClient?: ProfileDraftClient,
   recommendationClient?: RecommendationPreviewClient,
@@ -168,6 +206,8 @@ export function useSidePanelShell(
   const [status, setStatus] = useState<"loading" | "empty" | "error" | "ready">("loading");
   const [pageDetectionStatus, setPageDetectionStatus] =
     useState<SidePanelShellModel["pageDetectionStatus"]>(defaultSidePanelShellModel.pageDetectionStatus);
+  const [pageDetectionProgress, setPageDetectionProgress] =
+    useState<SidePanelShellModel["pageDetectionProgress"]>(defaultSidePanelShellModel.pageDetectionProgress);
   const [sessionStatus, setSessionStatus] =
     useState<SidePanelShellModel["sessionStatus"]>(defaultSidePanelShellModel.sessionStatus);
   const [sessionProgress, setSessionProgress] =
@@ -205,6 +245,7 @@ export function useSidePanelShell(
       if (!result) {
         setLatestSession(null);
         setPlanningRequestState("idle");
+        setPageDetectionProgress(null);
         setSessionProgress(null);
         setPageDetectionStatus({
           kind: "loading",
@@ -216,49 +257,46 @@ export function useSidePanelShell(
         });
         setRecommendationPreviewStatus({
           kind: "empty",
-          message: "开始 AI 规划后，这里会出现推荐预览。"
+          message: "当前活动标签页不是受支持的测试页面，或尚未打开最近一次会话对应的问卷页。"
         });
         return;
       }
 
+      const recommendedItemCount = countRecommendedItems(result.preview.items);
       const nextRequestState =
-        planningRequestState === "sending" || result.preview.items.length > 0 ? "sent" : planningRequestState;
+        planningRequestState === "sending" || recommendedItemCount > 0 ? "sent" : planningRequestState;
 
       setPlanningRequestState(nextRequestState);
       setLatestSession(result.session);
-      setSessionProgress(
-        createSessionProgress(result.session, result.preview.items.length, nextRequestState)
-      );
+      setSessionProgress(createSessionProgress(result.session, recommendedItemCount, nextRequestState));
       setPageDetectionStatus(mapPageDetectionState(result.session));
-      setSessionStatus(
-        mapSessionStatusState(result.session, result.preview.items.length, currentSettings)
-      );
+      setSessionStatus(mapSessionStatusState(result.session, recommendedItemCount, currentSettings));
       setRecommendationPreviewStatus(
         result.preview.items.length === 0
           ? {
               kind: "empty",
-              message: "当前会话还没有可用的推荐结果。"
+              message: "当前会话还没有可用的题目或推荐。"
             }
           : {
               kind: "ready",
               sessionId: result.preview.sessionId,
               items: result.preview.items.map(createPreviewEntry),
               isRefreshing: false,
-              message: `已加载 ${result.preview.items.length} 条推荐。`
+              message:
+                recommendedItemCount > 0
+                  ? `已加载 ${result.preview.items.length} 道题，其中 ${recommendedItemCount} 条已有 AI 推荐。`
+                  : `已加载 ${result.preview.items.length} 道题，等待 AI 推荐。`
             }
       );
     } catch (error) {
-      const nextMessage =
-        error instanceof Error ? error.message : "无法加载推荐预览。";
+      const nextMessage = error instanceof Error ? error.message : "无法加载推荐预览。";
 
       setPlanningRequestState("sent");
       setRecommendationPreviewStatus({
         kind: "error",
         message: nextMessage
       });
-      setSessionProgress(
-        createSessionProgress(latestSession, 0, "sent")
-      );
+      setSessionProgress(createSessionProgress(latestSession, 0, "sent"));
       setSessionStatus({
         kind: "error",
         message: nextMessage
@@ -330,6 +368,7 @@ export function useSidePanelShell(
       savedProfile
     },
     pageDetectionStatus,
+    pageDetectionProgress,
     sessionStatus,
     sessionProgress,
     recommendationPreviewStatus,
@@ -377,8 +416,7 @@ export function useSidePanelShell(
           await refreshRecommendationPreview(settings);
           setSessionStatus({
             kind: "error",
-            message:
-              error instanceof Error ? error.message : "无法执行 AI 规划。"
+            message: error instanceof Error ? error.message : "无法执行 AI 规划。"
           });
         }
       } catch (error) {
@@ -401,12 +439,29 @@ export function useSidePanelShell(
 
       try {
         setPlanningRequestState("idle");
+        setPageDetectionProgress(createPageDetectionProgress("reextract-questions", "sending"));
         await stableAssessmentSessionClient.rerunQuestionExtraction(latestSession.id);
         await refreshRecommendationPreview(settings);
+        setPageDetectionProgress(createPageDetectionProgress("reextract-questions", "sent"));
       } catch (error) {
+        setPageDetectionProgress(createPageDetectionProgress("reextract-questions", "sent"));
         setPageDetectionStatus({
           kind: "error",
           message: error instanceof Error ? error.message : "无法重新提取当前页题目。"
+        });
+      }
+    },
+    async refreshPageDetection() {
+      setPageDetectionProgress(createPageDetectionProgress("refresh-detection", "sending"));
+
+      try {
+        await refreshRecommendationPreview(settings);
+        setPageDetectionProgress(createPageDetectionProgress("refresh-detection", "sent"));
+      } catch (error) {
+        setPageDetectionProgress(createPageDetectionProgress("refresh-detection", "sent"));
+        setPageDetectionStatus({
+          kind: "error",
+          message: error instanceof Error ? error.message : "无法刷新页面识别状态。"
         });
       }
     },

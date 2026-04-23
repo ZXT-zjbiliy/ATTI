@@ -25,6 +25,7 @@ function mapRecommendationPreviewItem(answerPlan: AnswerPlan, question: Question
     questionText: question.text,
     questionType: question.type,
     questionOrder: question.order,
+    hasRecommendation: true,
     options: question.options.map((option) => ({ ...option })),
     recommendedOptionIds: [...answerPlan.recommendedOptionIds],
     selectedOptionIds: [...answerPlan.selectedOptionIds],
@@ -34,6 +35,26 @@ function mapRecommendationPreviewItem(answerPlan: AnswerPlan, question: Question
     reviewStatus: answerPlan.reviewStatus,
     qualityStatus: answerPlan.qualityStatus,
     qualityIssues: [...answerPlan.qualityIssues]
+  };
+}
+
+function mapExtractedQuestionPreviewItem(question: Question): RecommendationPreviewItem {
+  return {
+    answerPlanId: `question-only-${question.id}`,
+    questionId: question.id,
+    questionText: question.text,
+    questionType: question.type,
+    questionOrder: question.order,
+    hasRecommendation: false,
+    options: question.options.map((option) => ({ ...option })),
+    recommendedOptionIds: [],
+    selectedOptionIds: [],
+    confidence: 0,
+    rationale: "",
+    requiresConfirmation: false,
+    reviewStatus: "pending",
+    qualityStatus: "normal",
+    qualityIssues: []
   };
 }
 
@@ -51,19 +72,25 @@ export const handleRecommendationPreviewFetchMessage: BackgroundMessageHandler<
     context.answerPlanRepository.listBySessionId(session.id)
   ]);
   const questionMap = new Map(questions.map((question) => [question.id, question]));
+  const answerPlanMap = new Map(answerPlans.map((answerPlan) => [answerPlan.questionId, answerPlan]));
   const items: RecommendationPreviewItem[] = [];
 
-  for (const answerPlan of answerPlans) {
-    const question = questionMap.get(answerPlan.questionId);
+  for (const question of questions) {
+    const answerPlan = answerPlanMap.get(question.id);
+    items.push(
+      answerPlan
+        ? mapRecommendationPreviewItem(answerPlan, question)
+        : mapExtractedQuestionPreviewItem(question)
+    );
+  }
 
-    if (!question) {
+  for (const answerPlan of answerPlans) {
+    if (!questionMap.has(answerPlan.questionId)) {
       return createErrorResult(
         "QUESTION_NOT_FOUND",
         `Question not found for answer plan: ${answerPlan.questionId}`
       );
     }
-
-    items.push(mapRecommendationPreviewItem(answerPlan, question));
   }
 
   items.sort((left, right) => left.questionOrder - right.questionOrder);

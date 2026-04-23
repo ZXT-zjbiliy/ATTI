@@ -21,6 +21,16 @@ type GlobalWithChromeRuntime = typeof globalThis & {
   };
 };
 
+function toAppErrorResponse(error: unknown) {
+  return {
+    ok: false,
+    error: {
+      code: "RUNTIME_MESSAGE_FAILED",
+      message: error instanceof Error ? error.message : "Background message handling failed."
+    }
+  };
+}
+
 export function startBackgroundRuntime() {
   const router = createBackgroundMessageRouter();
   const permissionGuard = createPermissionGuard();
@@ -33,7 +43,12 @@ export function startBackgroundRuntime() {
   const runtime = (globalThis as GlobalWithChromeRuntime).chrome?.runtime;
 
   runtime?.onMessage?.addListener((message, _sender, sendResponse) => {
-    void orchestrator.handleIncomingMessage(message).then(sendResponse);
+    void orchestrator
+      .handleIncomingMessage(message)
+      .then(sendResponse)
+      .catch((error) => {
+        sendResponse(toAppErrorResponse(error));
+      });
     return true;
   });
 

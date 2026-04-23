@@ -30,6 +30,7 @@ export interface SidePanelProfilePanelState {
 }
 
 export interface RecommendationPreviewEntryState extends RecommendationPreviewItem {
+  readonly hasRecommendation: boolean;
   readonly recommendedOptionLabels: string[];
 }
 
@@ -65,6 +66,7 @@ export type RecommendationPreviewState =
 export interface SidePanelShellModel {
   readonly profilePanel: SidePanelProfilePanelState;
   readonly pageDetectionStatus: SidePanelSectionState;
+  readonly pageDetectionProgress: SessionProgressState | null;
   readonly sessionStatus: SidePanelSectionState;
   readonly sessionProgress: SessionProgressState | null;
   readonly recommendationPreviewStatus: RecommendationPreviewState;
@@ -74,6 +76,7 @@ export interface SidePanelShellModel {
   setProfileDraftEvidenceText: (evidenceText: string) => void;
   runAnswerPlanning: () => Promise<void>;
   rerunQuestionExtraction: () => Promise<void>;
+  refreshPageDetection: () => Promise<void>;
   refreshRecommendationPreview: () => Promise<void>;
   saveProfileDraft: () => Promise<void>;
 }

@@ -7,6 +7,8 @@ import { createAdapterRegistry } from "../../src/adapters/registry/adapter-regis
 import { siteAdapterCatalog } from "../../src/adapters/registry/adapter-catalog";
 import { placeholderSiteAdapter } from "../../src/adapters/sites/placeholder-site-adapter";
 import { sixteenPersonalitiesSiteAdapter } from "../../src/adapters/sites/sixteen-personalities-site-adapter";
+import { truityDiscSiteAdapter } from "../../src/adapters/sites/truity-disc-site-adapter";
+import { truityTypeFinderSiteAdapter } from "../../src/adapters/sites/truity-typefinder-site-adapter";
 import {
   extractTruityEnneagramQuestions,
   locateTruityEnneagramQuestionRegions,
@@ -32,6 +34,8 @@ describe("adapter registry", () => {
   it("exposes an explicit adapter catalog instead of hiding site registration in runtime code", () => {
     expect(siteAdapterCatalog).toEqual([
       truityEnneagramSiteAdapter,
+      truityDiscSiteAdapter,
+      truityTypeFinderSiteAdapter,
       sixteenPersonalitiesSiteAdapter,
       placeholderSiteAdapter,
     ]);
@@ -73,6 +77,30 @@ describe("adapter registry", () => {
     expect(adapter?.descriptor.siteId).toBe("sixteen-personalities");
   });
 
+  it("resolves the Truity DISC adapter when the match rule fits", () => {
+    const registry = createAdapterRegistry();
+
+    const adapter = registry.findMatchingAdapter({
+      url: "https://www.truity.com/test/disc-personality-test",
+      title: "DISC Personality Assessment",
+    });
+
+    expect(adapter).toBe(truityDiscSiteAdapter);
+    expect(adapter?.descriptor.siteId).toBe("truity-disc");
+  });
+
+  it("resolves the Truity TypeFinder adapter when the match rule fits", () => {
+    const registry = createAdapterRegistry();
+
+    const adapter = registry.findMatchingAdapter({
+      url: "https://www.truity.com/test/type-finder-personality-test-new",
+      title: "Personality Test of Myers & Briggs' 16 Types | TypeFinder®",
+    });
+
+    expect(adapter).toBe(truityTypeFinderSiteAdapter);
+    expect(adapter?.descriptor.siteId).toBe("truity-typefinder");
+  });
+
   it("returns null when no adapter matches", () => {
     const registry = createAdapterRegistry();
 
@@ -88,6 +116,8 @@ describe("adapter registry", () => {
     const registry = createAdapterRegistry();
 
     expect(registry.getAdapterBySiteId("truity-enneagram")).toBe(truityEnneagramSiteAdapter);
+    expect(registry.getAdapterBySiteId("truity-disc")).toBe(truityDiscSiteAdapter);
+    expect(registry.getAdapterBySiteId("truity-typefinder")).toBe(truityTypeFinderSiteAdapter);
     expect(registry.getAdapterBySiteId("sixteen-personalities")).toBe(
       sixteenPersonalitiesSiteAdapter,
     );
@@ -100,6 +130,8 @@ describe("adapter registry", () => {
 
     expect(registry.listAdapterDescriptors()).toEqual([
       truityEnneagramSiteAdapter.descriptor,
+      truityDiscSiteAdapter.descriptor,
+      truityTypeFinderSiteAdapter.descriptor,
       sixteenPersonalitiesSiteAdapter.descriptor,
       placeholderSiteAdapter.descriptor,
     ]);
@@ -186,6 +218,22 @@ describe("adapter boundaries", () => {
         ],
         order: 1,
       },
+    ]);
+  });
+
+  it("supports later Truity assessment steps instead of only the first page", () => {
+    const laterStepHtml = truityEnneagramFixture.replace("Step 1 of 11", "Step 2 of 11");
+
+    const result = extractTruityEnneagramQuestions({
+      url: "https://www.truity.com/test/enneagram-personality-test",
+      title: "Enneagram Personality Test | Truity",
+      html: laterStepHtml,
+    });
+
+    expect(result.questionCount).toBe(2);
+    expect(result.questions.map((question) => question.text)).toEqual([
+      "I strive for perfection",
+      "I work hard to be helpful to others",
     ]);
   });
 

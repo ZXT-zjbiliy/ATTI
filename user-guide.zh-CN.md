@@ -5,10 +5,14 @@
 ATTI 是一个 Edge 扩展，用来帮助你在当前受支持的测试网站问卷页上减少重复答题。
 
 当前版本不是“任意网站自动填写工具”，也不是“所有测试网站都支持”的产品。  
-它现在处于 `多测试网站小范围试用` 阶段，当前明确支持的范围只有这两个公开测试网站路由：
+它现在处于 `多测试网站小范围试用` 阶段，当前明确支持的范围只有这四个公开测试网站路由：
 
 - `Truity / Enneagram Personality Test`
   - `https://www.truity.com/test/enneagram-personality-test`
+- `Truity / DISC Personality Test`
+  - `https://www.truity.com/test/disc-personality-test`
+- `Truity / TypeFinder Personality Test`
+  - `https://www.truity.com/test/type-finder-personality-test-new`
 - `16Personalities / Free Personality Test`
   - `https://www.16personalities.com/free-personality-test`
 
@@ -33,7 +37,8 @@ ATTI 现在不会做这些事：
 
 当前版本的范围请按下面理解：
 
-- `Truity` 是当前更成熟、信心更高的试用路径
+- `Truity / Enneagram` 是当前更成熟、信心更高的试用路径
+- `Truity / DISC` 和 `Truity / TypeFinder` 已进入当前适配范围，但验证强度仍低于 `Truity / Enneagram`
 - `16Personalities` 已经进入第二测试网站的小范围试用范围，但仍然是一个较窄的第二样本
 - 这不代表产品已经进入更广泛正式发布
 - 这也不代表产品已经支持所有测试网站
@@ -91,6 +96,8 @@ ATTI 现在不会做这些事：
 在浏览器中打开以下任一页面：
 
 - `https://www.truity.com/test/enneagram-personality-test`
+- `https://www.truity.com/test/disc-personality-test`
+- `https://www.truity.com/test/type-finder-personality-test-new`
 - `https://www.16personalities.com/free-personality-test`
 
 然后打开 ATTI 的 `side panel`。
@@ -98,6 +105,10 @@ ATTI 现在不会做这些事：
 如果页面受支持，你会看到类似信息：
 
 - `已识别页面：truity-enneagram`
+  或
+- `已识别页面：truity-disc`
+  或
+- `已识别页面：truity-typefinder`
   或
 - `已识别页面：sixteen-personalities`
 
@@ -178,7 +189,7 @@ side panel 会展示每道题的：
 
 如果页面结构发生变化，ATTI 可能无法正常提取或填写。
 
-当前版本只对已接入的两个测试网站目标路由做了适配，不保证支持同域其他页面，也不保证支持未接入网站。
+当前版本只对已接入的四个测试网站目标路由做了适配，不保证支持同域其他页面，也不保证支持未接入网站。
 
 另外要注意：
 
@@ -192,7 +203,7 @@ side panel 会展示每道题的：
 1. 这不是任意网站通用自动填写工具。
 2. 这不是“所有测试网站都支持”的产品。
 3. 当前是“多测试网站小范围试用发布”状态，不是更广泛正式发布。
-4. 当前明确支持的只有两个公开测试网站问卷路由：`Truity Enneagram` 和 `16Personalities Free Personality Test`。
+4. 当前明确支持的只有四个公开测试网站问卷路由：`Truity Enneagram`、`Truity DISC`、`Truity TypeFinder` 和 `16Personalities Free Personality Test`。
 5. `provider / storage / adapter / UI` 边界仍然保持分离，ATTI 不是靠 provider 直接理解网页 DOM 来工作的。
 6. `no auto-submit` 仍然成立：可以自动 fill，但不会自动提交问卷。
 7. 仍然有显式延期项没有完成，比如更广泛 rollout 前的持续在线验证。
@@ -212,6 +223,6 @@ side panel 会展示每道题的：
 
 ## 10. 如果你只想记住三句话
 
-1. 现在只支持两个明确接入的测试网站路由：`Truity Enneagram` 和 `16Personalities Free Personality Test`。
+1. 现在只支持四个明确接入的测试网站路由：`Truity Enneagram`、`Truity DISC`、`Truity TypeFinder` 和 `16Personalities Free Personality Test`。
 2. 点击 `开始 AI 规划` 会生成并填写答案，但不会自动提交。
 3. 数据默认保留在本地，只有在你主动开始规划时才会调用 provider。

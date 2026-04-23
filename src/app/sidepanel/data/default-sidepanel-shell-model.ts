@@ -14,6 +14,7 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
     kind: "loading",
     message: "正在等待可识别的测评页面。"
   },
+  pageDetectionProgress: null,
   sessionStatus: {
     kind: "empty",
     message: "当前还没有可用的活动会话。"
@@ -29,6 +30,7 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
   setProfileDraftEvidenceText: () => undefined,
   runAnswerPlanning: async () => undefined,
   rerunQuestionExtraction: async () => undefined,
+  refreshPageDetection: async () => undefined,
   refreshRecommendationPreview: async () => undefined,
   saveProfileDraft: async () => undefined
 };

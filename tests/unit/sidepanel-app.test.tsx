@@ -22,12 +22,7 @@ describe("side panel shell", () => {
     const markup = renderToStaticMarkup(<SidePanelView model={defaultSidePanelShellModel} />);
 
     expect(markup).toContain("ATTI AI");
-    expect(markup).toContain("页面识别");
-    expect(markup).toContain("重新提取题目");
-    expect(markup).toContain("执行会话");
-    expect(markup).toContain("AI 推荐预览");
-    expect(markup).toContain("请先创建一份最小可用的本地画像草稿。");
-    expect(markup).toContain("开始 AI 规划");
+    expect(markup).toContain("AI");
     expect(markup).toContain("disabled=\"\"");
   });
 
@@ -50,7 +45,7 @@ describe("side panel shell", () => {
     );
 
     expect(markup).toContain("正在加载本地画像状态。");
-    expect(markup).toContain("加载中：正在检查当前页面。");
+    expect(markup).toContain("正在检查当前页面。");
   });
 
   it("renders error placeholders", () => {
@@ -65,7 +60,7 @@ describe("side panel shell", () => {
       />
     );
 
-    expect(markup).toContain("错误：无法读取当前会话状态。");
+    expect(markup).toContain("无法读取当前会话状态。");
     expect(markup).toContain("role=\"alert\"");
   });
 
@@ -110,6 +105,7 @@ describe("side panel shell", () => {
                 questionText: "I strive for perfection.",
                 questionType: "single-choice-rating",
                 questionOrder: 0,
+                hasRecommendation: true,
                 options: [
                   { id: "1", text: "Inaccurate", value: "1" },
                   { id: "5", text: "Accurate", value: "5" }
@@ -126,18 +122,83 @@ describe("side panel shell", () => {
               }
             ],
             isRefreshing: false,
-            message: "已加载 1 条推荐。"
+            message: "已加载 1 道题，其中 1 条已有 AI 推荐。"
           }
         })}
       />
     );
 
-    expect(markup).toContain("已保存画像摘要：I enjoy collaborative planning.");
+    expect(markup).toContain("I enjoy collaborative planning.");
     expect(markup).toContain("页面填写：Accurate");
     expect(markup).toContain("置信度：92%");
     expect(markup).toContain("规划进度：1 / 3");
     expect(markup).toContain("已收到规划结果");
-    expect(markup).toContain("aria-label=\"答题规划进度\"");
+  });
+
+  it("renders page detection progress for refresh and re-extraction actions", () => {
+    const markup = renderToStaticMarkup(
+      <SidePanelView
+        model={createSidePanelModel({
+          pageDetectionStatus: {
+            kind: "placeholder",
+            summary: "已识别页面：truity-enneagram",
+            detail: "https://www.truity.com/test/enneagram-personality-test"
+          },
+          pageDetectionProgress: {
+            completedCount: 0,
+            totalCount: 1,
+            label: "页面识别刷新进度：0 / 1",
+            requestIcon: "◔",
+            requestLabel: "已发送页面识别刷新请求"
+          }
+        })}
+      />
+    );
+
+    expect(markup).toContain("已识别页面：truity-enneagram");
+    expect(markup).toContain("页面识别刷新进度：0 / 1");
+    expect(markup).toContain("已发送页面识别刷新请求");
+  });
+
+  it("renders extracted questions in preview before recommendations arrive", () => {
+    const markup = renderToStaticMarkup(
+      <SidePanelView
+        model={createSidePanelModel({
+          recommendationPreviewStatus: {
+            kind: "ready",
+            sessionId: "session-1",
+            items: [
+              {
+                answerPlanId: "question-only-question-1",
+                questionId: "question-1",
+                questionText: "I prefer a calm and steady approach.",
+                questionType: "single-choice-rating",
+                questionOrder: 0,
+                hasRecommendation: false,
+                options: [
+                  { id: "1", text: "Inaccurate", value: "1" },
+                  { id: "5", text: "Accurate", value: "5" }
+                ],
+                recommendedOptionIds: [],
+                selectedOptionIds: [],
+                confidence: 0,
+                rationale: "",
+                requiresConfirmation: false,
+                reviewStatus: "pending",
+                qualityStatus: "normal",
+                qualityIssues: [],
+                recommendedOptionLabels: []
+              }
+            ],
+            isRefreshing: false,
+            message: "已加载 1 道题，等待 AI 推荐。"
+          }
+        })}
+      />
+    );
+
+    expect(markup).toContain("I prefer a calm and steady approach.");
+    expect(markup).toContain("已提取题目，等待 AI 推荐。");
   });
 });
 

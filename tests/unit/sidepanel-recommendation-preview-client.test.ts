@@ -2,6 +2,7 @@ import "fake-indexeddb/auto";
 
 import { describe, expect, it } from "vitest";
 
+import { createActiveTabClient } from "../../src/app/sidepanel/services/active-tab-client";
 import { createRecommendationPreviewClient } from "../../src/app/sidepanel/services/recommendation-preview-client";
 import { createAttiDatabase } from "../../src/storage/db";
 import { AnswerPlanRepository } from "../../src/storage/repos/answer-plan-repo";
@@ -73,6 +74,7 @@ describe("sidepanel recommendation preview client", () => {
               questionText: question.text,
               questionType: question.type,
               questionOrder: question.order,
+              hasRecommendation: true,
               options: question.options,
               recommendedOptionIds: previewAnswerPlan.recommendedOptionIds,
               selectedOptionIds: previewAnswerPlan.selectedOptionIds,
@@ -97,6 +99,7 @@ describe("sidepanel recommendation preview client", () => {
           questionText: question.text,
           questionType: question.type,
           questionOrder: question.order,
+          hasRecommendation: true,
           options: question.options,
           recommendedOptionIds: updatedAnswerPlan.recommendedOptionIds,
           selectedOptionIds: updatedAnswerPlan.selectedOptionIds,
@@ -109,7 +112,11 @@ describe("sidepanel recommendation preview client", () => {
         }
       };
     };
-    const client = createRecommendationPreviewClient(sendMessage);
+    const client = createRecommendationPreviewClient(sendMessage, {
+      async fetchActiveTabUrl() {
+        return "https://www.truity.com/test/enneagram-personality-test";
+      }
+    });
 
     const latestPreview = await client.fetchLatestPreview();
     const confirmed = await client.saveReview({
@@ -135,5 +142,51 @@ describe("sidepanel recommendation preview client", () => {
     expect(modified.selectedOptionIds).toEqual(["1"]);
 
     database.close();
+  });
+
+  it("returns no active preview when the current tab is not the session page", async () => {
+    const session = {
+      id: "session-1",
+      siteId: "truity-enneagram",
+      pageUrl: "https://www.truity.com/test/enneagram-personality-test",
+      status: "questions-extracted",
+      profileId: "profile-1",
+      questionIds: [],
+      answerPlanIds: [],
+      executionLog: [],
+      startedAt: "2025-01-01T00:00:00.000Z"
+    };
+    const sendMessage = async (message: SupportedPreviewMessage): Promise<AppResult> => {
+      if (message.type === "sessionLatestFetch") {
+        return { ok: true, data: session };
+      }
+
+      throw new Error("recommendationPreviewFetch should not run when active tab mismatches");
+    };
+    const client = createRecommendationPreviewClient(sendMessage, {
+      async fetchActiveTabUrl() {
+        return "https://example.com/not-supported";
+      }
+    });
+
+    await expect(client.fetchLatestPreview()).resolves.toBeNull();
+  });
+});
+
+describe("active tab client", () => {
+  it("reads the current active tab url through chrome.tabs.query", async () => {
+    const client = createActiveTabClient({
+      query() {
+        return [
+          {
+            url: "https://www.truity.com/test/enneagram-personality-test"
+          }
+        ];
+      }
+    });
+
+    await expect(client.fetchActiveTabUrl()).resolves.toBe(
+      "https://www.truity.com/test/enneagram-personality-test"
+    );
   });
 });

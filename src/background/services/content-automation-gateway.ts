@@ -43,6 +43,22 @@ function createError(message: string): Error {
   return new Error(message);
 }
 
+function normalizeContentCommandError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (message.includes("Receiving end does not exist")) {
+    return createError(
+      "当前测试页面还没有接收到扩展内容脚本。请刷新测试页面后重试；如果你刚刚重新加载过扩展，这是浏览器的正常限制。"
+    );
+  }
+
+  if (message.includes("Could not establish connection")) {
+    return createError("无法连接当前测试页面，请刷新页面后重试。");
+  }
+
+  return createError(message);
+}
+
 function resolveTabsApi(): BrowserTabsApi {
   const tabs = (globalThis as GlobalWithChromeTabs).chrome?.tabs;
 
@@ -69,17 +85,23 @@ export function createChromeContentAutomationGateway(
   return {
     async applyAnswerFill(request) {
       const targetTab = findTargetTab(await tabsApi.query({}), request.pageUrl, request.sessionId);
-      const result = await tabsApi.sendMessage(targetTab.id, {
-        type: CONTENT_COMMAND_TYPES.answerFillApply,
-        payload: {
-          siteId: request.siteId,
-          sessionId: request.sessionId,
-          selections: request.selections.map((selection) => ({
-            ...selection,
-            selectedOptionIds: [...selection.selectedOptionIds]
-          }))
-        }
-      });
+      let result: AppResult;
+
+      try {
+        result = await tabsApi.sendMessage(targetTab.id, {
+          type: CONTENT_COMMAND_TYPES.answerFillApply,
+          payload: {
+            siteId: request.siteId,
+            sessionId: request.sessionId,
+            selections: request.selections.map((selection) => ({
+              ...selection,
+              selectedOptionIds: [...selection.selectedOptionIds]
+            }))
+          }
+        });
+      } catch (error) {
+        throw normalizeContentCommandError(error);
+      }
 
       if (!result.ok) {
         throw createError(result.error.message);
@@ -92,10 +114,16 @@ export function createChromeContentAutomationGateway(
     },
     async runQuestionExtraction(request) {
       const targetTab = findTargetTab(await tabsApi.query({}), request.pageUrl, request.sessionId);
-      const result = await tabsApi.sendMessage(targetTab.id, {
-        type: CONTENT_COMMAND_TYPES.questionExtractionRun,
-        payload: {}
-      });
+      let result: AppResult;
+
+      try {
+        result = await tabsApi.sendMessage(targetTab.id, {
+          type: CONTENT_COMMAND_TYPES.questionExtractionRun,
+          payload: {}
+        });
+      } catch (error) {
+        throw normalizeContentCommandError(error);
+      }
 
       if (!result.ok) {
         throw createError(result.error.message);

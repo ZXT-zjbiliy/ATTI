@@ -41,6 +41,16 @@ export interface ContentRuntimeDependencies {
   readonly wait?: (ms: number) => Promise<void>;
 }
 
+function createRuntimeErrorResult(error: unknown): AppResult {
+  return {
+    ok: false,
+    error: {
+      code: "CONTENT_RUNTIME_COMMAND_FAILED",
+      message: error instanceof Error ? error.message : "Content runtime command failed."
+    }
+  };
+}
+
 function resolveDefaultDependencies(): ContentRuntimeDependencies {
   return {
     document,
@@ -177,7 +187,11 @@ export async function startContentRuntime(
     }
 
     if (message.type === CONTENT_COMMAND_TYPES.questionExtractionRun) {
-      void runQuestionExtraction(dependencies, dependencies.sendMessage).then(sendResponse);
+      void runQuestionExtraction(dependencies, dependencies.sendMessage)
+        .then(sendResponse)
+        .catch((error) => {
+          sendResponse(createRuntimeErrorResult(error));
+        });
       return true;
     }
 

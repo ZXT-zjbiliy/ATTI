@@ -33,8 +33,9 @@ export function SidePanelView({ model }: SidePanelViewProps) {
             />
             <PageDetectionStatusCard
               isReextractDisabled={model.isReextractDisabled}
+              progress={model.pageDetectionProgress}
               onRefresh={() => {
-                void model.refreshRecommendationPreview();
+                void model.refreshPageDetection();
               }}
               onReextract={() => {
                 void model.rerunQuestionExtraction();

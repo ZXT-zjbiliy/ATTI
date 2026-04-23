@@ -560,24 +560,28 @@ Current status: `passed for small-range multi-test-site trial release`
 Current explicitly supported test-website scope at this checkpoint:
 
 - `Truity / Enneagram Personality Test / https://www.truity.com/test/enneagram-personality-test`
+- `Truity / DISC Personality Test / https://www.truity.com/test/disc-personality-test`
+- `Truity / TypeFinder Personality Test / https://www.truity.com/test/type-finder-personality-test-new`
 - `16Personalities / Free Personality Test / https://www.16personalities.com/free-personality-test`
 - support remains limited to the adapter-scoped public assessment routes above; non-test websites and unsupported test routes are still outside the product promise
 
 Reached the small-range multi-test-site trial bar at this checkpoint:
 
-- current supported-site scope is now explicitly written as a two-site test-website scope rather than an implied arbitrary-site promise
-- `Truity` remains the stronger trial-ready path because it has the most mature adapter drift handling and the strongest real-site confidence in this repository
+- current supported-site scope is now explicitly written as an adapter-scoped four-route test-website scope rather than an implied arbitrary-site promise
+- `Truity` remains the stronger trial-ready path because it has the most mature adapter drift handling and the strongest real-site confidence in this repository; the Enneagram route is still the highest-confidence Truity sample in the current repository
+- the `Truity DISC` and `Truity TypeFinder` routes now reuse a dedicated pair-choice support boundary under `src/adapters/sites/truity-pair-choice/*`, so additional Truity assessment routes can be onboarded without collapsing multiple routes into one monolithic adapter file
 - `16Personalities` now reaches the repository's small-range trial bar as a second adapter-scoped sample because it has a dedicated adapter module, normalized extract/fill contracts, unit coverage for site recognition and extract, and a separate browser-level trial gate covering preview, fill, provider-failure visibility, and degraded-plan fill blocking
-- provider, storage, adapter, and UI boundaries remain clear across both supported test websites: providers still consume normalized profile/question data only, storage still persists normalized entities and diagnostics only, adapters still own site detection/extract/fill, and UI runtimes remain message-driven rather than importing provider or adapter implementation code directly
-- `no auto-submit` still holds across the current multi-test-site trial scope: `Run answer planning` may trigger adapter-scoped fill after user initiation, but the product still does not submit the page on either supported test website
+- provider, storage, adapter, and UI boundaries remain clear across all current supported test routes: providers still consume normalized profile/question data only, storage still persists normalized entities and diagnostics only, adapters still own site detection/extract/fill, and UI runtimes remain message-driven rather than importing provider or adapter implementation code directly
+- `no auto-submit` still holds across the current multi-test-site trial scope: `Run answer planning` may trigger adapter-scoped fill after user initiation, but the product still does not submit the page on any supported test website route
 - session history and diagnostics remain site-scoped through `siteId`, `pageUrl`, `sessionId`, and site-scoped `selectorVersion`, so the current multi-test-site trial does not require a new review center, permission hub, or diagnostics subsystem
 
 Not yet at broader formal-rollout confidence at this checkpoint:
 
 - `Truity` is trial-ready, but its broader formal-rollout confidence is still limited by the already deferred always-on live-network OpenAI verification gap
+- `Truity DISC` and `Truity TypeFinder` are now adapter-scoped supported routes with shared normalized extract/fill contracts and unit coverage, but they still have lower confidence than the Enneagram path because their current gate is fixture-backed adapter verification rather than a separate browser-level trial file
 - `16Personalities` is trial-ready only as a narrow second sample; confidence for that path remains lower than `Truity` because this environment is still blocked by Cloudflare for continuous live-network verification, so the committed gate relies on fixture-backed routing plus mocked provider coverage rather than always-on live-site checks
 - no conclusion in this checkpoint upgrades the product into universal support for other test websites, other routes on the two supported domains, or any non-test website category
-- the repository still does not certify a broad formal multi-site release; it certifies only a small-range adapter-scoped trial across the two explicitly named public test routes above
+- the repository still does not certify a broad formal multi-site release; it certifies only a small-range adapter-scoped trial across the explicitly named public test routes above
 
 ## 9. First Architecture Checkpoint Audit
 
@@ -740,7 +744,7 @@ The repository may only change its language from `single-site locked` to `multi-
 
 Current audit status on `2026-04-23`: `met for a small-range multi-test-site trial`.
 
-- the gate is now considered met for the two explicitly named supported test routes in section `8.5`
+- the gate is now considered met for the explicitly named supported test routes in section `8.5`
 - this status does not remove the broader formal-rollout deferrals listed above and elsewhere in this file
 
 ### 10.10 Test Website Admission Standard

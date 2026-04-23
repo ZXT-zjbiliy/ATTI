@@ -464,4 +464,74 @@ describe("content runtime", () => {
       }
     });
   });
+
+  it("returns a structured error when the re-extraction command rejects", async () => {
+    let listener:
+      | ((message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void)
+      | undefined;
+    const runtime = {
+      onMessage: {
+        addListener(nextListener: typeof listener) {
+          listener = nextListener;
+        }
+      }
+    };
+    const sendMessage = vi.fn(async (message: { type: string }) => {
+      if (message.type === MESSAGE_TYPES.contentMetadataReport) {
+        return {
+          ok: false as const,
+          error: {
+            code: "CONTENT_METADATA_FAILED",
+            message: "Metadata bridge unavailable"
+          }
+        };
+      }
+
+      return {
+        ok: true as const,
+        data: {
+          received: true
+        }
+      };
+    });
+    const dependencies = {
+      document: {
+        title: "Assessment Landing Page",
+        readyState: "complete",
+        body: {
+          innerHTML: "<main><h1>Unsupported</h1></main>"
+        }
+      },
+      location: {
+        href: "https://example.com/assessment"
+      },
+      window: {} as { self: unknown; top: unknown },
+      sendMessage,
+      runtime
+    };
+
+    dependencies.window.self = dependencies.window;
+    dependencies.window.top = dependencies.window;
+
+    await expect(startContentRuntime(dependencies)).rejects.toThrow("Metadata bridge unavailable");
+
+    const response = await new Promise<unknown>((resolve) => {
+      listener?.(
+        {
+          type: "questionExtractionRun",
+          payload: {}
+        },
+        {},
+        resolve
+      );
+    });
+
+    expect(response).toEqual({
+      ok: false,
+      error: {
+        code: "CONTENT_RUNTIME_COMMAND_FAILED",
+        message: "Metadata bridge unavailable"
+      }
+    });
+  });
 });

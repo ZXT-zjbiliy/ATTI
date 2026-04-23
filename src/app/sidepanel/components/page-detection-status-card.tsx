@@ -1,9 +1,11 @@
-import type { SidePanelSectionState } from "../types/sidepanel-shell";
+import type { SessionProgressState, SidePanelSectionState } from "../types/sidepanel-shell";
 import { SectionStateView } from "./section-state-view";
+import { SessionProgressBar } from "./session-progress-bar";
 import { StatusCard } from "./status-card";
 
 interface PageDetectionStatusCardProps {
   readonly state: SidePanelSectionState;
+  readonly progress: SessionProgressState | null;
   readonly onRefresh: () => void;
   readonly onReextract: () => void;
   readonly isReextractDisabled: boolean;
@@ -11,6 +13,7 @@ interface PageDetectionStatusCardProps {
 
 export function PageDetectionStatusCard({
   state,
+  progress,
   onRefresh,
   onReextract,
   isReextractDisabled
@@ -29,6 +32,7 @@ export function PageDetectionStatusCard({
         重新提取题目
       </button>
       <SectionStateView state={state} />
+      {progress ? <SessionProgressBar state={progress} /> : null}
     </StatusCard>
   );
 }

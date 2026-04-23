@@ -27,6 +27,14 @@ const FIXED_RATING_OPTIONS: ExtractedQuestionDraft["options"] = [
   { id: "5", text: "Accurate", value: "5" }
 ];
 
+const TRUITY_NON_QUESTION_LINE_PATTERNS = [
+  /^enneagram personality test$/i,
+  /^explore the 9 types and discover who you truly are$/i,
+  /^next step\b/i,
+  /^previous step\b/i,
+  /^continue\b/i
+];
+
 function extractAttributeValue(tagHtml: string, attributeName: string): string | null {
   const pattern = new RegExp(
     `${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,
@@ -116,28 +124,46 @@ export function parseTruityFixtureQuestionDescriptors(html: string): TruityQuest
 export function parseTruityLiveQuestionDescriptors(html: string): TruityQuestionDescriptor[] {
   const lines = extractVisibleTextLines(html);
   const instructionIndex = lines.findIndex((line) => isTruityInstructionLine(line));
-
-  if (instructionIndex === -1) {
-    return [];
-  }
-
-  const stepIndex = lines.findIndex(
-    (line, index) => index > instructionIndex && TRUITY_STEP_MARKER_PATTERN.test(line)
-  );
+  const firstStepIndex = lines.findIndex((line) => TRUITY_STEP_MARKER_PATTERN.test(line));
+  const regionStart =
+    instructionIndex !== -1 ? instructionIndex + 1 : firstStepIndex !== -1 ? firstStepIndex + 1 : 0;
+  const trailingStepIndex =
+    instructionIndex !== -1
+      ? lines.findIndex((line, index) => index >= regionStart && TRUITY_STEP_MARKER_PATTERN.test(line))
+      : -1;
   const questionRegion =
-    stepIndex === -1 ? lines.slice(instructionIndex + 1) : lines.slice(instructionIndex + 1, stepIndex);
+    trailingStepIndex === -1 ? lines.slice(regionStart) : lines.slice(regionStart, trailingStepIndex);
   const descriptors: TruityQuestionDescriptor[] = [];
 
   for (let index = 0; index < questionRegion.length; index += 1) {
-    if (isTruityScaleLine(questionRegion[index] ?? "")) {
+    const currentLine = questionRegion[index] ?? "";
+
+    if (
+      isTruityScaleLine(currentLine) ||
+      TRUITY_STEP_MARKER_PATTERN.test(currentLine) ||
+      isTruityInstructionLine(currentLine) ||
+      TRUITY_NON_QUESTION_LINE_PATTERNS.some((pattern) => pattern.test(currentLine))
+    ) {
       continue;
     }
 
     const promptLines: string[] = [];
     let scanIndex = index;
 
-    while (scanIndex < questionRegion.length && !isTruityScaleLine(questionRegion[scanIndex] ?? "")) {
-      promptLines.push(questionRegion[scanIndex] ?? "");
+    while (scanIndex < questionRegion.length) {
+      const candidateLine = questionRegion[scanIndex] ?? "";
+
+      if (isTruityScaleLine(candidateLine) || TRUITY_STEP_MARKER_PATTERN.test(candidateLine)) {
+        break;
+      }
+
+      if (
+        !isTruityInstructionLine(candidateLine) &&
+        !TRUITY_NON_QUESTION_LINE_PATTERNS.some((pattern) => pattern.test(candidateLine))
+      ) {
+        promptLines.push(candidateLine);
+      }
+
       scanIndex += 1;
     }
 

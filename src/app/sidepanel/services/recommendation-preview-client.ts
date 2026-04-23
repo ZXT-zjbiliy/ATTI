@@ -8,6 +8,7 @@ import type {
   SessionLatestFetchMessage
 } from "../../../shared/types";
 import { MESSAGE_TYPES } from "../../../shared/types";
+import { createActiveTabClient, type ActiveTabClient } from "./active-tab-client";
 
 type SidePanelPreviewMessage =
   | SessionLatestFetchMessage
@@ -51,8 +52,20 @@ function unwrapResult<TData>(result: AppResult): TData {
   return result.data as TData;
 }
 
+function matchesSessionPageUrl(sessionPageUrl: string, activeTabUrl: string): boolean {
+  try {
+    const sessionUrl = new URL(sessionPageUrl);
+    const activeUrl = new URL(activeTabUrl);
+
+    return sessionUrl.origin === activeUrl.origin && sessionUrl.pathname === activeUrl.pathname;
+  } catch {
+    return sessionPageUrl === activeTabUrl;
+  }
+}
+
 export function createRecommendationPreviewClient(
   sendMessage: RecommendationPreviewMessageSender = resolveRuntimeMessageSender(),
+  activeTabClient: ActiveTabClient = createActiveTabClient(),
 ): RecommendationPreviewClient {
   return {
     async fetchLatestPreview() {
@@ -61,6 +74,12 @@ export function createRecommendationPreviewClient(
       );
 
       if (!latestSession) {
+        return null;
+      }
+
+      const activeTabUrl = await activeTabClient.fetchActiveTabUrl();
+
+      if (!activeTabUrl || !matchesSessionPageUrl(latestSession.pageUrl, activeTabUrl)) {
         return null;
       }
 

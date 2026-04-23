@@ -238,6 +238,33 @@ describe("Truity adapter drift tolerance", () => {
     });
   });
 
+  it("keeps later Truity steps supported during drift checks", () => {
+    const laterStepHtml = `
+      <main>
+        <h1>Enneagram Personality Test</h1>
+        <p>To take the Enneagram test, mark each statement based on how well it describes your personality.</p>
+        <section>
+          <h2>I strive for perfection</h2>
+          <div>Inaccurate</div>
+          <div>Accurate</div>
+        </section>
+        <p>Step 7 of 11</p>
+      </main>
+    `;
+
+    const result = extractTruityEnneagramQuestions({
+      url: "https://www.truity.com/test/enneagram-personality-test",
+      title: "Enneagram Personality Test | Truity",
+      html: laterStepHtml
+    });
+
+    expect(result.questionCount).toBe(1);
+    expect(result.questions[0]).toMatchObject({
+      text: "I strive for perfection",
+      order: 0
+    });
+  });
+
   it("fills answers through the structured prompt and radio-group fallback path", () => {
     const { document, firstInput, selectedInput } = createStructuredFillDocument();
 

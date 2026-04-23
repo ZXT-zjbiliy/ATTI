@@ -27,6 +27,7 @@ export type RecommendationPreviewItem = {
   questionText: string;
   questionType: string;
   questionOrder: number;
+  hasRecommendation: boolean;
   options: QuestionOption[];
   recommendedOptionIds: string[];
   selectedOptionIds: string[];

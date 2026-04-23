@@ -194,6 +194,9 @@ describe("background message router", () => {
         debugMode: true,
         activeProvider: "remote",
         openAiApiKey: "sk-test",
+        providerApiKey: null,
+        providerBaseUrl: null,
+        providerModel: null,
         approvedDomains: ["example.com"],
         lastActiveProfileId: profileSaveResult.ok ? profileSaveResult.data.id : null,
         featureFlags: {
@@ -650,6 +653,7 @@ describe("background message router", () => {
             questionText: "I strive for perfection",
             questionType: "single-choice-rating",
             questionOrder: 0,
+            hasRecommendation: true,
             options: [
               { id: "1", text: "Inaccurate", value: "1" },
               { id: "5", text: "Accurate", value: "5" }
@@ -659,6 +663,102 @@ describe("background message router", () => {
             confidence: 0.84,
             rationale: "Recommended answer for question-1",
             requiresConfirmation: true,
+            reviewStatus: "pending",
+            qualityStatus: "normal",
+            qualityIssues: []
+          }
+        ]
+      }
+    });
+  });
+
+  it("keeps extracted questions in preview before AI recommendations are available", async () => {
+    const settingsRepository = await createSettingsRepository();
+    const adapterDiagnosticsRepository =
+      await createAdapterDiagnosticsRepository("background-router-preview-question-only");
+    const answerPlanRepository =
+      await createAnswerPlanRepository("background-router-preview-question-only");
+    const profileRepository =
+      await createProfileRepository("background-router-preview-question-only");
+    const questionRepository =
+      await createQuestionRepository("background-router-preview-question-only");
+    const sessionRepository =
+      await createSessionRepository("background-router-preview-question-only");
+    const session = await sessionRepository.createSession({
+      siteId: "truity-enneagram",
+      pageUrl: "https://www.truity.com/test/enneagram-personality-test",
+      profileId: "profile-1",
+      status: "questions-extracted"
+    });
+    const question = await questionRepository.createQuestion({
+      sessionId: session.id,
+      siteId: session.siteId,
+      pageUrl: session.pageUrl,
+      text: "I prefer a calm and steady approach",
+      type: "single-choice-rating",
+      options: [
+        { id: "1", text: "Inaccurate", value: "1" },
+        { id: "5", text: "Accurate", value: "5" }
+      ],
+      order: 0
+    });
+    const updatedSession = await sessionRepository.updateQuestionState({
+      sessionId: session.id,
+      status: "questions-extracted",
+      questionIds: [question.id]
+    });
+    void updatedSession;
+    const router = new BackgroundMessageRouter({
+      adapterDiagnosticsRepository,
+      answerPlanRepository,
+      assessmentProviderResolver: createFixedProviderResolver({
+        providerId: "test-provider",
+        async summarizeProfile() {
+          throw new Error("not used");
+        },
+        async interpretQuestion() {
+          throw new Error("not used");
+        },
+        async planAnswers() {
+          throw new Error("not used");
+        }
+      }),
+      profileRepository,
+      questionRepository,
+      sessionRepository,
+      settingsRepository
+    });
+
+    const result = await router.routeMessage({
+      type: MESSAGE_TYPES.recommendationPreviewFetch,
+      payload: {
+        sessionId: session.id
+      }
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        sessionId: session.id,
+        siteId: "truity-enneagram",
+        sessionStatus: "questions-extracted",
+        items: [
+          {
+            answerPlanId: `question-only-${question.id}`,
+            questionId: question.id,
+            questionText: "I prefer a calm and steady approach",
+            questionType: "single-choice-rating",
+            questionOrder: 0,
+            hasRecommendation: false,
+            options: [
+              { id: "1", text: "Inaccurate", value: "1" },
+              { id: "5", text: "Accurate", value: "5" }
+            ],
+            recommendedOptionIds: [],
+            selectedOptionIds: [],
+            confidence: 0,
+            rationale: "",
+            requiresConfirmation: false,
             reviewStatus: "pending",
             qualityStatus: "normal",
             qualityIssues: []

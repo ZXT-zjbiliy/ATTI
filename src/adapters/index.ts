@@ -12,6 +12,8 @@ export type {
   SiteAdapterDescriptor,
 } from "./base/site-adapter";
 export { placeholderSiteAdapter } from "./sites/placeholder-site-adapter";
+export { truityDiscSiteAdapter } from "./sites/truity-disc-site-adapter";
+export { truityTypeFinderSiteAdapter } from "./sites/truity-typefinder-site-adapter";
 export {
   sixteenPersonalitiesSiteAdapter,
   extractSixteenPersonalitiesQuestions,
