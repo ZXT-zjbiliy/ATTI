@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { setGenericFallbackAdapterEnabledForTesting } from "../../src/adapters/sites/generic-fallback-site-adapter";
 import { startContentRuntime } from "../../src/content/runtime";
 import { MESSAGE_TYPES } from "../../src/shared/types";
 
@@ -90,6 +91,76 @@ describe("content runtime", () => {
     await startContentRuntime(dependencies);
 
     expect(body.innerHTML).toBe("<main><p>Original Body</p></main>");
+  });
+
+  it("uses documentElement.outerHTML for SPA page extraction when available", async () => {
+    setGenericFallbackAdapterEnabledForTesting(true);
+
+    const sendMessage = vi.fn(async (message: { type: string }) => {
+      if (message.type === MESSAGE_TYPES.contentQuestionsExtracted) {
+        return {
+          ok: true as const,
+          data: {
+            persisted: true,
+          },
+        };
+      }
+
+      return {
+        ok: true as const,
+        data: {
+          received: true,
+        },
+      };
+    });
+
+    const lightSpaHtml = `
+      <html>
+        <head>
+          <title>性格测试页面</title>
+        </head>
+        <body>
+          <div class="survey-block">
+            <div class="survey-question">你更喜欢独处还是社交？</div>
+            <div class="survey-answer">独处</div>
+            <div class="survey-answer">社交</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const dependencies = {
+      document: {
+        title: "性格测试页面",
+        readyState: "complete",
+        body: {
+          innerHTML: "",
+        },
+        documentElement: {
+          outerHTML: lightSpaHtml,
+        },
+      },
+      location: {
+        href: "https://example.com/spa-assessment",
+      },
+      window: {} as { self: unknown; top: unknown },
+      sendMessage,
+    };
+
+    dependencies.window.self = dependencies.window;
+    dependencies.window.top = dependencies.window;
+
+    try {
+      await expect(startContentRuntime(dependencies)).resolves.toBeUndefined();
+      expect(sendMessage).toHaveBeenCalledWith({
+        type: MESSAGE_TYPES.contentQuestionsExtracted,
+        payload: expect.objectContaining({
+          siteId: "generic-fallback-assessment",
+        }),
+      });
+    } finally {
+      setGenericFallbackAdapterEnabledForTesting(false);
+    }
   });
 
   it("extracts normalized questions from the Truity page and reports them", async () => {

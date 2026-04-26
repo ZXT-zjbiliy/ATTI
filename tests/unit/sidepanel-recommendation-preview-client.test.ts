@@ -179,6 +179,28 @@ describe("active tab client", () => {
       query() {
         return [
           {
+            active: true,
+            url: "https://www.truity.com/test/enneagram-personality-test"
+          }
+        ];
+      }
+    });
+
+    await expect(client.fetchActiveTabUrl()).resolves.toBe(
+      "https://www.truity.com/test/enneagram-personality-test"
+    );
+  });
+
+  it("falls back to the most relevant web tab when the active tab is the extension page", async () => {
+    const client = createActiveTabClient({
+      query() {
+        return [
+          {
+            active: true,
+            url: "chrome-extension://example/sidepanel.html"
+          },
+          {
+            active: false,
             url: "https://www.truity.com/test/enneagram-personality-test"
           }
         ];

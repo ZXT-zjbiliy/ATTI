@@ -62,12 +62,12 @@ async function configureOpenAiProvider(
   apiKey = "sk-e2e-test"
 ) {
   await optionsPage.getByRole("combobox", { name: "当前规划引擎" }).selectOption("openai");
-  await optionsPage.getByLabel("OpenAI API key").fill(apiKey);
-  await expect(optionsPage.getByText("OpenAI API key 已保存在本地。")).toBeVisible();
-  await expect(optionsPage.getByText("OpenAI 密钥状态： 已保存在本地")).toBeVisible();
-  await expect(
-    optionsPage.getByText("已选择 OpenAI，且当前设备已保存可用的 API key。")
-  ).toBeVisible();
+  const apiKeyInput = optionsPage.getByLabel("API key");
+  await apiKeyInput.fill(apiKey);
+  await apiKeyInput.press("Tab");
+  await optionsPage.getByText(/远程引擎 API key 已保存在本地。/).waitFor();
+  await expect(optionsPage.getByText(/API 密钥状态：\s*已保存在本地/)).toBeVisible();
+  await expect(optionsPage.getByText(/已选择 OpenAI/)).toBeVisible();
 }
 
 async function fillSavedProfileDraft(sidepanelPage: import("@playwright/test").Page) {
@@ -209,7 +209,9 @@ test.describe("e2e: 16Personalities trial flow", () => {
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
       await expect(sidepanelPage.getByText("OpenAI provider 返回了非成功状态码。")).toBeVisible();
-      await expect(sidepanelPage.getByText("已加载 2 条推荐。")).toHaveCount(0);
+      await expect(
+        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
+      ).toHaveCount(0);
 
       const openAiCalls = await openAiRoute.getCalls();
       expect(openAiCalls).toHaveLength(1);
@@ -266,7 +268,9 @@ test.describe("e2e: 16Personalities trial flow", () => {
       await expect(
         sidepanelPage.getByText("当前会话没有可执行填写的推荐结果")
       ).toBeVisible();
-      await expect(sidepanelPage.getByText("已加载 2 条推荐。")).toBeVisible();
+      await expect(
+        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
+      ).toBeVisible();
       await expect(
         sidepanelPage.getByText("质量状态：已降级（low-confidence, placeholder-rationale）")
       ).toHaveCount(2);

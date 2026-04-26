@@ -1,6 +1,7 @@
 export interface AdapterMatchContext {
   readonly url: string;
   readonly title?: string;
+  readonly html?: string;
 }
 
 export interface AdapterPageContext extends AdapterMatchContext {

@@ -50,7 +50,7 @@ function extractAttributeValue(tagHtml: string, attributeName: string): string |
 }
 
 function extractRadioOptions(fieldsetHtml: string): ExtractedQuestionDraft["options"] {
-  const options: ExtractedQuestionDraft["options"] = [];
+  const options: Array<{ id: string; text: string; value: string }> = [];
   const labelPattern = /<label\b[^>]*>([\s\S]*?)<\/label>/gim;
 
   for (const labelMatch of fieldsetHtml.matchAll(labelPattern)) {

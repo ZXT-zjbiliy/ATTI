@@ -17,7 +17,7 @@ type PairChoiceSiteConfig = {
   readonly siteId: string;
   readonly displayName: string;
   readonly path: string;
-  readonly titleIncludes: string;
+  readonly titleIncludes: string | readonly string[];
   readonly instructionIncludes: string;
 };
 
@@ -30,6 +30,10 @@ type PairChoiceDescriptor = {
   readonly locatorHint: string;
   readonly options: ExtractedQuestionDraft["options"];
 };
+
+function isDefined<T>(value: T | null): value is T {
+  return value !== null;
+}
 
 function tryParseUrl(url: string): URL | null {
   try {
@@ -95,6 +99,20 @@ function hasAllClasses(value: string | undefined, requiredClasses: readonly stri
   return requiredClasses.every((requiredClass) => classList.has(requiredClass));
 }
 
+function getDomParserConstructor(): typeof DOMParser | undefined {
+  return (globalThis as typeof globalThis & { DOMParser?: typeof DOMParser }).DOMParser;
+}
+
+function parseDocument(html: string): Document | null {
+  const DomParserConstructor = getDomParserConstructor();
+
+  if (!DomParserConstructor) {
+    return null;
+  }
+
+  return new DomParserConstructor().parseFromString(html, "text/html");
+}
+
 function extractQuestionBlocks(html: string): string[] {
   const blockPattern = /<div\b[^>]*class="[^"]*\bquestion\b[^"]*\bquestion-radio\b[^"]*"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gim;
 
@@ -117,8 +135,59 @@ function extractBlockInputValues(blockHtml: string): string[] {
     .filter((value) => value.length > 0);
 }
 
+function parsePairChoiceDescriptorsFromDocument(doc: Document): PairChoiceDescriptor[] {
+  const containers = Array.from(
+    doc.querySelectorAll<HTMLElement>(".question.question-radio, .question-radio")
+  );
+
+  const descriptors: Array<PairChoiceDescriptor | null> = containers
+    .map((container, order) => {
+      const labels = Array.from(container.querySelectorAll<HTMLElement>("span.radio-label"))
+        .map((element) => normalizeText(element.textContent ?? ""))
+        .filter((label) => label.length > 0);
+      const inputValues = Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+      )
+        .map((input) => normalizeText(input.value))
+        .filter((value) => value.length > 0);
+
+      if (labels.length < 2 || inputValues.length < 3) {
+        return null;
+      }
+
+      const leftText = labels[0] ?? "";
+      const rightText = labels[labels.length - 1] ?? "";
+
+      return {
+        order,
+        leftText,
+        rightText,
+        promptText: createPairPromptText(leftText, rightText),
+        promptKey: createPairPromptKey(leftText, rightText),
+        locatorHint: createPairLocatorHint(leftText, rightText),
+        options: inputValues.map((value, position) => ({
+          id: value,
+          text: createOptionLabel(position, inputValues.length, leftText, rightText),
+          value
+        }))
+      } satisfies PairChoiceDescriptor;
+    });
+
+  return descriptors.filter(isDefined);
+}
+
 function parsePairChoiceDescriptors(html: string): PairChoiceDescriptor[] {
-  return extractQuestionBlocks(html)
+  const doc = parseDocument(html);
+
+  if (doc) {
+    const descriptors = parsePairChoiceDescriptorsFromDocument(doc);
+
+    if (descriptors.length > 0) {
+      return descriptors;
+    }
+  }
+
+  const descriptors: Array<PairChoiceDescriptor | null> = extractQuestionBlocks(html)
     .map((blockHtml, order) => {
       const labels = extractBlockLabels(blockHtml);
       const inputValues = extractBlockInputValues(blockHtml);
@@ -143,8 +212,9 @@ function parsePairChoiceDescriptors(html: string): PairChoiceDescriptor[] {
           value
         }))
       } satisfies PairChoiceDescriptor;
-    })
-    .filter((descriptor): descriptor is PairChoiceDescriptor => descriptor !== null);
+    });
+
+  return descriptors.filter(isDefined);
 }
 
 function matchesSiteUrl(context: AdapterMatchContext, path: string): boolean {
@@ -169,9 +239,15 @@ function createSupportedPageCheck(config: PairChoiceSiteConfig) {
 
     const normalizedTitle = (context.title ?? "").toLowerCase();
     const normalizedHtml = context.html.toLowerCase();
+    const titleIncludes = Array.isArray(config.titleIncludes)
+      ? config.titleIncludes
+      : [config.titleIncludes];
+    const hasExpectedTitle = titleIncludes.some((entry) =>
+      normalizedTitle.includes(entry.toLowerCase())
+    );
 
     return (
-      normalizedTitle.includes(config.titleIncludes.toLowerCase()) &&
+      hasExpectedTitle &&
       normalizedHtml.includes(config.instructionIncludes.toLowerCase()) &&
       hasStepMarker(context.html) &&
       parsePairChoiceDescriptors(context.html).length > 0

@@ -12,6 +12,16 @@ This checkpoint reflects the repository reality after the first architecture aud
 
 - Product type: Edge extension
 - Architecture style: modular browser extension with local-first persistence
+- Documentation topology:
+  - `memory-bank/@architecture.md`: canonical current-state architecture memory
+  - `memory-bank/@game-design-document.md`: product intent and constraints
+  - `software-design-document.md`: simplified implementation architecture
+  - `tech-stack.md`: engineering and structural rules
+  - `docs/versioning.md`: repository release-version rule using `x.y.z`
+  - `docs/*`: repository navigation and maintenance guides
+  - `docs/prompts/zh-CN/*`: Chinese workflow prompt packs
+  - `docs/guides/zh-CN/*`: Chinese user and helper guides
+  - `docs/plans/*`: staged implementation plans
 - Main runtimes currently present in source:
   - UI
   - background orchestrator
@@ -25,6 +35,7 @@ This checkpoint reflects the repository reality after the first architecture aud
   - the single-site MVP usability checkpoint is now passed for the locked Truity path with real-provider planning support: extract -> plan -> preview -> auto-fill is working end-to-end, with OpenAI as the primary planning path and the fake provider retained only as a local fallback
   - the repository has now also entered an explicit AI-first transition phase at the product and documentation level: UI copy and roadmap planning are being prepared for future multi-site support, while the only stable real automation path remains the Truity adapter-backed flow
   - a second minimal test-website adapter sample now exists for the `16Personalities` free MBTI-style test route, reusing the same normalized question, answer-plan, session, and fill contracts without rewriting the Truity adapter
+  - a dedicated `SBTI /test` adapter now also exists for the public single-question stepping flow on `https://sbti.cc/test`, keeping bootstrap parsing and conditional question handling inside an independent site module
 
 ## 3. Current Repository Structure Reality
 
@@ -46,6 +57,17 @@ Current test directories present under `tests/`:
 - `e2e`
 - `config`
 
+Current documentation directories present at repository level:
+
+- `memory-bank`
+- `docs`
+
+Current grouped documentation directories present under `docs/`:
+
+- `docs/prompts/zh-CN`
+- `docs/guides/zh-CN`
+- `docs/plans`
+
 Current structure matches the runtime-first split required by `software-design-document.md` and `tech-stack.md`.
 
 Current gaps between target structure and actual structure:
@@ -56,6 +78,20 @@ Current gaps between target structure and actual structure:
 - Tailwind CSS is recommended in `tech-stack.md`, but a Tailwind styling baseline is not yet established in the current implementation
 
 These are acceptable at this checkpoint because the real MVP implementation is intentionally narrow and still incomplete.
+
+Current repository-organization note:
+
+- the repository root still contains several legacy planning and prompt documents for workflow compatibility
+- new repository-maintenance and navigation docs should prefer `docs/*` so the root does not keep flattening into one large document shelf
+
+Current versioning note:
+
+- the repository release version is defined in `package.json`
+- repository and release naming should use `x.y.z`
+- version policy is now documented explicitly in `docs/versioning.md`
+- `z` changes are record-first changes unless a dedicated commit is otherwise requested
+- `y` and `x` changes should be accompanied by a git commit in the version-change workflow
+- any `x`, `y`, or `z` version change should still produce an Edge-usable build artifact, with `pnpm build:edge` as the default build step
 
 ## 4. Canonical Database Structure
 
@@ -354,7 +390,7 @@ Current adapter diagnostics flow boundary:
 
 ## 8.4 Multi-Test-Site Session And Diagnostics Audit
 
-Checkpoint date: `2026-04-23`
+Checkpoint date: `2026-04-25`
 
 Audit conclusion at this checkpoint:
 
@@ -404,10 +440,17 @@ Current adapter shell boundary:
 - site-specific behavior must remain inside `src/adapters/sites/*`
 - the current Truity Enneagram adapter is the first real-site adapter boundary and currently supports URL matching, assessment-page recognition, normalized question extraction, and answer fill against both fixture-style blocks and the live radio-group markup shape
 - the current `16Personalities` adapter is the second minimal test-website sample boundary and currently targets only the public `/free-personality-test` route with fixture-backed extraction and fill heuristics over the existing seven-point single-choice model
+- the current `SBTI` adapter targets only the public `/test` route on `sbti.cc` and owns bootstrap parsing, prompt-key normalization, conditional-question extraction, and single-question stepping fill behavior inside `src/adapters/sites/sbti/*`
 - the Truity adapter now shares a single prompt-normalization and prompt-key strategy across question-region location, extraction, and fill so light casing, whitespace, and wrapper drift can be tolerated without moving selector fallback into content or background modules
 - Truity extraction and fill now each try multiple adapter-local paths for question block and radio-group resolution, but this remains a single-site implementation and is not a generic cross-site selector framework
 - the current AI-first multi-site direction does not remove this boundary yet; it only establishes the product/documentation direction that future site expansion should lean more on normalized AI planning and lighter site-specific logic, without pretending the current repository already has generic all-site extraction/fill
 - the placeholder adapter remains as a non-production boundary example
+- the generic fallback adapter is introduced as an experimental, last-resort candidate path; it activates only after explicit site adapters fail to match, is currently enabled by default unless explicitly turned off through feature flags, and still must not be treated as a broad support promise
+- this fallback path is intentionally constrained to visible quiz/assessment page signals, repeated question blocks, and simple single-choice/score structures, and must not be treated as a generic parser for arbitrary websites
+- diagnostics must record fallback adapter evaluation, match/reject reasons, and failure causes so the trial remains auditable and separable from regular site adapter behavior
+- fallback extraction still returns normalized `ExtractedQuestionDraft` data and remains subject to provider preview and no-auto-submit protections
+- this experiment must not affect the current Truity MVP stable path, which remains the primary supported route; the fallback adapter is a controlled exploration rather than a default multi-site implementation
+- future formal expansion of this fallback path into broader multi-site support requires additional admission criteria, publishing gates, and explicit QA coverage before it becomes a default route
 - the current real-site adapter still does not perform provider planning, preview, or orchestration directly; those remain background responsibilities
 - adapter registry and adapter catalog remain decoupled from content runtime startup logic
 - registry-owned metadata lookup by `siteId` is now allowed, but site-specific selectors, DOM heuristics, and adapter implementation imports must still not leak into content, background, storage, or UI modules
@@ -563,6 +606,7 @@ Current explicitly supported test-website scope at this checkpoint:
 - `Truity / DISC Personality Test / https://www.truity.com/test/disc-personality-test`
 - `Truity / TypeFinder Personality Test / https://www.truity.com/test/type-finder-personality-test-new`
 - `16Personalities / Free Personality Test / https://www.16personalities.com/free-personality-test`
+- `SBTI / test / https://sbti.cc/test`
 - support remains limited to the adapter-scoped public assessment routes above; non-test websites and unsupported test routes are still outside the product promise
 
 Reached the small-range multi-test-site trial bar at this checkpoint:
@@ -570,16 +614,21 @@ Reached the small-range multi-test-site trial bar at this checkpoint:
 - current supported-site scope is now explicitly written as an adapter-scoped four-route test-website scope rather than an implied arbitrary-site promise
 - `Truity` remains the stronger trial-ready path because it has the most mature adapter drift handling and the strongest real-site confidence in this repository; the Enneagram route is still the highest-confidence Truity sample in the current repository
 - the `Truity DISC` and `Truity TypeFinder` routes now reuse a dedicated pair-choice support boundary under `src/adapters/sites/truity-pair-choice/*`, so additional Truity assessment routes can be onboarded without collapsing multiple routes into one monolithic adapter file
+- live smoke verification in this repository environment now confirms extraction on `Truity Enneagram`, `Truity DISC`, and `Truity TypeFinder`, so those three routes have at least one recent real-page extraction checkpoint in addition to fixture-backed coverage
 - `16Personalities` now reaches the repository's small-range trial bar as a second adapter-scoped sample because it has a dedicated adapter module, normalized extract/fill contracts, unit coverage for site recognition and extract, and a separate browser-level trial gate covering preview, fill, provider-failure visibility, and degraded-plan fill blocking
+- `SBTI / test` now reaches the repository's small-range trial bar as an additional adapter-scoped public test route because it has a dedicated adapter module, bootstrap-backed normalized extraction, fixture-backed unit coverage, and a separate browser-level trial gate covering planning, preview, and single-question fill behavior without auto-submit
 - provider, storage, adapter, and UI boundaries remain clear across all current supported test routes: providers still consume normalized profile/question data only, storage still persists normalized entities and diagnostics only, adapters still own site detection/extract/fill, and UI runtimes remain message-driven rather than importing provider or adapter implementation code directly
 - `no auto-submit` still holds across the current multi-test-site trial scope: `Run answer planning` may trigger adapter-scoped fill after user initiation, but the product still does not submit the page on any supported test website route
 - session history and diagnostics remain site-scoped through `siteId`, `pageUrl`, `sessionId`, and site-scoped `selectorVersion`, so the current multi-test-site trial does not require a new review center, permission hub, or diagnostics subsystem
+- the generic fallback path is now default-on as an experimental last resort, but recent live smoke attempts against unsupported public assessment pages still do not justify promoting it to a supported-site claim
 
 Not yet at broader formal-rollout confidence at this checkpoint:
 
 - `Truity` is trial-ready, but its broader formal-rollout confidence is still limited by the already deferred always-on live-network OpenAI verification gap
-- `Truity DISC` and `Truity TypeFinder` are now adapter-scoped supported routes with shared normalized extract/fill contracts and unit coverage, but they still have lower confidence than the Enneagram path because their current gate is fixture-backed adapter verification rather than a separate browser-level trial file
+- `Truity DISC` and `Truity TypeFinder` are now adapter-scoped supported routes with shared normalized extract/fill contracts, unit coverage, and a recent live-smoke extraction checkpoint, but they still have lower confidence than the Enneagram path because their current gate is lighter than the Enneagram flow
 - `16Personalities` is trial-ready only as a narrow second sample; confidence for that path remains lower than `Truity` because this environment is still blocked by Cloudflare for continuous live-network verification, so the committed gate relies on fixture-backed routing plus mocked provider coverage rather than always-on live-site checks
+- `SBTI / test` is now trial-ready as an adapter-scoped public route, but confidence is still below the strongest `Truity Enneagram` path because the current gate relies on a fixture-backed browser harness plus recent live markup inspection rather than a broader long-running live-site regression loop
+- the generic fallback adapter still fails safely on tested unsupported public assessment pages and remains experimental rather than a supported generic-web route
 - no conclusion in this checkpoint upgrades the product into universal support for other test websites, other routes on the two supported domains, or any non-test website category
 - the repository still does not certify a broad formal multi-site release; it certifies only a small-range adapter-scoped trial across the explicitly named public test routes above
 
@@ -622,6 +671,7 @@ Not yet at broader formal-rollout confidence at this checkpoint:
 - delayed items are now explicit and must remain explicit until implemented
 - the repository now contains real extraction, planning, preview, review, and fill code paths for the locked Truity MVP flow
 - the current audit certifies the single-site MVP as usable because the built extension and live-site smoke path complete extract -> plan -> preview -> auto-fill, and the real OpenAI provider path is now covered by parser/provider/router-level automated verification
+- the current multi-route adapter checkpoint is also usable for `Truity Enneagram`, `Truity DISC`, `Truity TypeFinder`, and `SBTI / test`, while `16Personalities` remains browser-covered but live-site-blocked in this environment and generic fallback remains experimental
 - the repository now explicitly documents the locked trial policy that `Run answer planning` is the only required user-triggered confirmation before fill, while auto-submit remains disallowed
 - however, the repository is not yet at a clean pre-release checkpoint because always-on live-network OpenAI verification is still deferred
 
@@ -848,6 +898,10 @@ Current project state:
 - automated verification now also covers quality degradation classification for low-confidence and placeholder-style recommendations, plus browser-visible degraded preview behavior and quality-gated fill blocking
 - automated verification now also covers fixture-backed page recognition and normalized extraction for the second `16Personalities` test-site sample through the shared content runtime and adapter-registry boundaries
 - automated verification for the second `16Personalities` sample now also has its own browser-level trial gate file covering recommendation preview rendering, successful fill, provider-failure visibility, and degraded-plan fill blocking, instead of stacking every supported-site path into one long E2E spec
+- automated verification now also covers the `SBTI / test` adapter through fixture-backed unit coverage and a browser-level trial gate for its single-question stepping flow
+- side panel active-tab detection now falls back to the relevant web page when the extension side panel itself is the active tab, so preview/session lookup works in the built extension flow without depending on the extension tab URL
+- Truity pair-choice support now tolerates the current live `DISC` title variant and prefers DOM-based descriptor parsing when available
+- recent live smoke checks now confirm question extraction for `Truity Enneagram`, `Truity DISC`, and `Truity TypeFinder`, while `16Personalities` remains blocked by Cloudflare in this environment and unsupported public assessment pages still do not pass the generic fallback path
 - single-site recommendation quality checkpoint completed: provider-backed recommendation generation, browser-side rationale rendering, and failure handling are quality-usable under the mocked service-worker OpenAI harness, while always-on live-network OpenAI verification remains explicitly deferred
 - single-site MVP usability checkpoint audit completed and currently marked `passed`
 - single-site MVP trial-release checkpoint audit completed and currently marked `passed for small-range trial release`; broader formal rollout is still deferred because always-on live-network OpenAI verification remains open even though the committed Playwright release gate is green and the locked trial auto-fill strategy is now explicitly documented

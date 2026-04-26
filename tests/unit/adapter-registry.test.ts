@@ -3,17 +3,19 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createAdapterRegistry } from "../../src/adapters/registry/adapter-registry";
 import { siteAdapterCatalog } from "../../src/adapters/registry/adapter-catalog";
+import { createAdapterRegistry } from "../../src/adapters/registry/adapter-registry";
+import { genericFallbackSiteAdapter } from "../../src/adapters/sites/generic-fallback-site-adapter";
 import { placeholderSiteAdapter } from "../../src/adapters/sites/placeholder-site-adapter";
 import { sixteenPersonalitiesSiteAdapter } from "../../src/adapters/sites/sixteen-personalities-site-adapter";
+import { sbtiSiteAdapter } from "../../src/adapters/sites/sbti";
 import { truityDiscSiteAdapter } from "../../src/adapters/sites/truity-disc-site-adapter";
-import { truityTypeFinderSiteAdapter } from "../../src/adapters/sites/truity-typefinder-site-adapter";
 import {
-  extractTruityEnneagramQuestions,
-  locateTruityEnneagramQuestionRegions,
-  truityEnneagramSiteAdapter,
+    extractTruityEnneagramQuestions,
+    locateTruityEnneagramQuestionRegions,
+    truityEnneagramSiteAdapter,
 } from "../../src/adapters/sites/truity-enneagram";
+import { truityTypeFinderSiteAdapter } from "../../src/adapters/sites/truity-typefinder-site-adapter";
 
 const truityEnneagramFixture = readFileSync(
   resolve(
@@ -37,11 +39,24 @@ describe("adapter registry", () => {
       truityDiscSiteAdapter,
       truityTypeFinderSiteAdapter,
       sixteenPersonalitiesSiteAdapter,
+      sbtiSiteAdapter,
+      genericFallbackSiteAdapter,
       placeholderSiteAdapter,
     ]);
   });
 
-  it("resolves the Truity Enneagram adapter when the real-site match rule fits", () => {
+  it("resolves the fallback adapter for generic assessment pages", () => {
+    const registry = createAdapterRegistry();
+
+    const adapter = registry.findMatchingAdapter({
+      url: "https://www.surveysample.com/quiz/personality",
+      title: "Personality Quiz",
+    });
+
+    expect(adapter).toBe(genericFallbackSiteAdapter);
+  });
+
+  it("resolves the placeholder adapter when the match rule fits", () => {
     const registry = createAdapterRegistry();
 
     const adapter = registry.findMatchingAdapter({
@@ -75,6 +90,18 @@ describe("adapter registry", () => {
 
     expect(adapter).toBe(sixteenPersonalitiesSiteAdapter);
     expect(adapter?.descriptor.siteId).toBe("sixteen-personalities");
+  });
+
+  it("resolves the SBTI adapter when the match rule fits", () => {
+    const registry = createAdapterRegistry();
+
+    const adapter = registry.findMatchingAdapter({
+      url: "https://sbti.cc/test",
+      title: "开始测试 | SBTI",
+    });
+
+    expect(adapter).toBe(sbtiSiteAdapter);
+    expect(adapter?.descriptor.siteId).toBe("sbti-test");
   });
 
   it("resolves the Truity DISC adapter when the match rule fits", () => {
@@ -121,6 +148,7 @@ describe("adapter registry", () => {
     expect(registry.getAdapterBySiteId("sixteen-personalities")).toBe(
       sixteenPersonalitiesSiteAdapter,
     );
+    expect(registry.getAdapterBySiteId("sbti-test")).toBe(sbtiSiteAdapter);
     expect(registry.getAdapterBySiteId("placeholder-assessment")).toBe(placeholderSiteAdapter);
     expect(registry.getAdapterBySiteId("unknown-site")).toBeNull();
   });
@@ -133,6 +161,8 @@ describe("adapter registry", () => {
       truityDiscSiteAdapter.descriptor,
       truityTypeFinderSiteAdapter.descriptor,
       sixteenPersonalitiesSiteAdapter.descriptor,
+      sbtiSiteAdapter.descriptor,
+      genericFallbackSiteAdapter.descriptor,
       placeholderSiteAdapter.descriptor,
     ]);
   });

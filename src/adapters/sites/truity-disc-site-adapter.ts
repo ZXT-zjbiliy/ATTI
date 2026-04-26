@@ -5,7 +5,7 @@ const support = createTruityPairChoiceSupport({
   siteId: "truity-disc",
   displayName: "Truity DISC Assessment Adapter",
   path: "/test/disc-personality-test",
-  titleIncludes: "DISC Personality Assessment",
+  titleIncludes: ["DISC Personality Assessment", "DISC Assessment"],
   instructionIncludes: "To take the DISC assessment"
 });
 

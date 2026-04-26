@@ -1,6 +1,6 @@
 {
   "name": "atti",
-  "version": "0.4.1",
+  "version": "0.4.4",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.0",
@@ -27,17 +27,18 @@
     "dexie": "^4.4.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zustand": "^5.0.8",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.1",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.55.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "eslint": "^10.2.1",
     "fake-indexeddb": "^6.2.5",
     "globals": "^17.5.0",
+    "jsdom": "^29.0.2",
     "prettier": "^3.8.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.59.0",

@@ -13,6 +13,7 @@ import type {
   ProfileFetchMessage,
   RecommendationPreviewFetchMessage,
   SessionFetchMessage,
+  SessionHistoryFetchMessage,
   SessionLatestFetchMessage,
   SettingsFetchMessage,
   SettingsUpdateMessage
@@ -41,7 +42,8 @@ export type SupportedBackgroundMessage =
   | SettingsFetchMessage
   | SettingsUpdateMessage
   | SessionFetchMessage
-  | SessionLatestFetchMessage;
+  | SessionLatestFetchMessage
+  | SessionHistoryFetchMessage;
 
 export type BackgroundHandlerContext = {
   adapterDiagnosticsRepository: AdapterDiagnosticsRepository;

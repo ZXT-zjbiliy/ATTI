@@ -57,9 +57,11 @@ Recommended because the project needs both:
 
 These rules are mandatory and must always be applied.
 
-- `Always`: Before writing any code, fully read [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md).
-- `Always`: Before writing any code, fully read [memory-bank/@game-design-document.md](e:\ATTI\ATTI\memory-bank\@game-design-document.md).
-- `Always`: After every major feature or milestone, update [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md).
+- `Always`: Before writing any code, fully read [memory-bank/@architecture.md](./memory-bank/@architecture.md).
+- `Always`: Before writing any code, fully read [memory-bank/@game-design-document.md](./memory-bank/@game-design-document.md).
+- `Always`: After every major feature or milestone, update [memory-bank/@architecture.md](./memory-bank/@architecture.md).
+- `Always`: Keep repository and release versions in `x.y.z` format as documented in [docs/versioning.md](./docs/versioning.md).
+- `Always`: For any repository version change, produce an Edge build artifact; use `pnpm build:edge` by default.
 - `Always`: Keep the codebase modular and multi-file. Split by domain, runtime, and feature.
 - `Always`: Do not create monolithic files that mix UI, storage, LLM, and DOM automation logic.
 - `Always`: Validate all external inputs with `Zod`.
@@ -75,6 +77,8 @@ These rules are mandatory and must always be applied.
 - Use repositories for all persistence operations.
 - Use adapters for all site-specific extraction and fill behavior.
 - Use provider interfaces for all model integrations.
+- Keep repository-maintenance and navigation docs under `docs/` by default.
+- Keep the repository root lean; do not keep adding long-lived top-level Markdown files when a grouped doc under `docs/` is a better fit.
 
 ### 3.3 State Management Rules
 
@@ -121,6 +125,14 @@ These rules are mandatory and must always be applied.
 - End-to-end flows should be verified with `Playwright` against stable test pages.
 - Fix regressions by adding tests, not only by patching implementation.
 
+### 3.9 Documentation Rules
+
+- Treat `memory-bank/@architecture.md` as the canonical current-state memory.
+- Use `software-design-document.md` for the simplified implementation architecture, not milestone history.
+- Use `docs/*` for repository maps, contributor guidance, and maintenance rules.
+- Use `docs/versioning.md` for repository release-version rules.
+- When documentation starts mixing current reality, future plans, and contributor workflow in one place, split it by responsibility instead of expanding one giant file.
+
 ## 4. Anti-Patterns
 
 Avoid these patterns:
@@ -136,6 +148,9 @@ Avoid these patterns:
 ## 5. Minimal Recommended Project Structure
 
 ```text
+docs/
+  repository-map.md
+  documentation-rules.md
 src/
   app/
     popup/

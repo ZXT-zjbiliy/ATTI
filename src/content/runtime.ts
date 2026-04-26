@@ -1,14 +1,14 @@
+import { adapterRegistry } from "../adapters";
 import type { AppResult } from "../shared/types";
 import { CONTENT_COMMAND_TYPES } from "../shared/types";
 import { applyAnswerFillCommand, isSupportedContentCommand } from "./answer-fill";
-import { collectContentPageMetadata } from "./page-metadata";
-import { adapterRegistry } from "../adapters";
 import {
-  reportExtractedQuestions,
-  reportQuestionExtractionFailure,
-  reportContentPageMetadata,
-  type ContentRuntimeMessageSender
+    reportContentPageMetadata,
+    reportExtractedQuestions,
+    reportQuestionExtractionFailure,
+    type ContentRuntimeMessageSender
 } from "./content-message-client";
+import { collectContentPageMetadata } from "./page-metadata";
 import { extractQuestionsFromSupportedPage } from "./question-extraction";
 
 export interface ContentRuntimeDependencies {
@@ -17,6 +17,9 @@ export interface ContentRuntimeDependencies {
     readyState: string;
     body?: {
       innerHTML: string;
+    };
+    documentElement?: {
+      outerHTML: string;
     };
   };
   readonly location: {
@@ -82,13 +85,17 @@ async function resolveExtractionResult(
       }));
   const adapter = adapterRegistry.findMatchingAdapter({
     url: page.url,
-    title: page.title
+    title: page.title,
+    html: dependencies.document.documentElement?.outerHTML ?? dependencies.document.body?.innerHTML,
   });
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const extractionResult = extractQuestionsFromSupportedPage({
       page,
-      html: dependencies.document.body?.innerHTML ?? ""
+      html:
+        dependencies.document.documentElement?.outerHTML ??
+        dependencies.document.body?.innerHTML ??
+        ""
     });
 
     if (extractionResult.kind !== "no-supported-assessment-page") {

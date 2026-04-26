@@ -1,5 +1,5 @@
-import { adapterRegistry } from "../adapters";
 import type { AdapterPageContext } from "../adapters";
+import { adapterRegistry } from "../adapters";
 import type { ContentPageMetadata } from "../shared/types";
 
 function sanitizeExtractionErrorPayload(
@@ -29,7 +29,8 @@ export function extractQuestionsFromSupportedPage(args: {
 }) {
   const adapter = adapterRegistry.findMatchingAdapter({
     url: args.page.url,
-    title: args.page.title
+    title: args.page.title,
+    html: args.html,
   });
 
   if (!adapter?.isSupportedAssessmentPage || !adapter.extractQuestions) {

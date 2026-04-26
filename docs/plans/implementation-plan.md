@@ -20,10 +20,10 @@ It does **not** attempt to deliver full product functionality yet. Full assessme
 
 Before starting any step, the AI developer must fully read:
 
-- [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md)
-- [memory-bank/@game-design-document.md](e:\ATTI\ATTI\memory-bank\@game-design-document.md)
-- [software-design-document.md](e:\ATTI\ATTI\software-design-document.md)
-- [tech-stack.md](e:\ATTI\ATTI\tech-stack.md)
+- [memory-bank/@architecture.md](../../memory-bank/@architecture.md)
+- [memory-bank/@game-design-document.md](../../memory-bank/@game-design-document.md)
+- [software-design-document.md](../../software-design-document.md)
+- [tech-stack.md](../../tech-stack.md)
 
 Before starting any implementation task, confirm these constraints:
 
@@ -68,7 +68,7 @@ Not included yet:
 - Complete steps in order.
 - Do not merge multiple steps into one large implementation.
 - Keep every step small and reversible.
-- After each major milestone, update [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md).
+- After each major milestone, update [memory-bank/@architecture.md](../../memory-bank/@architecture.md).
 - If a step changes data shape, message contracts, or module ownership, update the memory bank before continuing.
 - If a test fails, fix the current step before starting the next one.
 

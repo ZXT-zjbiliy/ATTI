@@ -2,21 +2,21 @@
 
 ## 1. 使用说明
 
-本文档用于把 [implementation-plan.md](e:\ATTI\ATTI\implementation-plan.md) 里的实施步骤，转换成可以逐条发给 AI 开发者执行的任务提示词。
+本文档用于把 [implementation-plan.md](../../plans/implementation-plan.md) 里的实施步骤，转换成可以逐条发给 AI 开发者执行的任务提示词。
 
 使用方式：
 
 1. 严格按顺序发送 prompt。
 2. 一次只发送一条，不要合并多步。
 3. 每一步完成后，先检查测试结果，再进入下一步。
-4. 如果某一步改变了数据结构、消息协议、模块边界或里程碑状态，完成后必须更新 [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md)。
+4. 如果某一步改变了数据结构、消息协议、模块边界或里程碑状态，完成后必须更新 [memory-bank/@architecture.md](../../../memory-bank/@architecture.md)。
 
 在发送任意一条 prompt 之前，默认前置要求始终成立：
 
-- 先完整阅读 [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md)
-- 先完整阅读 [memory-bank/@game-design-document.md](e:\ATTI\ATTI\memory-bank\@game-design-document.md)
-- 先阅读 [software-design-document.md](e:\ATTI\ATTI\software-design-document.md)
-- 先阅读 [tech-stack.md](e:\ATTI\ATTI\tech-stack.md)
+- 先完整阅读 [memory-bank/@architecture.md](../../../memory-bank/@architecture.md)
+- 先完整阅读 [memory-bank/@game-design-document.md](../../../memory-bank/@game-design-document.md)
+- 先阅读 [software-design-document.md](../../../software-design-document.md)
+- 先阅读 [tech-stack.md](../../../tech-stack.md)
 - 保持模块化、多文件结构
 - 禁止创建 monolith 巨文件
 - 不要提前实现完整功能
@@ -1292,7 +1292,7 @@
 - 把当前 committed 自动化发布门重新拉绿；
 - 处理 `software-design-document.md` 中 `manual confirmation before fill` 与当前 side panel 自动 fill UX 的分歧。
 
-后续提示词先围绕这两项单站点收口工作展开；当单站点试用发布标准稳定后，再进入 `multi-site-expansion-prompts.zh-CN.md` 中定义的 AI-first 多测试网站路线，不引入非 MVP 新能力，也不把范围扩张到任意网站。
+后续提示词先围绕这两项单站点收口工作展开；当单站点试用发布标准稳定后，再进入 `docs/prompts/zh-CN/multi-site-expansion-prompts.zh-CN.md` 中定义的 AI-first 多测试网站路线，不引入非 MVP 新能力，也不把范围扩张到任意网站。
 
 ---
 

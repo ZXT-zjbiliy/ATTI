@@ -69,14 +69,21 @@ function resolveTabsApi(): BrowserTabsApi {
   return tabs;
 }
 
-function findTargetTab(tabs: BrowserTab[], pageUrl: string, sessionId: string) {
+function findTargetTab(
+  tabs: BrowserTab[],
+  pageUrl: string,
+  sessionId: string
+): BrowserTab & { id: number } {
   const targetTab = tabs.find((tab) => tab.url === pageUrl);
 
-  if (!targetTab?.id) {
+  if (!targetTab || targetTab.id == null) {
     throw createError(`Unable to find an open assessment tab for session: ${sessionId}`);
   }
 
-  return targetTab;
+  return {
+    ...targetTab,
+    id: targetTab.id
+  };
 }
 
 export function createChromeContentAutomationGateway(
@@ -85,10 +92,11 @@ export function createChromeContentAutomationGateway(
   return {
     async applyAnswerFill(request) {
       const targetTab = findTargetTab(await tabsApi.query({}), request.pageUrl, request.sessionId);
+      const targetTabId = targetTab.id;
       let result: AppResult;
 
       try {
-        result = await tabsApi.sendMessage(targetTab.id, {
+        result = await tabsApi.sendMessage(targetTabId, {
           type: CONTENT_COMMAND_TYPES.answerFillApply,
           payload: {
             siteId: request.siteId,
@@ -114,10 +122,11 @@ export function createChromeContentAutomationGateway(
     },
     async runQuestionExtraction(request) {
       const targetTab = findTargetTab(await tabsApi.query({}), request.pageUrl, request.sessionId);
+      const targetTabId = targetTab.id;
       let result: AppResult;
 
       try {
-        result = await tabsApi.sendMessage(targetTab.id, {
+        result = await tabsApi.sendMessage(targetTabId, {
           type: CONTENT_COMMAND_TYPES.questionExtractionRun,
           payload: {}
         });

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>开始测试 | SBTI</title>
+</head>
+<body>
+  <main id="test-lab">
+    <section id="testScreen" class="app-screen active">
+      <div id="questionStage" class="question-stage">
+        <div id="questionList" class="question-list"></div>
+      </div>
+      <button id="prevBtn" class="btn btn-secondary">上一题</button>
+      <button id="submitBtn" class="btn btn-primary quiz-submit-btn is-hidden" aria-hidden="true">
+        提交并查看结果
+      </button>
+      <p id="testHint">全选完才会放行。</p>
+    </section>
+    <section id="resultScreen" class="app-screen">
+      <div id="resultTypeName">CTRL（拿捏者）</div>
+    </section>
+  </main>
+
+  <script>
+    window.__SBTI_BOOTSTRAP__ = {
+      "data": {
+        "questions": [
+          {
+            "id": "q1",
+            "dim": "S1",
+            "text": "我会主动开口认识新朋友。",
+            "options": [
+              { "label": "不认同", "value": 1 },
+              { "label": "中立", "value": 2 },
+              { "label": "认同", "value": 3 }
+            ]
+          },
+          {
+            "id": "q2",
+            "dim": "A1",
+            "text": "我做决定前会先想清楚后果。",
+            "options": [
+              { "label": "不认同", "value": 1 },
+              { "label": "中立", "value": 2 },
+              { "label": "认同", "value": 3 }
+            ]
+          }
+        ],
+        "specialQuestions": [
+          {
+            "id": "drink_gate_q1",
+            "special": true,
+            "kind": "drink_gate",
+            "text": "您平时有什么爱好？",
+            "options": [
+              { "label": "吃喝拉撒", "value": 1 },
+              { "label": "艺术爱好", "value": 2 },
+              { "label": "饮酒", "value": 3 },
+              { "label": "健身", "value": 4 }
+            ]
+          },
+          {
+            "id": "drink_gate_q2",
+            "special": true,
+            "kind": "drink_trigger",
+            "text": "您对饮酒的态度是？",
+            "options": [
+              { "label": "小酌怡情", "value": 1 },
+              { "label": "保温杯里泡白酒", "value": 2 }
+            ]
+          }
+        ]
+      }
+    };
+  </script>
+  <script>
+    (function () {
+      const bootstrap = window.__SBTI_BOOTSTRAP__;
+      const baseQuestions = [
+        bootstrap.data.questions[0],
+        bootstrap.data.specialQuestions[0],
+        bootstrap.data.questions[1]
+      ];
+      const answers = {};
+      let currentQuestionIndex = 0;
+
+      const questionList = document.getElementById("questionList");
+      const submitBtn = document.getElementById("submitBtn");
+      const prevBtn = document.getElementById("prevBtn");
+
+      function getVisibleQuestions() {
+        const visible = [...baseQuestions];
+        const gateIndex = visible.findIndex((question) => question.id === "drink_gate_q1");
+        if (gateIndex !== -1 && answers.drink_gate_q1 === 3) {
+          visible.splice(gateIndex + 1, 0, bootstrap.data.specialQuestions[1]);
+        }
+        return visible;
+      }
+
+      function renderQuestionCard(question, total) {
+        return `
+          <article class="question question-card-anim">
+            <div class="question-meta">
+              <div class="badge">第 ${currentQuestionIndex + 1} 题 / 共 ${total} 题</div>
+            </div>
+            <div class="question-title">${question.text}</div>
+            <div class="options">
+              ${question.options
+                .map((option) => `
+                  <label class="option">
+                    <input type="radio" name="${question.id}" value="${option.value}" ${
+                      answers[question.id] === option.value ? "checked" : ""
+                    } />
+                    <div>${option.label}</div>
+                  </label>
+                `)
+                .join("")}
+            </div>
+          </article>
+        `;
+      }
+
+      function bindQuestionEvents() {
+        questionList.querySelectorAll('input[type="radio"]').forEach((input) => {
+          input.addEventListener("change", (event) => {
+            answers[event.target.name] = Number(event.target.value);
+
+            if (event.target.name === "drink_gate_q1" && Number(event.target.value) !== 3) {
+              delete answers.drink_gate_q2;
+            }
+
+            const visibleQuestions = getVisibleQuestions();
+            const isLast = currentQuestionIndex >= visibleQuestions.length - 1;
+
+            if (!isLast) {
+              currentQuestionIndex += 1;
+              renderQuestions();
+            } else {
+              updateButtons();
+            }
+          });
+        });
+      }
+
+      function updateButtons() {
+        const visibleQuestions = getVisibleQuestions();
+        const isLast = currentQuestionIndex === visibleQuestions.length - 1;
+        const complete = visibleQuestions.every((question) => answers[question.id] !== undefined);
+        submitBtn.classList.toggle("is-hidden", !isLast);
+        submitBtn.disabled = !complete;
+        submitBtn.setAttribute("aria-hidden", String(!isLast));
+        prevBtn.disabled = currentQuestionIndex === 0;
+      }
+
+      function renderQuestions() {
+        const visibleQuestions = getVisibleQuestions();
+        const question = visibleQuestions[currentQuestionIndex];
+        questionList.innerHTML = renderQuestionCard(question, visibleQuestions.length);
+        bindQuestionEvents();
+        updateButtons();
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (currentQuestionIndex === 0) {
+          return;
+        }
+
+        currentQuestionIndex -= 1;
+        renderQuestions();
+      });
+
+      renderQuestions();
+    })();
+  </script>
+</body>
+</html>

@@ -171,7 +171,11 @@ Current transition note:
 
 - the repository now accepts an AI-first product direction for future multi-site support
 - this does not mean the current codebase already supports generic unsupported-site automation
-- at this checkpoint, the only stable real-site loop remains Truity Enneagram
+- at this checkpoint, `Truity Enneagram` remains the highest-confidence real-site loop
+- `Truity DISC` and `Truity TypeFinder` now also have adapter-scoped live-smoke extraction coverage
+- `16Personalities` remains a narrower second-site sample because live access in this environment is blocked by Cloudflare
+- `SBTI / test` is now adapter-scoped and supports its current single-question stepping flow through a dedicated bootstrap-parsing adapter
+- the generic fallback path remains experimental and must not be described as universal website support
 
 ## 7. Data Ownership
 
@@ -188,13 +192,16 @@ Current transition note:
 
 The canonical database structure must be maintained in:
 
-- [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md)
+- [memory-bank/@architecture.md](./memory-bank/@architecture.md)
 
 ## 8. Directory Strategy
 
 Recommended project layout:
 
 ```text
+docs/
+  repository-map.md
+  documentation-rules.md
 src/
   app/
     popup/
@@ -234,6 +241,12 @@ These rules are part of the architecture, not optional style preferences:
 - UI components must not directly manipulate raw DOM of web pages.
 - Content scripts must not contain provider or storage business logic.
 
+Documentation rules:
+
+- Canonical architecture facts belong in `memory-bank/@architecture.md`.
+- Repository navigation and maintenance guides should prefer `docs/*`.
+- Root-level docs should stay intentionally small in number and clearly differentiated by purpose.
+
 ## 10. Monolith Prohibition
 
 The following patterns are explicitly forbidden:
@@ -260,9 +273,11 @@ The MVP should include only:
 
 The current transition phase may additionally include:
 
+- narrow multi-test-site trial documentation and repository preparation,
 - Chinese-first end-user UI copy,
 - visual shell improvements shared across popup, side panel, and options,
-- architecture and roadmap documentation for a future AI-first multi-site expansion.
+- architecture and roadmap documentation for a future AI-first multi-site expansion,
+- experimental fallback heuristics for unsupported assessment pages, as long as they remain clearly limited and auditable.
 
 The MVP should exclude:
 
@@ -276,9 +291,12 @@ The MVP should exclude:
 
 Before any implementation, AI or human contributors must rely on:
 
-- [tech-stack.md](e:\ATTI\ATTI\tech-stack.md)
-- [memory-bank/@architecture.md](e:\ATTI\ATTI\memory-bank\@architecture.md)
-- [memory-bank/@game-design-document.md](e:\ATTI\ATTI\memory-bank\@game-design-document.md)
+- [tech-stack.md](./tech-stack.md)
+- [memory-bank/@architecture.md](./memory-bank/@architecture.md)
+- [memory-bank/@game-design-document.md](./memory-bank/@game-design-document.md)
+- [docs/repository-map.md](./docs/repository-map.md)
+- [docs/documentation-rules.md](./docs/documentation-rules.md)
+- [docs/versioning.md](./docs/versioning.md)
 
 ## 13. Next Step
 
