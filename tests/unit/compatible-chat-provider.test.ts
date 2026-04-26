@@ -31,6 +31,15 @@ const sampleQuestion: Question = {
   createdAt: "2025-01-01T00:00:00.000Z"
 };
 
+function createSampleQuestion(index: number): Question {
+  return {
+    ...sampleQuestion,
+    id: `question-${index}`,
+    text: `Question ${index}`,
+    order: index
+  };
+}
+
 describe("compatible chat assessment provider", () => {
   it("plans answers through an OpenAI-compatible chat completions response", async () => {
     const fetchImpl = vi.fn(async () =>
@@ -90,7 +99,8 @@ describe("compatible chat assessment provider", () => {
           Accept: "application/json",
           Authorization: "Bearer sk-test",
           "Content-Type": "application/json"
-        })
+        }),
+        body: expect.stringContaining('"max_tokens":1200')
       })
     );
   });
@@ -224,5 +234,64 @@ describe("compatible chat assessment provider", () => {
       code: "COMPATIBLE_CHAT_ANSWER_PLANNING_PARSE_FAILED",
       message: expect.stringContaining("片段：Here is the result")
     });
+  });
+  it("plans large question sets in multiple compatible-endpoint batches", async () => {
+    const fetchImpl = vi.fn(async (_url, init) => {
+      const body = JSON.parse(String(init?.body ?? "{}")) as {
+        messages?: Array<{ content?: string }>;
+      };
+      const promptText = body.messages?.[0]?.content ?? "";
+      const questionIds = Array.from(
+        promptText.matchAll(/"id":"(question-\d+)"/g),
+        (match) => match[1]
+      );
+
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  answerPlans: questionIds.map((questionId) => ({
+                    questionId,
+                    recommendedOptionIds: ["2"],
+                    confidence: 0.8,
+                    rationale: `Planned for ${questionId}.`,
+                    requiresConfirmation: false
+                  }))
+                })
+              }
+            }
+          ]
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    });
+
+    const provider = createCompatibleChatAssessmentProvider({
+      providerId: "compatible-assessment-provider",
+      providerLabel: "鍏煎绔偣",
+      apiKey: "sk-test",
+      apiUrl: "https://api.vectorengine.cn/v1/chat/completions",
+      model: "gpt-4o",
+      fetchImpl
+    });
+
+    const result = await provider.planAnswers({
+      sessionId: "session-1",
+      questions: Array.from({ length: 9 }, (_, index) => createSampleQuestion(index + 1)),
+      profile: sampleProfile
+    });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(result.answerPlans).toHaveLength(9);
+    expect(result.answerPlans.map((plan) => plan.questionId)).toEqual(
+      Array.from({ length: 9 }, (_, index) => `question-${index + 1}`)
+    );
   });
 });

@@ -375,6 +375,7 @@ export function useSidePanelShell(
     isRunAnswerPlanningDisabled:
       latestSession == null ||
       (settings != null && getProviderConfigurationState(settings).isReady === false),
+    isReapplyAnswerFillDisabled: latestSession == null,
     isReextractDisabled: latestSession == null,
     setProfileDraftNarrativeSummary(narrativeSummary) {
       setDraftNarrativeSummary(narrativeSummary);
@@ -425,6 +426,28 @@ export function useSidePanelShell(
         setSessionStatus({
           kind: "error",
           message: error instanceof Error ? error.message : "无法执行 AI 规划。"
+        });
+      }
+    },
+    async reapplyAnswerFill() {
+      if (!latestSession) {
+        setSessionStatus({
+          kind: "error",
+          message: "当前没有可重新填写的活动会话。"
+        });
+        return;
+      }
+
+      setSessionProgress(createSessionProgress(latestSession, 0, "sending"));
+
+      try {
+        await stableAssessmentSessionClient.applyReviewedAnswers(latestSession.id);
+        await refreshRecommendationPreview(settings);
+      } catch (error) {
+        await refreshRecommendationPreview(settings);
+        setSessionStatus({
+          kind: "error",
+          message: error instanceof Error ? error.message : "无法重新填写当前问卷。"
         });
       }
     },

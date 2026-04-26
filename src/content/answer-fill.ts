@@ -42,10 +42,10 @@ function parseAnswerFillSelections(command: AnswerFillApplyCommand): AnswerFillS
   }));
 }
 
-export function applyAnswerFillCommand(
+export async function applyAnswerFillCommand(
   command: AnswerFillApplyCommand,
   dependencies: ContentFillDependencies
-): AppResult {
+): Promise<AppResult> {
   const validatedCommand = answerFillApplyCommandSchema.parse(command);
   const registry = dependencies.adapterRegistry ?? adapterRegistry;
   const adapter = resolveFillAdapter(registry, {
@@ -71,7 +71,7 @@ export function applyAnswerFillCommand(
   };
 
   try {
-    const result = adapter.fillAnswers(fillContext, parseAnswerFillSelections(validatedCommand));
+    const result = await adapter.fillAnswers(fillContext, parseAnswerFillSelections(validatedCommand));
 
     return {
       ok: true,

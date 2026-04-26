@@ -33,6 +33,12 @@ interface ChatCompletionsSuccess {
   readonly choices?: ChatCompletionsChoice[];
 }
 
+interface AnswerPlanningArgs {
+  readonly sessionId: string;
+  readonly questions: Question[];
+  readonly profile: Profile;
+}
+
 export interface CompatibleChatAssessmentProviderOptions {
   readonly providerId: string;
   readonly providerLabel: string;
@@ -40,6 +46,23 @@ export interface CompatibleChatAssessmentProviderOptions {
   readonly apiUrl: string;
   readonly model: string;
   readonly fetchImpl?: FetchLike;
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function splitQuestionsIntoChunks(
+  questions: readonly Question[],
+  chunkSize: number
+): readonly Question[][] {
+  const chunks: Question[][] = [];
+
+  for (let index = 0; index < questions.length; index += chunkSize) {
+    chunks.push([...questions.slice(index, index + chunkSize)]);
+  }
+
+  return chunks;
 }
 
 function resolveFetch(fetchImpl?: FetchLike): FetchLike {
@@ -86,6 +109,7 @@ async function createJsonResponse(args: {
   apiUrl: string;
   fetchImpl: FetchLike;
   input: string;
+  maxTokens?: number;
   model: string;
   providerId: string;
   providerLabel: string;
@@ -111,7 +135,8 @@ async function createJsonResponse(args: {
         ],
         response_format: {
           type: "json_object"
-        }
+        },
+        ...(typeof args.maxTokens === "number" ? { max_tokens: args.maxTokens } : {})
       })
     });
   } catch (error) {
@@ -227,16 +252,15 @@ export function createCompatibleChatAssessmentProvider(
     }
   }
 
-  async function planAnswersInternal(args: {
-    sessionId: string;
-    questions: Question[];
-    profile: Profile;
-  }) {
+  async function planAnswerChunkInternal(args: AnswerPlanningArgs) {
+    const maxTokens = clampNumber(args.questions.length * 140, 1200, 8000);
+
     const outputText = await createJsonResponse({
       apiKey,
       apiUrl: options.apiUrl,
       fetchImpl,
       input: buildOpenAiAnswerPlanningPrompt(args),
+      maxTokens,
       model: options.model,
       providerId: options.providerId,
       providerLabel: options.providerLabel
@@ -264,6 +288,30 @@ export function createCompatibleChatAssessmentProvider(
         }
       });
     }
+  }
+
+  async function planAnswersInternal(args: AnswerPlanningArgs) {
+    const questionChunks = splitQuestionsIntoChunks(args.questions, 8);
+
+    if (questionChunks.length === 1) {
+      return planAnswerChunkInternal(args);
+    }
+
+    const answerPlans = [];
+
+    for (const questionChunk of questionChunks) {
+      const chunkResult = await planAnswerChunkInternal({
+        sessionId: args.sessionId,
+        questions: questionChunk,
+        profile: args.profile
+      });
+
+      answerPlans.push(...chunkResult.answerPlans);
+    }
+
+    return {
+      answerPlans
+    };
   }
 
   return {

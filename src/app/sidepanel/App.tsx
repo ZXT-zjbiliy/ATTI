@@ -45,8 +45,12 @@ export function SidePanelView({ model }: SidePanelViewProps) {
             <SessionStatusCard
               progress={model.sessionProgress}
               isRunAnswerPlanningDisabled={model.isRunAnswerPlanningDisabled}
+              isReapplyAnswerFillDisabled={model.isReapplyAnswerFillDisabled}
               onRunAnswerPlanning={() => {
                 void model.runAnswerPlanning();
+              }}
+              onReapplyAnswerFill={() => {
+                void model.reapplyAnswerFill();
               }}
               state={model.sessionStatus}
             />

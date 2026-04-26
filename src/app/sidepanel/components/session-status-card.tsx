@@ -7,14 +7,18 @@ interface SessionStatusCardProps {
   readonly state: SidePanelSectionState;
   readonly progress: SessionProgressState | null;
   readonly isRunAnswerPlanningDisabled: boolean;
+  readonly isReapplyAnswerFillDisabled: boolean;
   readonly onRunAnswerPlanning: () => void;
+  readonly onReapplyAnswerFill: () => void;
 }
 
 export function SessionStatusCard({
   state,
   progress,
   isRunAnswerPlanningDisabled,
-  onRunAnswerPlanning
+  isReapplyAnswerFillDisabled,
+  onRunAnswerPlanning,
+  onReapplyAnswerFill
 }: SessionStatusCardProps) {
   return (
     <StatusCard title="执行会话">
@@ -27,6 +31,14 @@ export function SessionStatusCard({
         onClick={onRunAnswerPlanning}
       >
         开始 AI 规划
+      </button>
+      <button
+        className="atti-button"
+        disabled={isReapplyAnswerFillDisabled}
+        type="button"
+        onClick={onReapplyAnswerFill}
+      >
+        再次填写
       </button>
     </StatusCard>
   );

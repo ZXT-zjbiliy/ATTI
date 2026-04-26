@@ -2,15 +2,64 @@
 
 ATTI 是一个面向已接入性格测试网站的 `Edge` 扩展。它默认把画像、会话和推荐结果保留在本地；只有在你明确点击 `开始 AI 规划` 时，才会调用 provider 生成建议；它可以预览并填写受支持的问卷页面，但不会自动提交。
 
-当前仓库版本：`0.4.4`
+当前仓库版本：`0.4.6`
 
 ## 当前支持状态
 
 - 最高信心路径：`Truity Enneagram`
 - 已接入的附加适配器路由：`Truity DISC`、`Truity TypeFinder`
 - 第二测试网站样本：`16Personalities`，已有 fixture 和浏览器级扩展覆盖，但当前环境下缺少稳定 live-site 验证，因为会受到 `Cloudflare` 限制
-- 已接入公开测试路由：`SBTI / https://sbti.cc/test`，已支持它当前的单题逐步前进填写流程
+- 已接入公开测试路由：`SBTI / https://sbti.cc/test`，已支持它当前的单题逐步前进填写流程，并可自动推进到整套题填写完成
 - 实验性兜底路径：generic fallback 提取逻辑仍然受限，不能当成通用网站支持
+
+## 支持的网站
+
+- `Truity / Enneagram Personality Test`
+  - `https://www.truity.com/test/enneagram-personality-test`
+- `Truity / DISC Personality Test`
+  - `https://www.truity.com/test/disc-personality-test`
+- `Truity / TypeFinder Personality Test`
+  - `https://www.truity.com/test/type-finder-personality-test-new`
+- `16Personalities / Free Personality Test`
+  - `https://www.16personalities.com/free-personality-test`
+- `SBTI / test`
+  - `https://sbti.cc/test`
+
+## 个人信息怎么填
+
+第一次试用时，不需要写得很长。你只要在 side panel 里填写两块：
+
+- `画像摘要`
+- `证据备注`
+
+可以直接照这个最小格式来填。
+
+`画像摘要`
+
+```text
+我通常更喜欢温和、合作、稳定且可执行的选择；面对问卷题目时，倾向于选择不过度极端、但能体现一致性和责任感的答案。
+```
+
+`证据备注`
+
+```text
+- 偏好清晰结构
+- 愿意配合他人
+- 不喜欢过于激进的表达
+- 做决定时倾向稳定和可执行
+- 面对陌生情境通常先观察再行动
+```
+
+更短版本见：
+
+- [docs/guides/zh-CN/minimal-profile-draft.zh-CN.md](./docs/guides/zh-CN/minimal-profile-draft.zh-CN.md)
+
+## 填写动作
+
+- `开始 AI 规划` 会先生成推荐，再对当前受支持页面执行填写。
+- `再次填写` 会在不重新生成推荐的前提下，对当前活动会话重新执行一次 fill。
+- `SBTI / test` 现在会沿着它的一题一页流程持续推进，直到页面进入“可提交但未提交”的状态。
+- ATTI 仍然不会自动提交问卷。
 
 ## 快速开始
 

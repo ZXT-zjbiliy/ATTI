@@ -16,7 +16,7 @@ Use:
 
 Example:
 
-- `0.4.4`
+- `0.4.6`
 
 ## 2. Default Rule
 
@@ -95,6 +95,11 @@ For any `x`, `y`, or `z` version change:
   - fixture-backed unit coverage and browser-level extension coverage now include the `SBTI` trial path,
   - Chinese user-facing guides were refreshed for the `0.4` release line and now document the five explicitly supported public assessment routes,
   - the repository `0.4` release line now packages the current supported-scope build as `0.4.4`.
+- `2026-04-26`: `0.4.5` -> `0.4.6`
+- scope of this patch record:
+  - fixed `SBTI / https://sbti.cc/test` fill execution for the single-question stepping flow by allowing adapter fill to wait for page progression instead of assuming a static one-shot DOM fill,
+  - added a side-panel `再次填写` action so users can rerun answer fill on the active session without regenerating a new answer plan,
+  - kept the compatible-endpoint parser hardening and batch-planning improvements from the previous patch-line work while publishing this user-visible SBTI fill fix as `0.4.6`.
 
 ## 7. Related Boundaries
 

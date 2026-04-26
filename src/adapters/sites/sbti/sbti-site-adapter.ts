@@ -126,33 +126,44 @@ function findOptionInput(
   return null;
 }
 
-function withImmediateTimers(window: Window, action: () => void): void {
-  const timerWindow = window as Window & typeof globalThis;
-  const originalSetTimeout = timerWindow.setTimeout.bind(window);
-  const originalClearTimeout = timerWindow.clearTimeout.bind(window);
+function isSubmitReady(document: Document): boolean {
+  const submitButton = document.getElementById("submitBtn") as HTMLButtonElement | null;
 
-  timerWindow.setTimeout = (((handler: TimerHandler, _timeout?: number, ...args: unknown[]) => {
-    if (typeof handler === "function") {
-      handler(...args);
+  return (
+    submitButton !== null &&
+    !submitButton.classList.contains("is-hidden") &&
+    !submitButton.disabled
+  );
+}
+
+async function waitForSbtiQuestionAdvance(
+  document: Document,
+  previousPromptText: string,
+  timeoutMs = 1500
+): Promise<void> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    if (isSubmitReady(document)) {
+      return;
     }
-    return 0;
-  }) as typeof setTimeout);
-  timerWindow.clearTimeout = (((_id?: number) => {
-    return undefined;
-  }) as typeof clearTimeout);
 
-  try {
-    action();
-  } finally {
-    timerWindow.setTimeout = originalSetTimeout;
-    timerWindow.clearTimeout = originalClearTimeout;
+    const currentPromptText = resolveCurrentQuestionPrompt(document);
+
+    if (currentPromptText.length > 0 && currentPromptText !== previousPromptText) {
+      return;
+    }
+
+    await new Promise((resolve) => {
+      globalThis.setTimeout(resolve, 25);
+    });
   }
 }
 
-export function fillSbtiAnswers(
+export async function fillSbtiAnswers(
   context: AdapterFillContext,
   selections: readonly AnswerFillSelection[]
-): AnswerFillResult {
+): Promise<AnswerFillResult> {
   if (!matchesSbtiTestUrl(context)) {
     throw new Error(`Unsupported fill target URL: ${context.url}`);
   }
@@ -168,63 +179,61 @@ export function fillSbtiAnswers(
 
   let filledCount = 0;
 
-  withImmediateTimers(currentWindow, () => {
-    const maxIterations = selectionMap.size + 4;
-    const answeredPromptKeys = new Set<string>();
+  const maxIterations = selectionMap.size + 4;
+  const answeredPromptKeys = new Set<string>();
 
-    for (let iteration = 0; iteration < maxIterations; iteration += 1) {
-      const currentPromptText = resolveCurrentQuestionPrompt(context.document);
+  for (let iteration = 0; iteration < maxIterations; iteration += 1) {
+    const currentPromptText = resolveCurrentQuestionPrompt(context.document);
 
-      if (currentPromptText.length === 0) {
-        break;
-      }
-
-      const promptKey = createSbtiPromptKey(currentPromptText);
-
-      if (answeredPromptKeys.has(promptKey)) {
-        break;
-      }
-
-      const selection = selectionMap.get(promptKey);
-
-      if (!selection) {
-        throw new Error(
-          `Unable to locate SBTI selection within the adapter boundary: promptKey=${promptKey}`
-        );
-      }
-
-      const optionInput = findOptionInput(context.document, selection);
-
-      if (!optionInput) {
-        throw new Error(
-          `Unable to locate SBTI option target within the adapter boundary: questionId=${selection.questionId}`
-        );
-      }
-
-      answeredPromptKeys.add(promptKey);
-
-      const InputEventConstructor = context.document.defaultView?.Event ?? Event;
-
-      if (!optionInput.checked) {
-        optionInput.click();
-      } else {
-        optionInput.dispatchEvent(new InputEventConstructor("input", { bubbles: true }));
-        optionInput.dispatchEvent(new InputEventConstructor("change", { bubbles: true }));
-      }
-
-      filledCount += 1;
-
-      const submitButton = context.document.getElementById("submitBtn") as HTMLButtonElement | null;
-      const submitReady =
-        submitButton !== null &&
-        !submitButton.classList.contains("is-hidden") &&
-        !submitButton.disabled;
-
-      if (submitReady) {
-        break;
-      }
+    if (currentPromptText.length === 0) {
+      break;
     }
-  });
+
+    const promptKey = createSbtiPromptKey(currentPromptText);
+
+    if (answeredPromptKeys.has(promptKey)) {
+      break;
+    }
+
+    const selection = selectionMap.get(promptKey);
+
+    if (!selection) {
+      throw new Error(
+        `Unable to locate SBTI selection within the adapter boundary: promptKey=${promptKey}`
+      );
+    }
+
+    const optionInput = findOptionInput(context.document, selection);
+
+    if (!optionInput) {
+      throw new Error(
+        `Unable to locate SBTI option target within the adapter boundary: questionId=${selection.questionId}`
+      );
+    }
+
+    answeredPromptKeys.add(promptKey);
+
+    const InputEventConstructor = context.document.defaultView?.Event ?? Event;
+
+    if (!optionInput.checked) {
+      optionInput.click();
+    } else {
+      optionInput.dispatchEvent(new InputEventConstructor("input", { bubbles: true }));
+      optionInput.dispatchEvent(new InputEventConstructor("change", { bubbles: true }));
+    }
+
+    filledCount += 1;
+
+    if (isSubmitReady(context.document)) {
+      break;
+    }
+
+    await waitForSbtiQuestionAdvance(context.document, currentPromptText);
+
+    if (isSubmitReady(context.document)) {
+      break;
+    }
+  }
 
   return {
     filledCount,

@@ -202,12 +202,14 @@ export async function startContentRuntime(
       return true;
     }
 
-    sendResponse(
-      applyAnswerFillCommand(message, {
-        document: dependencies.document as Document,
-        location: dependencies.location
-      })
-    );
+    void applyAnswerFillCommand(message, {
+      document: dependencies.document as Document,
+      location: dependencies.location
+    })
+      .then(sendResponse)
+      .catch((error) => {
+        sendResponse(createRuntimeErrorResult(error));
+      });
 
     return true;
   });

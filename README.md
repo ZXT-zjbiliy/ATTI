@@ -2,7 +2,7 @@
 
 ATTI is an Edge extension for supported personality-assessment websites. It keeps profile and session data local by default, uses a provider only when the user explicitly starts planning, and can preview plus fill supported questionnaire pages without auto-submitting them.
 
-Current repository version: `0.4.4`
+Current repository version: `0.4.6`
 
 Chinese README: [README.zh-CN.md](./README.zh-CN.md)
 
@@ -11,8 +11,53 @@ Current support status:
 - highest-confidence live path: `Truity Enneagram`
 - additional adapter-scoped supported routes: `Truity DISC`, `Truity TypeFinder`
 - narrow second-site sample: `16Personalities`, with fixture-backed and browser-level extension coverage but no stable live-site verification in this environment because Cloudflare blocks access
-- additional adapter-scoped public test route: `SBTI / https://sbti.cc/test`, with dedicated extraction/fill support for its single-question stepping flow
+- additional adapter-scoped public test route: `SBTI / https://sbti.cc/test`, with dedicated extraction/fill support for its single-question stepping flow and full-session auto-fill progression
 - experimental last-resort path: generic fallback extraction for unsupported assessment pages; this remains limited and should not be treated as universal website support
+
+## Supported Pages
+
+- `Truity / Enneagram Personality Test`
+  - `https://www.truity.com/test/enneagram-personality-test`
+- `Truity / DISC Personality Test`
+  - `https://www.truity.com/test/disc-personality-test`
+- `Truity / TypeFinder Personality Test`
+  - `https://www.truity.com/test/type-finder-personality-test-new`
+- `16Personalities / Free Personality Test`
+  - `https://www.16personalities.com/free-personality-test`
+- `SBTI / test`
+  - `https://sbti.cc/test`
+
+## Simple Profile Draft Format
+
+For a quick first run, paste a short local profile draft into the side panel using this format.
+
+`Profile Summary`
+
+```text
+I usually prefer calm, cooperative, stable choices. When answering questionnaires, I lean toward responses that are consistent, moderate, and practical rather than extreme.
+```
+
+`Evidence Notes`
+
+```text
+- prefers clear structure
+- willing to cooperate with others
+- dislikes overly aggressive expression
+- tends to choose stable and executable options
+- usually observes first in unfamiliar situations
+```
+
+Chinese quick-copy version:
+
+- [README.zh-CN.md](./README.zh-CN.md)
+- [docs/guides/zh-CN/minimal-profile-draft.zh-CN.md](./docs/guides/zh-CN/minimal-profile-draft.zh-CN.md)
+
+## Fill Actions
+
+- `Run answer planning` generates recommendations and then applies fill on the active supported page.
+- `Reapply fill` reruns page filling for the current session without generating a new answer plan.
+- `SBTI / test` now advances through its one-question-at-a-time flow until the page reaches a ready-to-submit state.
+- ATTI still does not auto-submit the final questionnaire.
 
 ## Quick Start
 

@@ -135,6 +135,41 @@ describe("openai answer planning parser", () => {
     expect(result.answerPlans.every((plan) => plan.requiresConfirmation === false)).toBe(true);
   });
 
+  it("accepts compatible-provider output with numeric option ids, string confidence, and trailing commas", () => {
+    const result = parseOpenAiAnswerPlanningResponse({
+      rawText: [
+        "```json",
+        "{",
+        '  "answers": [',
+        "    {",
+        '      "questionId": "question-2",',
+        '      "recommendedOptionIds": [5],',
+        '      "confidence": "0.82",',
+        '      "rationale": "Evidence points to active helpfulness.",',
+        "    },",
+        "    {",
+        '      "questionId": "question-1",',
+        '      "recommendedOptionIds": [2],',
+        '      "confidence": "0.61",',
+        '      "rationale": "The profile shows some structure but not rigidity.",',
+        "    },",
+        "  ],",
+        "}",
+        "```"
+      ].join("\n"),
+      providerId: "compatible-assessment-provider",
+      promptVersion: "compatible-assessment-provider-v1",
+      questions: sampleQuestions,
+      sessionId: "session-1"
+    });
+
+    expect(result.answerPlans).toHaveLength(2);
+    expect(result.answerPlans[0]?.recommendedOptionIds).toEqual(["2"]);
+    expect(result.answerPlans[1]?.recommendedOptionIds).toEqual(["5"]);
+    expect(result.answerPlans[0]?.confidence).toBe(0.61);
+    expect(result.answerPlans[1]?.confidence).toBe(0.82);
+  });
+
   it("rejects provider output when the question count or option ids are invalid", () => {
     expect(() =>
       parseOpenAiAnswerPlanningResponse({

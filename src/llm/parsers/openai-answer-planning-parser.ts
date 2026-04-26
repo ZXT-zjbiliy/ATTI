@@ -4,10 +4,12 @@ import type { AnswerPlanningResult } from "../providers/assessment-provider";
 import type { AnswerPlan, Question } from "../../shared/types";
 
 const openAiAnswerPlanDraftSchema = z.object({
-  questionId: z.string().min(1),
-  recommendedOptionIds: z.array(z.string().min(1)).min(1),
-  confidence: z.number().min(0).max(1),
-  rationale: z.string().min(1),
+  questionId: z.coerce.string().min(1),
+  recommendedOptionIds: z
+    .array(z.union([z.string().min(1), z.number()]).transform((value) => String(value)))
+    .min(1),
+  confidence: z.coerce.number().min(0).max(1),
+  rationale: z.coerce.string().min(1),
   requiresConfirmation: z.boolean().optional()
 });
 
@@ -28,11 +30,73 @@ function tryParseJsonText(rawText: string): unknown {
   return JSON.parse(rawText);
 }
 
+function removeTrailingCommas(rawText: string): string {
+  return rawText.replace(/,\s*([}\]])/g, "$1");
+}
+
+function tryParseJsonWithCommonRepairs(rawText: string): unknown {
+  try {
+    return tryParseJsonText(rawText);
+  } catch {
+    return tryParseJsonText(removeTrailingCommas(rawText));
+  }
+}
+
+function extractBalancedJsonObject(rawText: string): string | null {
+  const firstBraceIndex = rawText.indexOf("{");
+
+  if (firstBraceIndex < 0) {
+    return null;
+  }
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = firstBraceIndex; index < rawText.length; index += 1) {
+    const character = rawText[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (character === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (character === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (character === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (character === "}") {
+      depth -= 1;
+
+      if (depth === 0) {
+        return rawText.slice(firstBraceIndex, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
 function extractJsonText(rawText: string): string {
   const trimmedText = rawText.trim();
 
   try {
-    tryParseJsonText(trimmedText);
+    tryParseJsonWithCommonRepairs(trimmedText);
     return trimmedText;
   } catch {
     const fencedJsonMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
@@ -41,10 +105,21 @@ function extractJsonText(rawText: string): string {
       const fencedPayload = fencedJsonMatch[1].trim();
 
       try {
-        tryParseJsonText(fencedPayload);
-        return fencedPayload;
+        tryParseJsonWithCommonRepairs(fencedPayload);
+        return removeTrailingCommas(fencedPayload);
       } catch {
         // Fall through to object scanning below.
+      }
+    }
+
+    const balancedObjectPayload = extractBalancedJsonObject(trimmedText);
+
+    if (balancedObjectPayload) {
+      try {
+        tryParseJsonWithCommonRepairs(balancedObjectPayload);
+        return removeTrailingCommas(balancedObjectPayload);
+      } catch {
+        // Fall through to final error below.
       }
     }
 
@@ -55,8 +130,8 @@ function extractJsonText(rawText: string): string {
       const objectPayload = trimmedText.slice(firstBraceIndex, lastBraceIndex + 1);
 
       try {
-        tryParseJsonText(objectPayload);
-        return objectPayload;
+        tryParseJsonWithCommonRepairs(objectPayload);
+        return removeTrailingCommas(objectPayload);
       } catch {
         // Fall through to final error below.
       }
@@ -71,7 +146,11 @@ function normalizeRationale(rationale: string): string {
 }
 
 function getNormalizedAnswerPlanDrafts(rawText: string): NormalizedAnswerPlanDraft[] {
-  const parsed = openAiAnswerPlanningResponseSchema.parse(JSON.parse(extractJsonText(rawText)));
+  const rawParsedValue = tryParseJsonWithCommonRepairs(extractJsonText(rawText));
+  const normalizedRootValue = Array.isArray(rawParsedValue)
+    ? { answerPlans: rawParsedValue }
+    : rawParsedValue;
+  const parsed = openAiAnswerPlanningResponseSchema.parse(normalizedRootValue);
   const drafts = parsed.answerPlans ?? parsed.answers ?? [];
 
   return drafts.map((draft) => ({

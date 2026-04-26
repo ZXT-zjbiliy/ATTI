@@ -74,5 +74,5 @@ export interface SiteAdapter {
   fillAnswers?: (
     context: AdapterFillContext,
     selections: readonly AnswerFillSelection[],
-  ) => AnswerFillResult;
+  ) => AnswerFillResult | Promise<AnswerFillResult>;
 }

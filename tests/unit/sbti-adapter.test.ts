@@ -128,14 +128,14 @@ describe("SBTI adapter", () => {
     ]);
   });
 
-  it("fills the live single-question flow by following prompt text instead of a fixed order", () => {
+  it("fills the live single-question flow by following prompt text instead of a fixed order", async () => {
     const dom = new JSDOM(sbtiFixture, {
       runScripts: "dangerously",
       url: "https://sbti.cc/test",
     });
     const { document } = dom.window;
 
-    const result = fillSbtiAnswers(
+    const result = await fillSbtiAnswers(
       {
         url: "https://sbti.cc/test",
         document,
