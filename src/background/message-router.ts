@@ -11,6 +11,7 @@ import {
   pingMessageSchema,
   profileDraftSaveMessageSchema,
   profileFetchMessageSchema,
+  profilePresetAnalyzeMessageSchema,
   recommendationPreviewFetchMessageSchema,
   sessionFetchMessageSchema,
   sessionHistoryFetchMessageSchema,
@@ -32,7 +33,11 @@ import {
   handleContentQuestionExtractionFailedMessage,
   handleContentQuestionsExtractedMessage
 } from "./handlers/content-question-extraction-handler";
-import { handleProfileDraftSaveMessage, handleProfileFetchMessage } from "./handlers/profile-handlers";
+import {
+  handleProfileDraftSaveMessage,
+  handleProfileFetchMessage,
+  handleProfilePresetAnalyzeMessage
+} from "./handlers/profile-handlers";
 import { AdapterDiagnosticsRepository } from "../storage/repos/adapter-diagnostics-repo";
 import { AnswerPlanRepository } from "../storage/repos/answer-plan-repo";
 import { createAssessmentProviderResolver } from "../llm/providers";
@@ -73,6 +78,7 @@ const supportedMessageSchemas = {
   [MESSAGE_TYPES.recommendationPreviewFetch]: recommendationPreviewFetchMessageSchema,
   [MESSAGE_TYPES.answerPlanReviewSave]: answerPlanReviewSaveMessageSchema,
   [MESSAGE_TYPES.profileDraftSave]: profileDraftSaveMessageSchema,
+  [MESSAGE_TYPES.profilePresetAnalyze]: profilePresetAnalyzeMessageSchema,
   [MESSAGE_TYPES.profileFetch]: profileFetchMessageSchema,
   [MESSAGE_TYPES.settingsFetch]: settingsFetchMessageSchema,
   [MESSAGE_TYPES.settingsUpdate]: settingsUpdateMessageSchema,
@@ -106,6 +112,8 @@ const supportedMessageHandlers: Record<
     handleAnswerPlanReviewSaveMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.profileDraftSave]:
     handleProfileDraftSaveMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
+  [MESSAGE_TYPES.profilePresetAnalyze]:
+    handleProfilePresetAnalyzeMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.profileFetch]:
     handleProfileFetchMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.settingsFetch]:

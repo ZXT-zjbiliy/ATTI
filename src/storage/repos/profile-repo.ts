@@ -49,6 +49,14 @@ export class ProfileRepository {
     return cloneProfile(profile);
   }
 
+  async saveProfile(profile: Profile): Promise<Profile> {
+    const validatedProfile = profileSchema.parse(profile);
+
+    await this.database.profiles.put(validatedProfile);
+
+    return cloneProfile(validatedProfile);
+  }
+
   async getProfileById(profileId: string): Promise<Profile | null> {
     const profile = await this.database.profiles.get(profileId);
 

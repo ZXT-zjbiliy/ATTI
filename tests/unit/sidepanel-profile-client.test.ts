@@ -10,6 +10,7 @@ import type {
   AppResult,
   ProfileDraftSaveMessage,
   ProfileFetchMessage,
+  ProfilePresetAnalyzeMessage,
   SettingsFetchMessage
 } from "../../src/shared/types";
 
@@ -31,6 +32,7 @@ class InMemorySettingsStorageArea implements SettingsStorageArea {
 
 type SupportedSidepanelMessage =
   | ProfileDraftSaveMessage
+  | ProfilePresetAnalyzeMessage
   | ProfileFetchMessage
   | SettingsFetchMessage;
 
@@ -49,6 +51,24 @@ describe("sidepanel profile draft client", () => {
 
       if (message.type === "profileDraftSave") {
         const savedProfile = await profileRepository.saveDraft(message.payload.draft);
+        const settings = await settingsRepository.getSettings();
+
+        await settingsRepository.saveSettings({
+          ...settings,
+          lastActiveProfileId: savedProfile.id
+        });
+
+        return {
+          ok: true,
+          data: savedProfile
+        };
+      }
+
+      if (message.type === "profilePresetAnalyze") {
+        const savedProfile = await profileRepository.saveDraft({
+          narrativeSummary: `Preset answers: ${message.payload.answers.length}`,
+          evidence: ["Generated from preset questionnaire"]
+        });
         const settings = await settingsRepository.getSettings();
 
         await settingsRepository.saveSettings({
@@ -82,5 +102,68 @@ describe("sidepanel profile draft client", () => {
     );
 
     database.close();
+  });
+
+  it("sends preset questionnaire answers for profile analysis", async () => {
+    const sentMessages: SupportedSidepanelMessage[] = [];
+    const client = createProfileDraftClient(async (message) => {
+      sentMessages.push(message);
+
+      if (message.type === "settingsFetch") {
+        return {
+          ok: true,
+          data: {
+            extensionEnabled: true,
+            debugMode: false,
+            activeProvider: "local",
+            openAiApiKey: null,
+            providerApiKey: null,
+            providerBaseUrl: null,
+            providerModel: null,
+            approvedDomains: [],
+            lastActiveProfileId: null,
+            featureFlags: {}
+          }
+        };
+      }
+
+      return {
+        ok: true,
+        data: {
+          id: "profile-from-preset",
+          version: 1,
+          rawInput: {},
+          structuredTraits: {
+            source: "preset"
+          },
+          narrativeSummary: "Generated profile",
+          evidence: ["Preset answer"],
+          createdAt: "2026-05-13T00:00:00.000Z",
+          updatedAt: "2026-05-13T00:00:00.000Z"
+        }
+      };
+    });
+
+    const profile = await client.analyzeProfilePreset({
+      answers: [
+        {
+          questionId: "energy-source",
+          selectedOptionId: "quiet-reflection"
+        }
+      ]
+    });
+
+    expect(profile.id).toBe("profile-from-preset");
+    expect(sentMessages.at(-1)).toEqual({
+      type: "profilePresetAnalyze",
+      payload: {
+        answers: [
+          {
+            questionId: "energy-source",
+            selectedOptionId: "quiet-reflection"
+          }
+        ]
+      }
+    });
   });
 });

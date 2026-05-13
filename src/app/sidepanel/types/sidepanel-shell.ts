@@ -24,8 +24,10 @@ export interface SidePanelProfilePanelState {
   readonly message: string | null;
   readonly isLoading: boolean;
   readonly isSaving: boolean;
+  readonly isAnalyzingPreset: boolean;
   readonly draftNarrativeSummary: string;
   readonly draftEvidenceText: string;
+  readonly presetAnswers: Record<string, string>;
   readonly savedProfile: Profile | null;
 }
 
@@ -73,6 +75,7 @@ export interface SidePanelShellModel {
   readonly isRunAnswerPlanningDisabled: boolean;
   readonly isReapplyAnswerFillDisabled: boolean;
   readonly isReextractDisabled: boolean;
+  setProfilePresetAnswer: (questionId: string, selectedOptionId: string) => void;
   setProfileDraftNarrativeSummary: (narrativeSummary: string) => void;
   setProfileDraftEvidenceText: (evidenceText: string) => void;
   runAnswerPlanning: () => Promise<void>;
@@ -80,5 +83,6 @@ export interface SidePanelShellModel {
   rerunQuestionExtraction: () => Promise<void>;
   refreshPageDetection: () => Promise<void>;
   refreshRecommendationPreview: () => Promise<void>;
+  analyzeProfilePreset: () => Promise<void>;
   saveProfileDraft: () => Promise<void>;
 }

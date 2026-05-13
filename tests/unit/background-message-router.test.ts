@@ -426,6 +426,82 @@ describe("background message router", () => {
     });
   });
 
+  it("analyzes preset questionnaire answers into the active profile", async () => {
+    const settingsRepository = await createSettingsRepository();
+    await settingsRepository.saveSettings({
+      extensionEnabled: true,
+      debugMode: false,
+      activeProvider: "local",
+      openAiApiKey: null,
+      providerApiKey: null,
+      providerBaseUrl: null,
+      providerModel: null,
+      approvedDomains: [],
+      lastActiveProfileId: null,
+      featureFlags: {}
+    });
+    const adapterDiagnosticsRepository =
+      await createAdapterDiagnosticsRepository("background-router-profile-preset");
+    const answerPlanRepository =
+      await createAnswerPlanRepository("background-router-profile-preset");
+    const profileRepository = await createProfileRepository("background-router-profile-preset");
+    const questionRepository = await createQuestionRepository("background-router-profile-preset");
+    const sessionRepository = await createSessionRepository("background-router-profile-preset");
+    const router = new BackgroundMessageRouter({
+      adapterDiagnosticsRepository,
+      answerPlanRepository,
+      assessmentProviderResolver: createFixedProviderResolver({
+        providerId: "profile-summary-provider",
+        async summarizeProfile({ profile }) {
+          expect(profile.rawInput.source).toBe("preset-profile-questionnaire");
+
+          return {
+            narrativeSummary: "Generated from preset answers",
+            evidence: ["Prefers quiet reflection"],
+            structuredTraits: {
+              energy: "quiet-reflection"
+            }
+          };
+        },
+        async interpretQuestion() {
+          throw new Error("not used");
+        },
+        async planAnswers() {
+          throw new Error("not used");
+        }
+      }),
+      profileRepository,
+      questionRepository,
+      sessionRepository,
+      settingsRepository
+    });
+
+    const result = await router.routeMessage({
+      type: MESSAGE_TYPES.profilePresetAnalyze,
+      payload: {
+        answers: [
+          {
+            questionId: "energy-source",
+            selectedOptionId: "quiet-reflection"
+          }
+        ]
+      }
+    });
+    const settings = await settingsRepository.getSettings();
+
+    expect(result).toMatchObject({
+      ok: true,
+      data: {
+        narrativeSummary: "Generated from preset answers",
+        evidence: ["Prefers quiet reflection"],
+        structuredTraits: {
+          energy: "quiet-reflection"
+        }
+      }
+    });
+    expect(settings.lastActiveProfileId).toBe(result.ok ? result.data.id : null);
+  });
+
   it("returns the latest session through the read-only latest session route", async () => {
     const settingsRepository = await createSettingsRepository();
     const adapterDiagnosticsRepository =

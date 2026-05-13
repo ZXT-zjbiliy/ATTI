@@ -1,4 +1,5 @@
 import type { Profile, ProfileDraft } from "./profile";
+import type { ProfilePresetAnalysisInput } from "./profile-preset";
 import type { QuestionOption } from "./question";
 import type { SessionHistoryEntry } from "./session";
 import type { Settings } from "./settings";
@@ -15,6 +16,7 @@ export const MESSAGE_TYPES = {
   answerFillRun: "answerFillRun",
   contentExtractionRun: "contentExtractionRun",
   profileDraftSave: "profileDraftSave",
+  profilePresetAnalyze: "profilePresetAnalyze",
   settingsFetch: "settingsFetch",
   settingsUpdate: "settingsUpdate",
   sessionFetch: "sessionFetch",
@@ -100,6 +102,11 @@ export type ProfileDraftSaveMessage = {
   };
 };
 
+export type ProfilePresetAnalyzeMessage = {
+  type: typeof MESSAGE_TYPES.profilePresetAnalyze;
+  payload: ProfilePresetAnalysisInput;
+};
+
 export type RecommendationPreviewFetchMessage = {
   type: typeof MESSAGE_TYPES.recommendationPreviewFetch;
   payload: {
@@ -167,6 +174,7 @@ export type AppMessage =
   | AnswerFillRunMessage
   | ContentExtractionRunMessage
   | ProfileDraftSaveMessage
+  | ProfilePresetAnalyzeMessage
   | SettingsFetchMessage
   | SettingsUpdateMessage
   | SessionFetchMessage

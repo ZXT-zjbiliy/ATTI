@@ -42,6 +42,8 @@ export {
   pingPayloadSchema,
   profileDraftSaveMessageSchema,
   profileDraftSavePayloadSchema,
+  profilePresetAnalyzeMessageSchema,
+  profilePresetAnalyzePayloadSchema,
   profileFetchMessageSchema,
   profileFetchPayloadSchema,
   recommendationPreviewFetchMessageSchema,
@@ -58,6 +60,10 @@ export {
   settingsUpdatePayloadSchema
 } from "./messages";
 export { profileDraftSchema, profileSchema } from "./profile";
+export {
+  profilePresetAnalysisInputSchema,
+  profilePresetAnswerSchema
+} from "./profile-preset";
 export { questionOptionSchema, questionSchema } from "./question";
 export { sessionSchema } from "./session";
 export { settingsSchema } from "./settings";

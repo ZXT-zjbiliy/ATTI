@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import type {
   Profile,
   ProfileDraft,
+  ProfilePresetAnalysisInput,
   RecommendationPreviewItem,
   Settings,
   Session
 } from "../../../shared/types";
+import { profilePresetQuestions } from "../../../domain/profile/profile-preset-questionnaire";
 import { getProviderConfigurationState } from "../../../shared/utils/provider-configuration";
 import { defaultSidePanelShellModel } from "../data/default-sidepanel-shell-model";
 import { createProfileDraftClient, type ProfileDraftClient } from "../services/profile-draft-client";
@@ -202,6 +204,8 @@ export function useSidePanelShell(
   const [draftEvidenceText, setDraftEvidenceText] = useState("");
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalyzingPreset, setIsAnalyzingPreset] = useState(false);
+  const [presetAnswers, setPresetAnswers] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "empty" | "error" | "ready">("loading");
   const [pageDetectionStatus, setPageDetectionStatus] =
@@ -363,8 +367,10 @@ export function useSidePanelShell(
       message,
       isLoading: isProfileLoading,
       isSaving,
+      isAnalyzingPreset,
       draftNarrativeSummary,
       draftEvidenceText,
+      presetAnswers,
       savedProfile
     },
     pageDetectionStatus,
@@ -377,6 +383,12 @@ export function useSidePanelShell(
       (settings != null && getProviderConfigurationState(settings).isReady === false),
     isReapplyAnswerFillDisabled: latestSession == null,
     isReextractDisabled: latestSession == null,
+    setProfilePresetAnswer(questionId, selectedOptionId) {
+      setPresetAnswers((currentAnswers) => ({
+        ...currentAnswers,
+        [questionId]: selectedOptionId
+      }));
+    },
     setProfileDraftNarrativeSummary(narrativeSummary) {
       setDraftNarrativeSummary(narrativeSummary);
     },
@@ -490,6 +502,41 @@ export function useSidePanelShell(
     },
     async refreshRecommendationPreview() {
       await refreshRecommendationPreview(settings);
+    },
+    async analyzeProfilePreset() {
+      if (settings && getProviderConfigurationState(settings).isReady === false) {
+        setStatus("error");
+        setMessage(
+          getProviderConfigurationState(settings).actionMessage ??
+            "请先完成 provider 配置，再生成本地画像。"
+        );
+        return;
+      }
+
+      const input: ProfilePresetAnalysisInput = {
+        answers: profilePresetQuestions.map((question) => ({
+          questionId: question.id,
+          selectedOptionId: presetAnswers[question.id] ?? ""
+        }))
+      };
+
+      setIsAnalyzingPreset(true);
+
+      try {
+        const profile = await stableProfileClient.analyzeProfilePreset(input);
+        const draftInput = createDraftInput(mapProfileToDraft(profile));
+
+        setSavedProfile(profile);
+        setDraftNarrativeSummary(draftInput.narrativeSummary);
+        setDraftEvidenceText(draftInput.evidenceText);
+        setStatus("ready");
+        setMessage("AI 已根据预设问卷生成本地画像。");
+      } catch (error) {
+        setStatus("error");
+        setMessage(error instanceof Error ? error.message : "无法根据预设问卷生成本地画像。");
+      } finally {
+        setIsAnalyzingPreset(false);
+      }
     },
     async saveProfileDraft() {
       setIsSaving(true);

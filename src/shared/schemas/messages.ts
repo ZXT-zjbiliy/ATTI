@@ -6,6 +6,7 @@ import { answerPlanReviewStatusSchema } from "./answer-plan";
 import { adapterDiagnosticsPayloadSchema } from "./adapter-diagnostics";
 import { nonEmptyStringSchema } from "./common";
 import { profileDraftSchema } from "./profile";
+import { profilePresetAnalysisInputSchema } from "./profile-preset";
 import { questionOptionSchema } from "./question";
 import { settingsSchema } from "./settings";
 
@@ -53,6 +54,8 @@ export const answerPlanningRunPayloadSchema = z.object({
 export const profileDraftSavePayloadSchema = z.object({
   draft: profileDraftSchema
 });
+
+export const profilePresetAnalyzePayloadSchema = profilePresetAnalysisInputSchema;
 
 export const recommendationPreviewFetchPayloadSchema = z.object({
   sessionId: nonEmptyStringSchema
@@ -131,6 +134,11 @@ export const profileDraftSaveMessageSchema = z.object({
   payload: profileDraftSavePayloadSchema
 });
 
+export const profilePresetAnalyzeMessageSchema = z.object({
+  type: z.literal(MESSAGE_TYPES.profilePresetAnalyze),
+  payload: profilePresetAnalyzePayloadSchema
+});
+
 export const recommendationPreviewFetchMessageSchema = z.object({
   type: z.literal(MESSAGE_TYPES.recommendationPreviewFetch),
   payload: recommendationPreviewFetchPayloadSchema
@@ -197,6 +205,7 @@ export const appMessageSchema = z.discriminatedUnion("type", [
   contentQuestionExtractionFailedMessageSchema,
   answerPlanningRunMessageSchema,
   profileDraftSaveMessageSchema,
+  profilePresetAnalyzeMessageSchema,
   recommendationPreviewFetchMessageSchema,
   answerPlanReviewSaveMessageSchema,
   answerFillRunMessageSchema,

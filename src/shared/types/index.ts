@@ -23,6 +23,7 @@ export type {
   MessageType,
   PingMessage,
   ProfileDraftSaveMessage,
+  ProfilePresetAnalyzeMessage,
   RecommendationPreviewFetchMessage,
   ProfileFetchResult,
   RecommendationPreviewFetchResult,
@@ -48,6 +49,12 @@ export type {
   ContentCommandType
 } from "./messages";
 export type { Profile, ProfileDraft, RawProfileInput, StructuredTraits } from "./profile";
+export type {
+  ProfilePresetAnalysisInput,
+  ProfilePresetAnswer,
+  ProfilePresetQuestion,
+  ProfilePresetQuestionOption
+} from "./profile-preset";
 export type { Question, QuestionOption } from "./question";
 export type { Session, SessionExecutionLogEntry, SessionHistoryEntry } from "./session";
 export type { FeatureFlags, Settings } from "./settings";

@@ -11,6 +11,7 @@ import type {
   PingMessage,
   ProfileDraftSaveMessage,
   ProfileFetchMessage,
+  ProfilePresetAnalyzeMessage,
   RecommendationPreviewFetchMessage,
   SessionFetchMessage,
   SessionHistoryFetchMessage,
@@ -38,6 +39,7 @@ export type SupportedBackgroundMessage =
   | RecommendationPreviewFetchMessage
   | AnswerPlanReviewSaveMessage
   | ProfileDraftSaveMessage
+  | ProfilePresetAnalyzeMessage
   | ProfileFetchMessage
   | SettingsFetchMessage
   | SettingsUpdateMessage

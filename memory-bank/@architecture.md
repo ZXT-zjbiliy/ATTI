@@ -821,6 +821,48 @@ The following conditions are immediate disqualifiers for the current roadmap pha
 
 Passing this admission standard does not mean the site is automatically supported. It only means the site is eligible to be considered for a future dedicated adapter implementation under the existing multi-site trial gate.
 
+### 10.11 VNext Profile Questionnaire And Batch Assessment Framework
+
+Framework checkpoint date: `2026-05-13`
+
+The next major product direction is to move from manual profile drafting plus page-level trial filling toward:
+
+- software-owned preset profile questions,
+- provider-backed analysis of the user's preset selections into a stable local profile,
+- whole-assessment extraction and planning when an adapter can safely obtain the full question set,
+- faster fill execution by planning the full normalized question set before DOM fill.
+
+The preset profile questionnaire is a new profile-onboarding path, not a replacement for the existing `profiles` table:
+
+- user selections are captured as normalized preset-question answers,
+- the background layer builds a temporary profile input from those selections,
+- the configured provider summarizes the selections into `narrativeSummary`, `structuredTraits`, and `evidence`,
+- the final result is persisted as a normal `Profile`,
+- `settings.lastActiveProfileId` is updated to point to the generated profile.
+
+The preset questionnaire must keep these boundaries:
+
+- UI renders and collects selections only,
+- UI sends selections through a shared message contract,
+- background resolves provider settings and owns orchestration,
+- provider prompt construction and parsing stay inside `src/llm/*`,
+- profile persistence stays inside `profile-repo`,
+- no site adapter or DOM automation code may depend on preset-question UI state.
+
+The batch assessment direction is adapter-scoped rather than generic automation:
+
+- if a supported adapter can read the whole assessment from the current page, embedded bootstrap data, or stable public assessment state, it may expose a whole-assessment extraction capability,
+- if a supported adapter must navigate through steps to collect questions, that collector remains adapter-owned and must not submit answers or bypass login, CAPTCHA, paywall, or anti-bot checks,
+- provider planning continues to consume normalized `Question[]` and produce normalized `AnswerPlan[]`,
+- fill execution remains adapter-owned and may be full-page or step-by-step depending on the target site,
+- unsupported sites must continue to fail explicitly instead of claiming universal batch fill.
+
+The intended VNext sequence is:
+
+1. implement preset profile questionnaire generation into standard profiles,
+2. add batch question extraction capability to adapters that can safely support it,
+3. add batch fill orchestration over existing normalized sessions and answer plans.
+
 ## 11. Required Update Rule
 
 This file must be updated after every major feature or milestone when any of the following changes:

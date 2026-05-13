@@ -11,6 +11,8 @@ import {
   pingPayloadSchema,
   profileFetchMessageSchema,
   profileFetchPayloadSchema,
+  profilePresetAnalyzeMessageSchema,
+  profilePresetAnalyzePayloadSchema,
   recommendationPreviewFetchMessageSchema,
   recommendationPreviewFetchPayloadSchema,
   profileSchema,
@@ -201,6 +203,11 @@ describe("shared message payload schemas", () => {
     ).toBe(true);
     expect(sessionFetchPayloadSchema.safeParse({ sessionId: "session-1" }).success).toBe(true);
     expect(profileFetchPayloadSchema.safeParse({ profileId: "profile-1" }).success).toBe(true);
+    expect(
+      profilePresetAnalyzePayloadSchema.safeParse({
+        answers: [{ questionId: "energy-source", selectedOptionId: "quiet-reflection" }]
+      }).success
+    ).toBe(true);
   });
 
   it("rejects invalid foundational payloads", () => {
@@ -218,6 +225,7 @@ describe("shared message payload schemas", () => {
     expect(recommendationPreviewFetchPayloadSchema.safeParse({ sessionId: "" }).success).toBe(false);
     expect(answerFillRunPayloadSchema.safeParse({ sessionId: "" }).success).toBe(false);
     expect(profileFetchPayloadSchema.safeParse({ profileId: "" }).success).toBe(false);
+    expect(profilePresetAnalyzePayloadSchema.safeParse({ answers: [] }).success).toBe(false);
   });
 });
 
@@ -268,6 +276,15 @@ describe("shared message contract schemas", () => {
         type: MESSAGE_TYPES.profileFetch,
         payload: {
           profileId: "profile-1"
+        }
+      }).success
+    ).toBe(true);
+
+    expect(
+      profilePresetAnalyzeMessageSchema.safeParse({
+        type: MESSAGE_TYPES.profilePresetAnalyze,
+        payload: {
+          answers: [{ questionId: "energy-source", selectedOptionId: "quiet-reflection" }]
         }
       }).success
     ).toBe(true);

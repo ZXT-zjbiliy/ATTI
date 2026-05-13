@@ -26,6 +26,10 @@ export function SidePanelView({ model }: SidePanelViewProps) {
             <ProfileStatusCard
               onEvidenceTextChange={model.setProfileDraftEvidenceText}
               onNarrativeSummaryChange={model.setProfileDraftNarrativeSummary}
+              onPresetAnswerChange={model.setProfilePresetAnswer}
+              onPresetSubmit={() => {
+                void model.analyzeProfilePreset();
+              }}
               onSubmit={() => {
                 void model.saveProfileDraft();
               }}

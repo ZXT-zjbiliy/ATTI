@@ -1,10 +1,12 @@
-import { profileDraftSchema } from "../../../shared/schemas";
+import { profileDraftSchema, profilePresetAnalysisInputSchema } from "../../../shared/schemas";
 import type {
   AppResult,
   Profile,
   ProfileDraft,
   ProfileDraftSaveMessage,
   ProfileFetchMessage,
+  ProfilePresetAnalysisInput,
+  ProfilePresetAnalyzeMessage,
   Settings,
   SettingsFetchMessage
 } from "../../../shared/types";
@@ -12,6 +14,7 @@ import { MESSAGE_TYPES } from "../../../shared/types";
 
 type SidePanelProfileMessage =
   | ProfileDraftSaveMessage
+  | ProfilePresetAnalyzeMessage
   | ProfileFetchMessage
   | SettingsFetchMessage;
 
@@ -22,6 +25,7 @@ export type SidePanelMessageSender = (
 export interface ProfileDraftClient {
   fetchActiveProfile: () => Promise<Profile | null>;
   fetchSettings: () => Promise<Settings>;
+  analyzeProfilePreset: (input: ProfilePresetAnalysisInput) => Promise<Profile>;
   saveProfileDraft: (draft: ProfileDraft) => Promise<Profile>;
 }
 
@@ -88,6 +92,15 @@ export function createProfileDraftClient(
         payload: {
           draft: validatedDraft
         }
+      });
+
+      return unwrapResult<Profile>(result);
+    },
+    async analyzeProfilePreset(input) {
+      const validatedInput = profilePresetAnalysisInputSchema.parse(input);
+      const result = await sendMessage({
+        type: MESSAGE_TYPES.profilePresetAnalyze,
+        payload: validatedInput
       });
 
       return unwrapResult<Profile>(result);

@@ -209,6 +209,7 @@ describe("side panel component boundaries", () => {
       "src/app/sidepanel/components/status-card.tsx",
       "src/app/sidepanel/components/section-state-view.tsx",
       "src/app/sidepanel/components/profile-status-card.tsx",
+      "src/app/sidepanel/components/profile-preset-questionnaire-form.tsx",
       "src/app/sidepanel/components/profile-draft-form.tsx",
       "src/app/sidepanel/components/saved-profile-summary.tsx",
       "src/app/sidepanel/components/page-detection-status-card.tsx",

@@ -6,8 +6,10 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
     message: "请先创建一份最小可用的本地画像草稿。",
     isLoading: false,
     isSaving: false,
+    isAnalyzingPreset: false,
     draftNarrativeSummary: "",
     draftEvidenceText: "",
+    presetAnswers: {},
     savedProfile: null
   },
   pageDetectionStatus: {
@@ -27,6 +29,7 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
   isRunAnswerPlanningDisabled: true,
   isReapplyAnswerFillDisabled: true,
   isReextractDisabled: true,
+  setProfilePresetAnswer: () => undefined,
   setProfileDraftNarrativeSummary: () => undefined,
   setProfileDraftEvidenceText: () => undefined,
   runAnswerPlanning: async () => undefined,
@@ -34,5 +37,6 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
   rerunQuestionExtraction: async () => undefined,
   refreshPageDetection: async () => undefined,
   refreshRecommendationPreview: async () => undefined,
+  analyzeProfilePreset: async () => undefined,
   saveProfileDraft: async () => undefined
 };
