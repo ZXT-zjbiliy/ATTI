@@ -1,41 +1,7 @@
 import { profileDraftSchema, profileSchema } from "../../shared/schemas";
 import type { Profile, ProfileDraft } from "../../shared/types";
+import { cloneProfile, buildProfileFromDraft } from "../../domain/profile/profile-normalization";
 import { attiDb, type AttiDatabase } from "../db";
-
-function cloneProfile(profile: Profile): Profile {
-  return {
-    ...profile,
-    rawInput: { ...profile.rawInput },
-    structuredTraits: { ...profile.structuredTraits },
-    evidence: [...profile.evidence]
-  };
-}
-
-function createProfileId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-
-  return `profile-${Date.now()}`;
-}
-
-function buildProfileFromDraft(draft: ProfileDraft): Profile {
-  const now = new Date().toISOString();
-
-  return {
-    id: createProfileId(),
-    version: 1,
-    rawInput: {
-      narrativeSummary: draft.narrativeSummary,
-      evidence: [...draft.evidence]
-    },
-    structuredTraits: {},
-    narrativeSummary: draft.narrativeSummary,
-    evidence: [...draft.evidence],
-    createdAt: now,
-    updatedAt: now
-  };
-}
 
 export class ProfileRepository {
   constructor(private readonly database: Pick<AttiDatabase, "profiles"> = attiDb) {}

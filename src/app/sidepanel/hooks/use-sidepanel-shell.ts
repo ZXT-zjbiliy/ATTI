@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 
 import type {
   Profile,
-  ProfileDraft,
   ProfilePresetAnalysisInput,
   RecommendationPreviewItem,
   Settings,
   Session
 } from "../../../shared/types";
 import { profilePresetQuestions } from "../../../domain/profile/profile-preset-questionnaire";
+import {
+  mapProfileToDraft,
+  createDraftInput,
+  parseEvidence
+} from "../../../domain/profile/profile-validation";
 import { getProviderConfigurationState } from "../../../shared/utils/provider-configuration";
 import { defaultSidePanelShellModel } from "../data/default-sidepanel-shell-model";
 import {
@@ -28,27 +32,6 @@ import type { SidePanelShellModel } from "../types/sidepanel-shell";
 type PlanningRequestState = "idle" | "sending" | "sent";
 type PageDetectionAction = "refresh-detection" | "reextract-questions";
 type PageDetectionRequestState = "idle" | "sending" | "sent";
-
-function mapProfileToDraft(profile: Profile): ProfileDraft {
-  return {
-    narrativeSummary: profile.narrativeSummary,
-    evidence: [...profile.evidence]
-  };
-}
-
-function createDraftInput(draft: ProfileDraft) {
-  return {
-    narrativeSummary: draft.narrativeSummary,
-    evidenceText: draft.evidence.join("\n")
-  };
-}
-
-function parseEvidence(evidenceText: string): string[] {
-  return evidenceText
-    .split("\n")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-}
 
 function createPreviewEntry(item: RecommendationPreviewItem) {
   const optionLabelById = new Map(item.options.map((option) => [option.id, option.text]));
