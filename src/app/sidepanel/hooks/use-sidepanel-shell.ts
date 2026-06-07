@@ -85,14 +85,16 @@ function mapSessionStatusState(
     };
   }
 
-  const detail = `已提取 ${session.questionIds.length} 道题，当前有 ${recommendedItemCount} 条推荐。`;
+  const questionCount = session.questionIds.length;
+  const planCount = session.answerPlanIds.length;
+  const detail = `站点：${session.siteId} | 已提取 ${questionCount} 题 | ${recommendedItemCount}/${planCount} 条已有推荐`;
 
   return {
     kind: "placeholder",
     summary: `会话状态：${session.status}`,
     detail:
       providerConfiguration?.isReady === false && providerConfiguration.actionMessage
-        ? `${detail} ${providerConfiguration.actionMessage}`
+        ? `${detail}。${providerConfiguration.actionMessage}`
         : detail
   };
 }
