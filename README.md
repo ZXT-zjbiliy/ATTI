@@ -2,7 +2,7 @@
 
 ATTI is an Edge extension for supported personality-assessment websites. It keeps profile and session data local by default, uses a provider only when the user explicitly starts planning, and can preview plus fill supported questionnaire pages without auto-submitting them.
 
-Current repository version: `0.4.6`
+Current repository version: `0.5.0`
 
 Chinese README: [README.zh-CN.md](./README.zh-CN.md)
 
@@ -58,6 +58,29 @@ Chinese quick-copy version:
 - `Apply recommended fill` applies the currently previewed recommendations to the active supported page without generating a new answer plan.
 - `SBTI / test` now advances through its one-question-at-a-time flow during the explicit fill step until the page reaches a ready-to-submit state.
 - ATTI still does not auto-submit the final questionnaire.
+
+## Error Recovery
+
+The side panel classifies errors as retryable or permanent:
+
+- **Retryable** errors (network timeout, provider transient failure) show a retry button so the user can re-attempt the failed action without starting over.
+- **Permanent** errors (missing API key, extension disabled, domain not approved) display the error message without a retry button, since the user needs to fix configuration first.
+
+## Data Management
+
+The options page provides data export and cleanup:
+
+- **Export sessions**: downloads all session records as a timestamped JSON file.
+- **Export profiles**: downloads all profile records as a timestamped JSON file.
+- **Purge completed sessions**: removes all sessions with status `completed` after a confirmation dialog. This does not delete active sessions or profiles.
+
+## Session Status
+
+The session status card shows structured information about the active session:
+
+- `siteId`: the detected assessment site (e.g. `truity-enneagram`)
+- Question count: how many questions have been extracted
+- Recommendation stats: how many questions have AI recommendations vs total answer plans
 
 ## Quick Start
 
