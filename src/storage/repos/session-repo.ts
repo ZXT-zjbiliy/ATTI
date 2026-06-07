@@ -137,7 +137,11 @@ export class SessionRepository {
 
   async listRecentSessions(limit = 5): Promise<SessionHistoryEntry[]> {
     const validatedLimit = z.number().int().positive().max(20).parse(limit);
-    const sessions = await this.database.sessions.orderBy("startedAt").reverse().limit(validatedLimit).toArray();
+    const sessions = await this.database.sessions
+      .orderBy("startedAt")
+      .reverse()
+      .limit(validatedLimit)
+      .toArray();
 
     return sessions.map((session) => toSessionHistoryEntry(sessionSchema.parse(session)));
   }

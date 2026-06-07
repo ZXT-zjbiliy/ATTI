@@ -4,7 +4,7 @@ import type { ContentPageMetadata } from "../shared/types";
 
 function sanitizeExtractionErrorPayload(
   error: unknown,
-  context: AdapterPageContext,
+  context: AdapterPageContext
 ): {
   phase: string;
   message: string;
@@ -30,7 +30,7 @@ export function extractQuestionsFromSupportedPage(args: {
   const adapter = adapterRegistry.findMatchingAdapter({
     url: args.page.url,
     title: args.page.title,
-    html: args.html,
+    html: args.html
   });
 
   if (!adapter?.isSupportedAssessmentPage || !adapter.extractQuestions) {

@@ -8,7 +8,7 @@ export type BackgroundOrchestrator = {
 };
 
 export type BackgroundOrchestratorDependencies = {
-  router: BackgroundMessageRouter;
+  router: Pick<BackgroundMessageRouter, "routeMessage">;
   permissionGuard: PermissionGuard;
   sessionManager: SessionManager;
 };
@@ -18,12 +18,15 @@ export function createBackgroundOrchestrator(
 ): BackgroundOrchestrator {
   return {
     async handleIncomingMessage(message) {
-      if (!dependencies.permissionGuard.canProcessBackgroundMessages()) {
+      const permissionDecision =
+        await dependencies.permissionGuard.canProcessBackgroundMessage(message);
+
+      if (!permissionDecision.allowed) {
         return {
           ok: false,
           error: {
-            code: "PERMISSION_DENIED",
-            message: "Background message processing is currently unavailable"
+            code: permissionDecision.code,
+            message: permissionDecision.message
           }
         };
       }

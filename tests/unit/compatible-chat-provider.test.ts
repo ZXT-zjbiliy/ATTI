@@ -42,34 +42,36 @@ function createSampleQuestion(index: number): Question {
 
 describe("compatible chat assessment provider", () => {
   it("plans answers through an OpenAI-compatible chat completions response", async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  answerPlans: [
-                    {
-                      questionId: "question-1",
-                      recommendedOptionIds: ["2"],
-                      confidence: 0.82,
-                      rationale: "Profile evidence suggests cooperative but moderate social behavior.",
-                      requiresConfirmation: false
-                    }
-                  ]
-                })
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    answerPlans: [
+                      {
+                        questionId: "question-1",
+                        recommendedOptionIds: ["2"],
+                        confidence: 0.82,
+                        rationale:
+                          "Profile evidence suggests cooperative but moderate social behavior.",
+                        requiresConfirmation: false
+                      }
+                    ]
+                  })
+                }
               }
+            ]
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json"
             }
-          ]
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json"
           }
-        }
-      )
+        )
     );
     const provider = createCompatibleChatAssessmentProvider({
       providerId: "deepseek-assessment-provider",
@@ -132,34 +134,35 @@ describe("compatible chat assessment provider", () => {
 
   it("binds the global fetch implementation before invoking it", async () => {
     const originalFetch = globalThis.fetch;
-    const boundFetchSpy = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  answerPlans: [
-                    {
-                      questionId: "question-1",
-                      recommendedOptionIds: ["2"],
-                      confidence: 0.82,
-                      rationale: "Bound fetch works.",
-                      requiresConfirmation: false
-                    }
-                  ]
-                })
+    const boundFetchSpy = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    answerPlans: [
+                      {
+                        questionId: "question-1",
+                        recommendedOptionIds: ["2"],
+                        confidence: 0.82,
+                        rationale: "Bound fetch works.",
+                        requiresConfirmation: false
+                      }
+                    ]
+                  })
+                }
               }
+            ]
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json"
             }
-          ]
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json"
           }
-        }
-      )
+        )
     );
 
     globalThis.fetch = function fetchWithContext(
@@ -196,24 +199,25 @@ describe("compatible chat assessment provider", () => {
   });
 
   it("includes a raw response snippet when answer planning parsing fails", async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          choices: [
-            {
-              message: {
-                content: "Here is the result: {\"notAnswerPlans\":true}"
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: 'Here is the result: {"notAnswerPlans":true}'
+                }
               }
+            ]
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json"
             }
-          ]
-        }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json"
           }
-        }
-      )
+        )
     );
     const provider = createCompatibleChatAssessmentProvider({
       providerId: "compatible-assessment-provider",

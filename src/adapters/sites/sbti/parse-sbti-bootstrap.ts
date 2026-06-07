@@ -19,8 +19,64 @@ export interface SbtiBootstrapPayload {
   readonly data: SbtiBootstrapData;
 }
 
-const SBTI_BOOTSTRAP_PATTERN =
-  /window\.__SBTI_BOOTSTRAP__\s*=\s*(\{[\s\S]*?\})\s*;\s*<\/script>/i;
+const SBTI_BOOTSTRAP_MARKER = "window.__SBTI_BOOTSTRAP__";
+
+function extractBalancedObjectLiteral(text: string, startIndex: number): string | null {
+  let depth = 0;
+  let objectStartIndex = -1;
+  let quote: '"' | "'" | null = null;
+  let escaped = false;
+
+  for (let index = startIndex; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+
+      if (char === quote) {
+        quote = null;
+      }
+
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+
+    if (char === "{") {
+      if (depth === 0) {
+        objectStartIndex = index;
+      }
+
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+
+      if (depth === 0 && objectStartIndex !== -1) {
+        return text.slice(objectStartIndex, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function normalizeBootstrapObjectLiteral(objectLiteral: string): string {
+  return objectLiteral.replace(/([{,]\s*)([A-Za-z_$][\w$]*)\s*:/g, '$1"$2":');
+}
 
 function normalizeText(text: string): string {
   return text.replace(/\s+/g, " ").trim();
@@ -38,14 +94,23 @@ export function createSbtiLocatorHint(promptText: string): string {
 }
 
 export function parseSbtiBootstrap(html: string): SbtiBootstrapPayload | null {
-  const bootstrapMatch = html.match(SBTI_BOOTSTRAP_PATTERN);
+  const markerIndex = html.indexOf(SBTI_BOOTSTRAP_MARKER);
 
-  if (!bootstrapMatch?.[1]) {
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  const objectLiteral = extractBalancedObjectLiteral(
+    html,
+    markerIndex + SBTI_BOOTSTRAP_MARKER.length
+  );
+
+  if (!objectLiteral) {
     return null;
   }
 
   try {
-    return JSON.parse(bootstrapMatch[1]) as SbtiBootstrapPayload;
+    return JSON.parse(normalizeBootstrapObjectLiteral(objectLiteral)) as SbtiBootstrapPayload;
   } catch {
     return null;
   }
@@ -70,9 +135,9 @@ export function toSbtiExtractedQuestions(
     options: question.options.map((option) => ({
       id: String(option.value),
       text: normalizeText(option.label),
-      value: String(option.value),
+      value: String(option.value)
     })),
-    order,
+    order
   }));
 }
 
@@ -82,6 +147,6 @@ export function toSbtiLocatedQuestionRegions(
   return questions.map((question, order) => ({
     order,
     promptText: normalizeText(question.text),
-    locatorHint: createSbtiLocatorHint(question.text),
+    locatorHint: createSbtiLocatorHint(question.text)
   }));
 }

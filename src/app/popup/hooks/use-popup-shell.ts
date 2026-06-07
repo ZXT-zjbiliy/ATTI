@@ -4,7 +4,10 @@ import {
   getProviderConfigurationState,
   type ProviderConfigurationState
 } from "../../../shared/utils/provider-configuration";
-import { createPopupSettingsClient, type PopupSettingsClient } from "../services/popup-settings-client";
+import {
+  createPopupSettingsClient,
+  type PopupSettingsClient
+} from "../services/popup-settings-client";
 import { openPopupSidePanel } from "../services/popup-sidepanel-opener";
 
 export interface PopupShellState {
@@ -22,16 +25,13 @@ export interface PopupShellActions {
 
 export interface PopupShellModel extends PopupShellState, PopupShellActions {}
 
-export function usePopupShell(
-  settingsClient?: PopupSettingsClient,
-): PopupShellModel {
+export function usePopupShell(settingsClient?: PopupSettingsClient): PopupShellModel {
   const [stableSettingsClient] = useState<PopupSettingsClient>(
     () => settingsClient ?? createPopupSettingsClient()
   );
   const [extensionEnabled, setExtensionEnabled] = useState(true);
-  const [providerConfiguration, setProviderConfiguration] = useState<ProviderConfigurationState | null>(
-    null
-  );
+  const [providerConfiguration, setProviderConfiguration] =
+    useState<ProviderConfigurationState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -100,6 +100,6 @@ export function usePopupShell(
         const message = error instanceof Error ? error.message : "无法打开侧边栏。";
         setStatusMessage(message);
       }
-    },
+    }
   };
 }

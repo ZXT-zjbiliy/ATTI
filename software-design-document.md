@@ -268,7 +268,7 @@ The MVP should include only:
 - one LLM provider,
 - one supported site adapter,
 - answer preview,
-- the locked single-site trial strategy where clicking `Run answer planning` also triggers fill after planning,
+- an explicit recommendation-preview fill action after planning,
 - local session history.
 
 The current transition phase may additionally include:

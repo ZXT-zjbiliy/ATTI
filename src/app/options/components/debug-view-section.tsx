@@ -16,10 +16,7 @@ interface DebugViewSectionProps {
   readonly isLoading: boolean;
 }
 
-export function DebugViewSection({
-  snapshot,
-  isLoading
-}: DebugViewSectionProps) {
+export function DebugViewSection({ snapshot, isLoading }: DebugViewSectionProps) {
   return (
     <OptionsSection title="调试视图">
       {isLoading ? <p className="atti-status-text">正在加载调试快照...</p> : null}
@@ -27,9 +24,13 @@ export function DebugViewSection({
         <div className="atti-stack atti-stack--tight">
           <p className="atti-status-text">运行时：{snapshot.runtimeName}</p>
           <p className="atti-status-text">运行状态：{snapshot.runtimeStatus}</p>
-          <p className="atti-status-text">当前 provider：{snapshot.activeSettings.activeProvider}</p>
+          <p className="atti-status-text">
+            当前 provider：{snapshot.activeSettings.activeProvider}
+          </p>
           <p className="atti-status-text">调试模式：{String(snapshot.activeSettings.debugMode)}</p>
-          <p className="atti-status-text">是否存在画像草稿：{String(snapshot.hasActiveProfileDraft)}</p>
+          <p className="atti-status-text">
+            是否存在画像草稿：{String(snapshot.hasActiveProfileDraft)}
+          </p>
           <p className="atti-status-text">当前画像 ID：{snapshot.activeProfileId ?? "无"}</p>
           <p className="atti-status-text">最近一次会话摘要：{snapshot.lastSessionSummary}</p>
           <p className="atti-status-text">最近会话历史：</p>

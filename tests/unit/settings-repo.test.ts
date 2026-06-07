@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { SettingsRepository, type SettingsStorageArea, defaultSettings } from "../../src/storage/repos/settings-repo";
+import {
+  SettingsRepository,
+  type SettingsStorageArea,
+  defaultSettings
+} from "../../src/storage/repos/settings-repo";
 
 class InMemorySettingsStorageArea implements SettingsStorageArea {
   private readonly records = new Map<string, unknown>();

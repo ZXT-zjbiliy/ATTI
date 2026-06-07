@@ -11,25 +11,19 @@ import { sixteenPersonalitiesSiteAdapter } from "../../src/adapters/sites/sixtee
 import { sbtiSiteAdapter } from "../../src/adapters/sites/sbti";
 import { truityDiscSiteAdapter } from "../../src/adapters/sites/truity-disc-site-adapter";
 import {
-    extractTruityEnneagramQuestions,
-    locateTruityEnneagramQuestionRegions,
-    truityEnneagramSiteAdapter,
+  extractTruityEnneagramQuestions,
+  locateTruityEnneagramQuestionRegions,
+  truityEnneagramSiteAdapter
 } from "../../src/adapters/sites/truity-enneagram";
 import { truityTypeFinderSiteAdapter } from "../../src/adapters/sites/truity-typefinder-site-adapter";
 
 const truityEnneagramFixture = readFileSync(
-  resolve(
-    process.cwd(),
-    "tests/fixtures/adapters/truity-enneagram-assessment.html",
-  ),
-  "utf8",
+  resolve(process.cwd(), "tests/fixtures/adapters/truity-enneagram-assessment.html"),
+  "utf8"
 );
 const truityEnneagramLivePageFixture = readFileSync(
-  resolve(
-    process.cwd(),
-    "tests/fixtures/adapters/truity-enneagram-live-page.html",
-  ),
-  "utf8",
+  resolve(process.cwd(), "tests/fixtures/adapters/truity-enneagram-live-page.html"),
+  "utf8"
 );
 
 describe("adapter registry", () => {
@@ -41,7 +35,7 @@ describe("adapter registry", () => {
       sixteenPersonalitiesSiteAdapter,
       sbtiSiteAdapter,
       genericFallbackSiteAdapter,
-      placeholderSiteAdapter,
+      placeholderSiteAdapter
     ]);
   });
 
@@ -50,10 +44,15 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://www.surveysample.com/quiz/personality",
-      title: "Personality Quiz",
+      title: "Personality Quiz"
     });
 
     expect(adapter).toBe(genericFallbackSiteAdapter);
+    expect(adapter?.descriptor.capabilities).toEqual({
+      supportsQuestionExtraction: true,
+      supportsPreview: true,
+      supportsFill: false
+    });
   });
 
   it("resolves the placeholder adapter when the match rule fits", () => {
@@ -61,7 +60,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://www.truity.com/test/enneagram-personality-test",
-      title: "Enneagram Personality Test | Truity",
+      title: "Enneagram Personality Test | Truity"
     });
 
     expect(adapter).toBe(truityEnneagramSiteAdapter);
@@ -73,7 +72,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://placeholder.assessment.local/assessment-shell/demo",
-      title: "Placeholder Assessment",
+      title: "Placeholder Assessment"
     });
 
     expect(adapter).toBe(placeholderSiteAdapter);
@@ -85,7 +84,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://www.16personalities.com/free-personality-test",
-      title: "Free Personality Test | 16Personalities",
+      title: "Free Personality Test | 16Personalities"
     });
 
     expect(adapter).toBe(sixteenPersonalitiesSiteAdapter);
@@ -97,7 +96,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://sbti.cc/test",
-      title: "开始测试 | SBTI",
+      title: "开始测试 | SBTI"
     });
 
     expect(adapter).toBe(sbtiSiteAdapter);
@@ -109,7 +108,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://www.truity.com/test/disc-personality-test",
-      title: "DISC Personality Assessment",
+      title: "DISC Personality Assessment"
     });
 
     expect(adapter).toBe(truityDiscSiteAdapter);
@@ -121,7 +120,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://www.truity.com/test/type-finder-personality-test-new",
-      title: "Personality Test of Myers & Briggs' 16 Types | TypeFinder®",
+      title: "Personality Test of Myers & Briggs' 16 Types | TypeFinder®"
     });
 
     expect(adapter).toBe(truityTypeFinderSiteAdapter);
@@ -133,7 +132,7 @@ describe("adapter registry", () => {
 
     const adapter = registry.findMatchingAdapter({
       url: "https://example.com/unrelated",
-      title: "Unrelated Page",
+      title: "Unrelated Page"
     });
 
     expect(adapter).toBeNull();
@@ -146,7 +145,7 @@ describe("adapter registry", () => {
     expect(registry.getAdapterBySiteId("truity-disc")).toBe(truityDiscSiteAdapter);
     expect(registry.getAdapterBySiteId("truity-typefinder")).toBe(truityTypeFinderSiteAdapter);
     expect(registry.getAdapterBySiteId("sixteen-personalities")).toBe(
-      sixteenPersonalitiesSiteAdapter,
+      sixteenPersonalitiesSiteAdapter
     );
     expect(registry.getAdapterBySiteId("sbti-test")).toBe(sbtiSiteAdapter);
     expect(registry.getAdapterBySiteId("placeholder-assessment")).toBe(placeholderSiteAdapter);
@@ -163,7 +162,7 @@ describe("adapter registry", () => {
       sixteenPersonalitiesSiteAdapter.descriptor,
       sbtiSiteAdapter.descriptor,
       genericFallbackSiteAdapter.descriptor,
-      placeholderSiteAdapter.descriptor,
+      placeholderSiteAdapter.descriptor
     ]);
   });
 
@@ -174,10 +173,10 @@ describe("adapter registry", () => {
         {
           ...truityEnneagramSiteAdapter,
           descriptor: {
-            ...truityEnneagramSiteAdapter.descriptor,
-          },
-        },
-      ]),
+            ...truityEnneagramSiteAdapter.descriptor
+          }
+        }
+      ])
     ).toThrowError("Duplicate adapter siteId registration: truity-enneagram");
   });
 });
@@ -188,8 +187,8 @@ describe("adapter boundaries", () => {
       truityEnneagramSiteAdapter.isSupportedAssessmentPage?.({
         url: "https://www.truity.com/test/enneagram-personality-test",
         title: "Enneagram Personality Test | Truity",
-        html: truityEnneagramFixture,
-      }),
+        html: truityEnneagramFixture
+      })
     ).toBe(true);
   });
 
@@ -197,7 +196,7 @@ describe("adapter boundaries", () => {
     const result = locateTruityEnneagramQuestionRegions({
       url: "https://www.truity.com/test/enneagram-personality-test",
       title: "Enneagram Personality Test | Truity",
-      html: truityEnneagramFixture,
+      html: truityEnneagramFixture
     });
 
     expect(result.isSupportedAssessmentPage).toBe(true);
@@ -205,13 +204,13 @@ describe("adapter boundaries", () => {
       {
         order: 0,
         promptText: "I strive for perfection",
-        locatorHint: "prompt-key:i-strive-for-perfection",
+        locatorHint: "prompt-key:i-strive-for-perfection"
       },
       {
         order: 1,
         promptText: "I work hard to be helpful to others",
-        locatorHint: "prompt-key:i-work-hard-to-be-helpful-to-others",
-      },
+        locatorHint: "prompt-key:i-work-hard-to-be-helpful-to-others"
+      }
     ]);
   });
 
@@ -219,7 +218,7 @@ describe("adapter boundaries", () => {
     const result = extractTruityEnneagramQuestions({
       url: "https://www.truity.com/test/enneagram-personality-test",
       title: "Enneagram Personality Test | Truity",
-      html: truityEnneagramFixture,
+      html: truityEnneagramFixture
     });
 
     expect(result.questionCount).toBe(2);
@@ -232,9 +231,9 @@ describe("adapter boundaries", () => {
           { id: "2", text: "Somewhat Inaccurate", value: "2" },
           { id: "3", text: "Neutral", value: "3" },
           { id: "4", text: "Somewhat Accurate", value: "4" },
-          { id: "5", text: "Accurate", value: "5" },
+          { id: "5", text: "Accurate", value: "5" }
         ],
-        order: 0,
+        order: 0
       },
       {
         text: "I work hard to be helpful to others",
@@ -244,10 +243,10 @@ describe("adapter boundaries", () => {
           { id: "2", text: "Somewhat Inaccurate", value: "2" },
           { id: "3", text: "Neutral", value: "3" },
           { id: "4", text: "Somewhat Accurate", value: "4" },
-          { id: "5", text: "Accurate", value: "5" },
+          { id: "5", text: "Accurate", value: "5" }
         ],
-        order: 1,
-      },
+        order: 1
+      }
     ]);
   });
 
@@ -257,13 +256,13 @@ describe("adapter boundaries", () => {
     const result = extractTruityEnneagramQuestions({
       url: "https://www.truity.com/test/enneagram-personality-test",
       title: "Enneagram Personality Test | Truity",
-      html: laterStepHtml,
+      html: laterStepHtml
     });
 
     expect(result.questionCount).toBe(2);
     expect(result.questions.map((question) => question.text)).toEqual([
       "I strive for perfection",
-      "I work hard to be helpful to others",
+      "I work hard to be helpful to others"
     ]);
   });
 
@@ -271,7 +270,7 @@ describe("adapter boundaries", () => {
     const result = locateTruityEnneagramQuestionRegions({
       url: "https://www.truity.com/test/enneagram-personality-test",
       title: "Enneagram Personality Test | Truity",
-      html: truityEnneagramLivePageFixture,
+      html: truityEnneagramLivePageFixture
     });
 
     expect(result.isSupportedAssessmentPage).toBe(true);
@@ -279,18 +278,18 @@ describe("adapter boundaries", () => {
       {
         order: 0,
         promptText: "I strive for perfection",
-        locatorHint: "prompt-key:i-strive-for-perfection",
+        locatorHint: "prompt-key:i-strive-for-perfection"
       },
       {
         order: 1,
         promptText: "I work hard to be helpful to others",
-        locatorHint: "prompt-key:i-work-hard-to-be-helpful-to-others",
+        locatorHint: "prompt-key:i-work-hard-to-be-helpful-to-others"
       },
       {
         order: 2,
         promptText: "It is important to me that other people like me",
-        locatorHint: "prompt-key:it-is-important-to-me-that-other-people-like-me",
-      },
+        locatorHint: "prompt-key:it-is-important-to-me-that-other-people-like-me"
+      }
     ]);
   });
 
@@ -298,7 +297,7 @@ describe("adapter boundaries", () => {
     const result = extractTruityEnneagramQuestions({
       url: "https://www.truity.com/test/enneagram-personality-test",
       title: "Enneagram Personality Test | Truity",
-      html: truityEnneagramLivePageFixture,
+      html: truityEnneagramLivePageFixture
     });
 
     expect(result.questionCount).toBe(3);
@@ -311,9 +310,9 @@ describe("adapter boundaries", () => {
           { id: "2", text: "Somewhat Inaccurate", value: "2" },
           { id: "3", text: "Neutral", value: "3" },
           { id: "4", text: "Somewhat Accurate", value: "4" },
-          { id: "5", text: "Accurate", value: "5" },
+          { id: "5", text: "Accurate", value: "5" }
         ],
-        order: 0,
+        order: 0
       },
       {
         text: "I work hard to be helpful to others",
@@ -323,9 +322,9 @@ describe("adapter boundaries", () => {
           { id: "2", text: "Somewhat Inaccurate", value: "2" },
           { id: "3", text: "Neutral", value: "3" },
           { id: "4", text: "Somewhat Accurate", value: "4" },
-          { id: "5", text: "Accurate", value: "5" },
+          { id: "5", text: "Accurate", value: "5" }
         ],
-        order: 1,
+        order: 1
       },
       {
         text: "It is important to me that other people like me",
@@ -335,20 +334,17 @@ describe("adapter boundaries", () => {
           { id: "2", text: "Somewhat Inaccurate", value: "2" },
           { id: "3", text: "Neutral", value: "3" },
           { id: "4", text: "Somewhat Accurate", value: "4" },
-          { id: "5", text: "Accurate", value: "5" },
+          { id: "5", text: "Accurate", value: "5" }
         ],
-        order: 2,
-      },
+        order: 2
+      }
     ]);
   });
 
   it("keeps the placeholder adapter free of orchestration concerns", () => {
     const content = readFileSync(
-      resolve(
-        process.cwd(),
-        "src/adapters/sites/placeholder-site-adapter.ts",
-      ),
-      "utf8",
+      resolve(process.cwd(), "src/adapters/sites/placeholder-site-adapter.ts"),
+      "utf8"
     );
 
     expect(content).not.toContain("/background/");
@@ -362,9 +358,9 @@ describe("adapter boundaries", () => {
     const content = readFileSync(
       resolve(
         process.cwd(),
-        "src/adapters/sites/truity-enneagram/truity-enneagram-site-adapter.ts",
+        "src/adapters/sites/truity-enneagram/truity-enneagram-site-adapter.ts"
       ),
-      "utf8",
+      "utf8"
     );
 
     expect(content).not.toContain("/background/");
@@ -377,16 +373,13 @@ describe("adapter boundaries", () => {
   it("keeps the registry decoupled from content runtime logic", () => {
     const registryContent = readFileSync(
       resolve(process.cwd(), "src/adapters/registry/adapter-registry.ts"),
-      "utf8",
+      "utf8"
     );
     const catalogContent = readFileSync(
       resolve(process.cwd(), "src/adapters/registry/adapter-catalog.ts"),
-      "utf8",
+      "utf8"
     );
-    const contentRuntime = readFileSync(
-      resolve(process.cwd(), "src/content/runtime.ts"),
-      "utf8",
-    );
+    const contentRuntime = readFileSync(resolve(process.cwd(), "src/content/runtime.ts"), "utf8");
 
     expect(registryContent).not.toContain("/content/");
     expect(catalogContent).not.toContain("/content/");
@@ -402,7 +395,7 @@ describe("adapter boundaries", () => {
       "src/content/runtime.ts",
       "src/storage/repos/question-repo.ts",
       "src/storage/repos/answer-plan-repo.ts",
-      "src/app/sidepanel/App.tsx",
+      "src/app/sidepanel/App.tsx"
     ];
 
     for (const filePath of nonAdapterSourceFiles) {

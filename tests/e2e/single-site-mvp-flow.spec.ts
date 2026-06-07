@@ -47,21 +47,19 @@ async function configureOpenAiProvider(
 }
 
 test.describe("e2e: single-site MVP flow", () => {
-  test("covers real-provider preview -> rationale -> auto-fill on the locked Truity MVP path", async () => {
+  test("covers real-provider preview -> rationale -> explicit fill on the locked Truity MVP path", async () => {
     const extensionHandle = await launchEdgeExtensionContext();
     const openAiRoute = await installMockOpenAiSuccessRoute(extensionHandle.context, {
       answerPlans: [
         {
           recommendedOptionIds: ["2"],
           confidence: 0.73,
-          rationale:
-            "Profile evidence suggests a measured preference for structure over rigidity."
+          rationale: "Profile evidence suggests a measured preference for structure over rigidity."
         },
         {
           recommendedOptionIds: ["5"],
           confidence: 0.84,
-          rationale:
-            "Profile evidence suggests a strong tendency to help others consistently."
+          rationale: "Profile evidence suggests a strong tendency to help others consistently."
         }
       ]
     });
@@ -97,21 +95,17 @@ test.describe("e2e: single-site MVP flow", () => {
       await waitForSessionDetection(sidepanelPage);
       console.log("e2e-step: session-detected");
 
-      await sidepanelPage.getByLabel("画像摘要").fill(
-        "I prefer reflective but helpful choices."
-      );
-      await sidepanelPage.getByLabel("证据备注").fill(
-        "Prefer clear structure\nHelp others consistently"
-      );
+      await sidepanelPage.getByLabel("画像摘要").fill("I prefer reflective but helpful choices.");
+      await sidepanelPage
+        .getByLabel("证据备注")
+        .fill("Prefer clear structure\nHelp others consistently");
       await sidepanelPage.getByRole("button", { name: "保存本地画像草稿" }).click();
       await expect(sidepanelPage.getByText("本地画像草稿已保存。")).toBeVisible();
       console.log("e2e-step: profile-saved");
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
-      await expect(sidepanelPage.getByText("会话状态：answer-fill-complete")).toBeVisible();
-      await expect(
-        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
-      ).toBeVisible();
+      await expect(sidepanelPage.getByText("会话状态：answer-planning-complete")).toBeVisible();
+      await expect(sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")).toBeVisible();
       await expect(sidepanelPage.getByText("Confirm recommendation")).toHaveCount(0);
       await expect(sidepanelPage.getByText("页面填写：Somewhat Inaccurate")).toBeVisible();
       await expect(sidepanelPage.getByText("页面填写：Accurate")).toBeVisible();
@@ -129,6 +123,16 @@ test.describe("e2e: single-site MVP flow", () => {
       expect(openAiCalls).toHaveLength(1);
       expect(openAiCalls[0]?.input).toContain("Questions: ");
       console.log("e2e-step: planning-complete");
+
+      await expect(
+        assessmentPage.locator('fieldset[data-atti-question-block="question-1"] input[value="2"]')
+      ).not.toBeChecked();
+      await expect(
+        assessmentPage.locator('fieldset[data-atti-question-block="question-2"] input[value="5"]')
+      ).not.toBeChecked();
+
+      await sidepanelPage.getByRole("button", { name: "应用推荐填写" }).click();
+      await expect(sidepanelPage.getByText("会话状态：answer-fill-complete")).toBeVisible();
       console.log("e2e-step: fill-complete");
 
       await expect(
@@ -180,24 +184,18 @@ test.describe("e2e: single-site MVP flow", () => {
 
       await waitForSessionDetection(sidepanelPage);
 
-      await sidepanelPage.getByLabel("画像摘要").fill(
-        "I prefer reflective but helpful choices."
-      );
-      await sidepanelPage.getByLabel("证据备注").fill(
-        "Prefer clear structure\nHelp others consistently"
-      );
+      await sidepanelPage.getByLabel("画像摘要").fill("I prefer reflective but helpful choices.");
+      await sidepanelPage
+        .getByLabel("证据备注")
+        .fill("Prefer clear structure\nHelp others consistently");
       await sidepanelPage.getByRole("button", { name: "保存本地画像草稿" }).click();
       await expect(sidepanelPage.getByText("本地画像草稿已保存。")).toBeVisible();
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
-      await expect(
-        sidepanelPage.getByText(
-          "OpenAI provider 返回了非成功状态码。"
-        )
-      ).toBeVisible();
-      await expect(
-        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
-      ).toHaveCount(0);
+      await expect(sidepanelPage.getByText("OpenAI provider 返回了非成功状态码。")).toBeVisible();
+      await expect(sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")).toHaveCount(
+        0
+      );
       const openAiCalls = await openAiRoute.getCalls();
       expect(openAiCalls).toHaveLength(1);
     } finally {
@@ -248,22 +246,16 @@ test.describe("e2e: single-site MVP flow", () => {
 
       await waitForSessionDetection(sidepanelPage);
 
-      await sidepanelPage.getByLabel("画像摘要").fill(
-        "I prefer reflective but helpful choices."
-      );
-      await sidepanelPage.getByLabel("证据备注").fill(
-        "Prefer clear structure\nHelp others consistently"
-      );
+      await sidepanelPage.getByLabel("画像摘要").fill("I prefer reflective but helpful choices.");
+      await sidepanelPage
+        .getByLabel("证据备注")
+        .fill("Prefer clear structure\nHelp others consistently");
       await sidepanelPage.getByRole("button", { name: "保存本地画像草稿" }).click();
       await expect(sidepanelPage.getByText("本地画像草稿已保存。")).toBeVisible();
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
-      await expect(
-        sidepanelPage.getByText(/当前会话没有可执行填写的推荐结果：/)
-      ).toBeVisible();
-      await expect(
-        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
-      ).toBeVisible();
+      await expect(sidepanelPage.getByText("会话状态：answer-planning-complete")).toBeVisible();
+      await expect(sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")).toBeVisible();
       await expect(
         sidepanelPage.getByText("质量状态：已降级（low-confidence, placeholder-rationale）")
       ).toHaveCount(2);
@@ -273,6 +265,9 @@ test.describe("e2e: single-site MVP flow", () => {
       await expect(
         assessmentPage.locator('fieldset[data-atti-question-block="question-2"] input[value="5"]')
       ).not.toBeChecked();
+
+      await sidepanelPage.getByRole("button", { name: "应用推荐填写" }).click();
+      await expect(sidepanelPage.getByText(/当前会话没有可执行填写的推荐结果：/)).toBeVisible();
     } finally {
       await openAiRoute.dispose();
       await extensionHandle.close();

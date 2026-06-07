@@ -46,7 +46,7 @@ Current checkpoint note:
 
 - The user must understand when the extension is analyzing.
 - The user must understand which answers are recommendations.
-- For the locked single-site trial flow, the user must understand that clicking `Run answer planning` is the explicit fill trigger; the product does not add a second confirmation step before fill.
+- `Run answer planning` must only generate recommendations and refresh the preview; page filling requires a separate explicit action from the recommendation preview area.
 - The product should preserve room for recommendation review controls, but those controls must not be claimed as current UX unless they are actually exposed.
 - The user must understand what data stays local and what may be sent to a provider.
 

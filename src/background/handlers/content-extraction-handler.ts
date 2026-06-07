@@ -1,10 +1,9 @@
 import type { AppResult, ContentExtractionRunMessage } from "../../shared/types";
-import type { BackgroundHandlerContext, BackgroundMessageHandler } from "./types";
+import type { BackgroundMessageHandler } from "./types";
 
-export const handleContentExtractionRunMessage: BackgroundMessageHandler<ContentExtractionRunMessage> = async (
-  message,
-  context
-): Promise<AppResult> => {
+export const handleContentExtractionRunMessage: BackgroundMessageHandler<
+  ContentExtractionRunMessage
+> = async (message, context): Promise<AppResult> => {
   const session = await context.sessionRepository.getSessionById(message.payload.sessionId);
 
   if (!session) {

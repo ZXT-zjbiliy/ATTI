@@ -113,8 +113,7 @@ export class AnswerPlanRepository {
       ...currentAnswerPlan,
       reviewStatus: validatedUpdate.reviewStatus,
       selectedOptionIds: [...validatedUpdate.selectedOptionIds],
-      reviewedAt:
-        validatedUpdate.reviewStatus === "pending" ? undefined : new Date().toISOString()
+      reviewedAt: validatedUpdate.reviewStatus === "pending" ? undefined : new Date().toISOString()
     });
 
     await this.database.answerPlans.put(nextAnswerPlan);

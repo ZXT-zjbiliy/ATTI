@@ -10,7 +10,7 @@ ATTI 是一个面向已接入性格测试网站的 `Edge` 扩展。它默认把�
 - 已接入的附加适配器路由：`Truity DISC`、`Truity TypeFinder`
 - 第二测试网站样本：`16Personalities`，已有 fixture 和浏览器级扩展覆盖，但当前环境下缺少稳定 live-site 验证，因为会受到 `Cloudflare` 限制
 - 已接入公开测试路由：`SBTI / https://sbti.cc/test`，已支持它当前的单题逐步前进填写流程，并可自动推进到整套题填写完成
-- 实验性兜底路径：generic fallback 提取逻辑仍然受限，不能当成通用网站支持
+- 实验性兜底路径：generic fallback 只默认允许提取和预览，不默认允许页面填写，不能当成通用网站支持
 
 ## 支持的网站
 
@@ -56,9 +56,9 @@ ATTI 是一个面向已接入性格测试网站的 `Edge` 扩展。它默认把�
 
 ## 填写动作
 
-- `开始 AI 规划` 会先生成推荐，再对当前受支持页面执行填写。
-- `再次填写` 会在不重新生成推荐的前提下，对当前活动会话重新执行一次 fill。
-- `SBTI / test` 现在会沿着它的一题一页流程持续推进，直到页面进入“可提交但未提交”的状态。
+- `开始 AI 规划` 会生成推荐并刷新 side panel 预览，不会直接填写页面。
+- `应用推荐填写` 会在不重新生成推荐的前提下，把当前预览中的推荐填写到受支持页面。
+- `SBTI / test` 会在显式填写步骤中沿着它的一题一页流程持续推进，直到页面进入“可提交但未提交”的状态。
 - ATTI 仍然不会自动提交问卷。
 
 ## 快速开始
@@ -86,6 +86,8 @@ ATTI 是一个面向已接入性格测试网站的 `Edge` 扩展。它默认把�
   [docs/documentation-rules.md](./docs/documentation-rules.md)
 - 版本规则：
   [docs/versioning.md](./docs/versioning.md)
+- 发布信心门：
+  [docs/release-confidence-gate.md](./docs/release-confidence-gate.md)
 - 中文工作流提示词：
   [docs/prompts/zh-CN/ai-task-prompts.zh-CN.md](./docs/prompts/zh-CN/ai-task-prompts.zh-CN.md)
 - 中文用户说明：

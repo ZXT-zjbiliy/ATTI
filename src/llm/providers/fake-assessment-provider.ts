@@ -3,7 +3,7 @@ import type {
   AnswerPlanningResult,
   AssessmentProvider,
   ProfileSummary,
-  QuestionInterpretation,
+  QuestionInterpretation
 } from "./assessment-provider";
 
 function buildProfileSummary(profile: Profile): ProfileSummary {
@@ -12,8 +12,8 @@ function buildProfileSummary(profile: Profile): ProfileSummary {
     evidence: profile.evidence,
     structuredTraits: {
       profileVersion: profile.version,
-      summarySource: "fake-provider",
-    },
+      summarySource: "fake-provider"
+    }
   };
 }
 
@@ -21,7 +21,7 @@ function buildQuestionInterpretation(question: Question): QuestionInterpretation
   return {
     questionId: question.id,
     interpretation: `Fake interpretation for question ${question.id}`,
-    inferredIntent: "placeholder-intent",
+    inferredIntent: "placeholder-intent"
   };
 }
 
@@ -42,7 +42,7 @@ function buildAnswerPlan(sessionId: string, question: Question): AnswerPlan {
     promptVersion: "fake-v1",
     qualityStatus: "normal",
     qualityIssues: [],
-    createdAt: new Date(0).toISOString(),
+    createdAt: new Date(0).toISOString()
   };
 }
 
@@ -56,7 +56,7 @@ export const fakeAssessmentProvider: AssessmentProvider = {
   },
   async planAnswers({ sessionId, questions }) {
     return {
-      answerPlans: questions.map((question) => buildAnswerPlan(sessionId, question)),
+      answerPlans: questions.map((question) => buildAnswerPlan(sessionId, question))
     } satisfies AnswerPlanningResult;
-  },
+  }
 };

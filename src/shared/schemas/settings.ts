@@ -1,11 +1,7 @@
 import { z } from "zod";
 
 import type { Settings } from "../types";
-import {
-  booleanRecordSchema,
-  nonEmptyStringSchema,
-  stringArraySchema
-} from "./common";
+import { booleanRecordSchema, nonEmptyStringSchema, stringArraySchema } from "./common";
 
 export const settingsSchema = z.object({
   extensionEnabled: z.boolean(),

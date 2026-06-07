@@ -18,6 +18,7 @@ This checkpoint reflects the repository reality after the first architecture aud
   - `software-design-document.md`: simplified implementation architecture
   - `tech-stack.md`: engineering and structural rules
   - `docs/versioning.md`: repository release-version rule using `x.y.z`
+  - `docs/release-confidence-gate.md`: release confidence gate and CI validation policy
   - `docs/*`: repository navigation and maintenance guides
   - `docs/prompts/zh-CN/*`: Chinese workflow prompt packs
   - `docs/guides/zh-CN/*`: Chinese user and helper guides
@@ -32,7 +33,7 @@ This checkpoint reflects the repository reality after the first architecture aud
 - Current engineering state:
   - extension shell and storage/message foundations are implemented
   - single-site extraction, provider-backed answer planning, recommendation preview, and fill execution modules are implemented for the locked MVP path
-  - the single-site MVP usability checkpoint is now passed for the locked Truity path with real-provider planning support: extract -> plan -> preview -> auto-fill is working end-to-end, with OpenAI as the primary planning path and the fake provider retained only as a local fallback
+  - the single-site MVP usability checkpoint has now moved to a safer explicit-fill policy for the locked Truity path with real-provider planning support: extract -> plan -> preview -> user-triggered fill is working end-to-end, with OpenAI as the primary planning path and the fake provider retained only as a local fallback
   - the repository has now also entered an explicit AI-first transition phase at the product and documentation level: UI copy and roadmap planning are being prepared for future multi-site support, while the only stable real automation path remains the Truity adapter-backed flow
   - a second minimal test-website adapter sample now exists for the `16Personalities` free MBTI-style test route, reusing the same normalized question, answer-plan, session, and fill contracts without rewriting the Truity adapter
   - a dedicated `SBTI /test` adapter now also exists for the public single-question stepping flow on `https://sbti.cc/test`, keeping bootstrap parsing and conditional question handling inside an independent site module
@@ -92,6 +93,15 @@ Current versioning note:
 - `z` changes are record-first changes unless a dedicated commit is otherwise requested
 - `y` and `x` changes should be accompanied by a git commit in the version-change workflow
 - any `x`, `y`, or `z` version change should still produce an Edge-usable build artifact, with `pnpm build:edge` as the default build step
+
+Current release confidence note:
+
+- the repository now has a release confidence gate documented in `docs/release-confidence-gate.md`
+- `pnpm release:check` is the default required handoff gate and runs typecheck, unit tests, integration tests, and an Edge build
+- `pnpm release:check:e2e` extends the required gate with browser-level Playwright e2e coverage for release candidates and extraction/fill/message-contract changes
+- the previous repository-level lint/format debt has been cleaned up with full-repository Prettier formatting and targeted ESLint fixes
+- `pnpm quality:strict` now passes and is available as the strict quality gate for cleanup branches, CI hardening, and future release-policy tightening
+- the initial GitHub Actions release confidence workflow still runs `pnpm release:check`; moving CI to `pnpm quality:strict` remains a separate policy decision
 
 ## 4. Canonical Database Structure
 
@@ -325,8 +335,8 @@ Current background service module boundaries:
 
 - `message-router`: validates and dispatches supported messages
 - `session-manager`: placeholder session state boundary
-- `permission-guard`: placeholder permission boundary
-- `orchestrator`: placeholder coordination boundary between runtime and services
+- `permission-guard`: settings-backed background policy boundary; high-impact automation/write messages require `settings.extensionEnabled === true`, content-origin page messages are checked against `settings.approvedDomains` when that list is non-empty, and settings/profile/session read paths remain available so users can recover configuration
+- `orchestrator`: coordinates runtime, permission guard, session manager, and router; permission denials return structured `AppResult` errors before router dispatch
 
 Current UI state module boundaries:
 
@@ -357,7 +367,7 @@ Current side panel shell boundary:
 - side panel no longer exposes a manual `Apply reviewed answers` action in the current UX
 - side panel now retries preview refresh for a short window so the UI can catch sessions created shortly after the panel opens
 - side panel recommendation refresh currently replaces the latest preview state for the active session instead of accumulating duplicate recommendation cards across repeated planning runs
-- side panel `Run answer planning` is now the single explicit user trigger for the locked trial flow and triggers background planning followed immediately by answer fill for the active session
+- side panel now exposes an explicit recommendation-preview fill action; `Run answer planning` generates recommendations and refreshes preview without immediately filling the active page
 - side panel shell must remain free of provider calls, storage access, and DOM automation logic
 
 Current profile draft flow boundary:
@@ -449,6 +459,7 @@ Current adapter shell boundary:
 - this fallback path is intentionally constrained to visible quiz/assessment page signals, repeated question blocks, and simple single-choice/score structures, and must not be treated as a generic parser for arbitrary websites
 - diagnostics must record fallback adapter evaluation, match/reject reasons, and failure causes so the trial remains auditable and separable from regular site adapter behavior
 - fallback extraction still returns normalized `ExtractedQuestionDraft` data and remains subject to provider preview and no-auto-submit protections
+- generic fallback fill is disabled by default at both the background router policy gate and the content command gate; it requires `settings.debugMode === true` or `settings.featureFlags.genericFallbackFill === true`, and its descriptor advertises extraction/preview but not default fill capability
 - this experiment must not affect the current Truity MVP stable path, which remains the primary supported route; the fallback adapter is a controlled exploration rather than a default multi-site implementation
 - future formal expansion of this fallback path into broader multi-site support requires additional admission criteria, publishing gates, and explicit QA coverage before it becomes a default route
 - the current real-site adapter still does not perform provider planning, preview, or orchestration directly; those remain background responsibilities
@@ -489,14 +500,14 @@ Current automated testing baseline:
 - end-to-end smoke tests live under `tests/e2e` and run through Playwright against the built Edge extension
 - repository persistence smoke coverage verifies cross-repository persistence using the real Dexie schema
 - extension load smoke coverage verifies that Edge can load the built extension and render the popup shell
-- a dedicated single-site e2e spec now exists for the locked Truity MVP path and targets extract -> plan -> preview -> auto-fill through the built extension
+- a dedicated single-site e2e spec now exists for the locked Truity MVP path and targets extract -> plan -> preview -> explicit fill through the built extension
 
 Current testing limits at this checkpoint:
 
 - built-extension e2e currently has stable coverage for the locked single-site fixture flow and the mocked OpenAI-backed service-worker flow
 - live-site verification has been exercised through local Playwright smoke checks, but no committed always-on live-network e2e spec exists yet
 - real provider verification now exists at provider-contract and background-router level with mocked OpenAI Responses payloads
-- built-extension browser e2e now also covers mocked OpenAI-backed planning inside the extension service worker, including side-panel rationale rendering, auto-fill, and provider-failure visibility
+- built-extension browser e2e now also covers mocked OpenAI-backed planning inside the extension service worker, including side-panel rationale rendering, explicit fill, and provider-failure visibility
 - built-extension browser e2e now also covers degraded recommendation rendering and quality-gated fill blocking inside the mocked OpenAI service-worker harness
 - the committed e2e suite is green again after aligning the options-page provider-save assertions with the current provider-readiness copy and saved-key feedback
 - always-on live-network OpenAI verification still remains explicitly deferred; the committed browser harness uses service-worker-level mocked OpenAI responses instead of real network calls
@@ -546,6 +557,7 @@ What it still does not allow:
 Boundary rules that must remain true during any future multi-site work:
 
 - `provider`: owns profile/question interpretation and answer planning only; it must not own DOM discovery, selector fallback, field matching, or browser action execution
+- `provider-http-executor`: shared HTTP request/response boundary for all remote provider calls; resolves fetch implementation, executes JSON requests, normalizes network/auth/HTTP failures into `ProviderExecutionError`; OpenAI and compatible-chat providers delegate HTTP lifecycle to this executor while retaining provider-specific request formatting and response parsing
 - `adapter`: owns site detection, DOM extraction, DOM fill, and adapter-local selector drift handling only; it must not own provider invocation, session persistence, or cross-site orchestration
 - `runtime`: UI stays message-driven, background stays orchestration-driven, content stays page-bridge-driven; no runtime may become a giant mixed layer that embeds provider, adapter, and storage behavior together
 - `storage`: persists normalized entities and diagnostics only; it must not persist raw page DOM snapshots or become a cross-site rules engine
@@ -560,8 +572,8 @@ Quality-usable at this checkpoint:
 - real provider output is validated through provider-contract and background-router coverage, including count matching, option-id matching, and structured parser/validation failure handling
 - provider failures and dirty outputs are explicitly rejected with structured diagnostics instead of being silently persisted
 - side panel recommendation cards remain stable as explanation-only summaries that show the filled recommendation, confidence, and rationale for repository-backed answer plans
-- `Run answer planning` still triggers automatic fill for the locked Truity MVP path, and the product still does not auto-submit the page
-- the locked single-site trial strategy now explicitly accepts this user-triggered auto-fill behavior as the intended MVP policy rather than a temporary undocumented divergence
+- `Run answer planning` now stops at recommendation preview for the locked Truity MVP path, and the product still does not auto-submit the page
+- the locked trial strategy now requires a separate explicit recommendation-preview fill action before adapter-owned fill execution
 - degraded recommendations are now still persisted and shown in preview, but they are excluded from automatic fill when quality gating marks them as unsafe
 
 Flow-usable but not yet quality-certified at this checkpoint:
@@ -578,8 +590,8 @@ Passed for a small real-user trial at this checkpoint:
 
 - single-site scope remains explicitly locked to the Truity Enneagram assessment path only
 - provider calling, local settings persistence, IndexedDB ownership, and no-auto-submit behavior remain clearly separated by runtime boundary
-- the current product still forms a real locked-path loop of extract -> plan -> preview -> auto-fill -> structured error handling
-- the current repository now explicitly accepts `Run answer planning` as the only required user confirmation step for the locked single-site trial flow, instead of requiring a second pre-fill confirmation UI
+- the current product now forms a safer locked-path loop of extract -> plan -> preview -> explicit fill -> structured error handling
+- the current repository now requires the recommendation-preview fill action as the explicit user confirmation before adapter-owned fill execution
 - provider configuration is now blocked early in popup/options/sidepanel when OpenAI is selected without a saved key, reducing guaranteed-failure trial states
 - Truity adapter resilience and sanitized adapter diagnostics are strong enough for light DOM drift within the locked site family
 - the automated unit and built-extension e2e release gate now passes again, and the previous gate failure was caused by stale test assertions rather than a broken product loop
@@ -591,7 +603,7 @@ Still deferred before broader formal rollout:
 
 Checkpoint conclusion:
 
-- current implementation now meets the repository's small-range trial-release bar: the locked single-site scope is explicit, provider and local-data boundaries remain clear, the no-auto-submit rule is still enforced, the extract -> plan -> preview -> fill -> error-handling loop is covered by the current automated gate, and the accepted pre-fill strategy is documented consistently across implementation and companion docs
+- current implementation now meets the repository's small-range trial-release bar: the locked single-site scope is explicit, provider and local-data boundaries remain clear, the no-auto-submit rule is still enforced, the extract -> plan -> preview -> explicit fill -> error-handling loop is covered by the current automated gate, and the pre-fill strategy is documented consistently across implementation and companion docs
 - this checkpoint does not certify broader formal rollout readiness; always-on live-network OpenAI verification and the other deferred items below remain explicitly open
 
 ## 8.5 Multi-Test-Site Trial Checkpoint
@@ -619,7 +631,7 @@ Reached the small-range multi-test-site trial bar at this checkpoint:
 - `SBTI / test` now reaches the repository's small-range trial bar as an additional adapter-scoped public test route because it has a dedicated adapter module, bootstrap-backed normalized extraction, fixture-backed unit coverage, and a separate browser-level trial gate covering planning, preview, and single-question fill behavior without auto-submit
 - the `SBTI / test` route now also supports async step-by-step fill progression through its one-question-per-screen flow, instead of stopping after a single static-page fill attempt
 - provider, storage, adapter, and UI boundaries remain clear across all current supported test routes: providers still consume normalized profile/question data only, storage still persists normalized entities and diagnostics only, adapters still own site detection/extract/fill, and UI runtimes remain message-driven rather than importing provider or adapter implementation code directly
-- `no auto-submit` still holds across the current multi-test-site trial scope: `Run answer planning` may trigger adapter-scoped fill after user initiation, but the product still does not submit the page on any supported test website route
+- `no auto-submit` still holds across the current multi-test-site trial scope: fill remains adapter-scoped and only runs after an explicit recommendation-preview fill action, and the product still does not submit the page on any supported test website route
 - session history and diagnostics remain site-scoped through `siteId`, `pageUrl`, `sessionId`, and site-scoped `selectorVersion`, so the current multi-test-site trial does not require a new review center, permission hub, or diagnostics subsystem
 - the generic fallback path is now default-on as an experimental last resort, but recent live smoke attempts against unsupported public assessment pages still do not justify promoting it to a supported-site claim
 
@@ -672,9 +684,9 @@ Not yet at broader formal-rollout confidence at this checkpoint:
 - some target architecture slices are still only scaffolded or predeclared and must not be treated as implemented
 - delayed items are now explicit and must remain explicit until implemented
 - the repository now contains real extraction, planning, preview, review, and fill code paths for the locked Truity MVP flow
-- the current audit certifies the single-site MVP as usable because the built extension and live-site smoke path complete extract -> plan -> preview -> auto-fill, and the real OpenAI provider path is now covered by parser/provider/router-level automated verification
+- the current audit certifies the single-site MVP as usable because the built extension and live-site smoke path complete extract -> plan -> preview -> explicit fill, and the real OpenAI provider path is now covered by parser/provider/router-level automated verification
 - the current multi-route adapter checkpoint is also usable for `Truity Enneagram`, `Truity DISC`, `Truity TypeFinder`, and `SBTI / test`, while `16Personalities` remains browser-covered but live-site-blocked in this environment and generic fallback remains experimental
-- the repository now explicitly documents the locked trial policy that `Run answer planning` is the only required user-triggered confirmation before fill, while auto-submit remains disallowed
+- the repository now explicitly documents the trial policy that page fill requires a separate recommendation-preview action after planning, while auto-submit remains disallowed
 - however, the repository is not yet at a clean pre-release checkpoint because always-on live-network OpenAI verification is still deferred
 
 ## 10. Single-Site MVP Scope Lock
@@ -746,7 +758,7 @@ The following capabilities are allowed to move from placeholder to real implemen
 - real answer planning from saved profile plus extracted questions
 - persistence of generated answer plans through `answer-plan-repo`
 - side panel recommendation preview for extracted questions and planned answers, including filled option labels plus rationale
-- automatic page fill immediately after the user-triggered `Run answer planning` action on the supported Truity path
+- explicit page fill from the recommendation-preview action on the supported Truity path
 - real page fill on the supported Truity assessment pages only
 - session and diagnostics updates for the supported MVP flow
 
@@ -918,7 +930,7 @@ Current project state:
 - shared answer-plan schemas now require at least one recommended option and constrain `confidence` to the `0..1` interval
 - answer plans now also carry repository-backed recommendation quality metadata so low-confidence or placeholder-like results can be previewed without being auto-filled
 - read-only debug view established in options page with service reuse
-- popup and options now expose lightweight UX copy clarifying what stays local, when provider planning may run, that `Run answer planning` also triggers fill for the locked trial flow, that auto-submit is not performed, and that the current supported scope is the locked Truity MVP only
+- popup and options now expose lightweight UX copy clarifying what stays local, when provider planning may run, that page fill is triggered separately from the recommendation preview, that auto-submit is not performed, and that the current supported scope is the locked Truity MVP only
 - popup, options, and side panel now also align on provider-readiness messaging so missing OpenAI configuration is surfaced before the user reaches a guaranteed failed planning attempt
 - popup, options, and side panel now use Chinese-first user copy plus a shared visual shell, while still preserving the same MVP runtime boundaries and the same locked Truity support scope
 - automated testing baseline established with separated unit, integration, and end-to-end scopes
@@ -935,10 +947,10 @@ Current project state:
 - recommendation preview explanation flow established in the side panel without direct UI provider/storage access
 - repeated answer planning now replaces stale answer plans for the active session instead of duplicating recommendation cards
 - Truity answer fill now supports the live radio-group markup path in addition to the original fixture-style fieldset path
-- side panel answer planning now automatically fills the current page with the planned recommendations as the accepted locked-trial strategy instead of waiting for a second manual fill action
+- side panel answer planning now stops at preview; the user must trigger recommendation-preview fill separately before the current page is filled with planned recommendations
 - local live-site Playwright smoke verification confirmed that repeated planning stays at 10 recommendations and the current page can still be filled successfully with planned values
 - OpenAI answer-planning prompt and parser boundaries remain isolated under `src/llm/*`, with options/background only passing normalized settings and normalized result data
-- automated verification now covers parser rejection for dirty provider output, router-level answer-plan validation rejection before persistence, real OpenAI provider contract execution with mocked Responses payloads, background planning plus fill orchestration with the real provider, the browser E2E auto-fill flow on the locked site using the local fallback provider, and built-extension browser coverage for mocked OpenAI-backed rationale rendering and provider-failure visibility through the extension service worker
+- automated verification now covers parser rejection for dirty provider output, router-level answer-plan validation rejection before persistence, real OpenAI provider contract execution with mocked Responses payloads, background planning plus fill orchestration with the real provider, the browser E2E explicit-fill flow on the locked site using the local fallback provider, and built-extension browser coverage for mocked OpenAI-backed rationale rendering and provider-failure visibility through the extension service worker
 - automated verification now also covers quality degradation classification for low-confidence and placeholder-style recommendations, plus browser-visible degraded preview behavior and quality-gated fill blocking
 - automated verification now also covers fixture-backed page recognition and normalized extraction for the second `16Personalities` test-site sample through the shared content runtime and adapter-registry boundaries
 - automated verification for the second `16Personalities` sample now also has its own browser-level trial gate file covering recommendation preview rendering, successful fill, provider-failure visibility, and degraded-plan fill blocking, instead of stacking every supported-site path into one long E2E spec
@@ -948,4 +960,4 @@ Current project state:
 - recent live smoke checks now confirm question extraction for `Truity Enneagram`, `Truity DISC`, and `Truity TypeFinder`, while `16Personalities` remains blocked by Cloudflare in this environment and unsupported public assessment pages still do not pass the generic fallback path
 - single-site recommendation quality checkpoint completed: provider-backed recommendation generation, browser-side rationale rendering, and failure handling are quality-usable under the mocked service-worker OpenAI harness, while always-on live-network OpenAI verification remains explicitly deferred
 - single-site MVP usability checkpoint audit completed and currently marked `passed`
-- single-site MVP trial-release checkpoint audit completed and currently marked `passed for small-range trial release`; broader formal rollout is still deferred because always-on live-network OpenAI verification remains open even though the committed Playwright release gate is green and the locked trial auto-fill strategy is now explicitly documented
+- single-site MVP trial-release checkpoint audit completed and currently marked `passed for small-range trial release`; broader formal rollout is still deferred because always-on live-network OpenAI verification remains open even though the committed Playwright release gate is green and the explicit preview-before-fill strategy is now documented

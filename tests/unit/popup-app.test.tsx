@@ -8,7 +8,11 @@ import { PopupView } from "../../src/app/popup/App";
 import { createPopupSettingsClient } from "../../src/app/popup/services/popup-settings-client";
 import { openPopupSidePanel } from "../../src/app/popup/services/popup-sidepanel-opener";
 import type { PopupShellModel } from "../../src/app/popup/hooks/use-popup-shell";
-import type { AppResult, SettingsFetchMessage, SettingsUpdateMessage } from "../../src/shared/types";
+import type {
+  AppResult,
+  SettingsFetchMessage,
+  SettingsUpdateMessage
+} from "../../src/shared/types";
 import { getProviderConfigurationState } from "../../src/shared/utils/provider-configuration";
 
 function createPopupModel(overrides: Partial<PopupShellModel> = {}): PopupShellModel {
@@ -26,7 +30,7 @@ function createPopupModel(overrides: Partial<PopupShellModel> = {}): PopupShellM
     statusMessage: null,
     toggleExtensionEnabled: async () => {},
     openSidePanel: async () => {},
-    ...overrides,
+    ...overrides
   };
 }
 
@@ -35,9 +39,9 @@ describe("popup view", () => {
     const markup = renderToStaticMarkup(
       <PopupView
         model={createPopupModel({
-          extensionEnabled: true,
+          extensionEnabled: true
         })}
-      />,
+      />
     );
 
     expect(markup).toContain("ATTI");
@@ -56,13 +60,13 @@ describe("popup view", () => {
     const markup = renderToStaticMarkup(
       <PopupView
         model={createPopupModel({
-          extensionEnabled: false,
+          extensionEnabled: false
         })}
-      />,
+      />
     );
 
     expect(markup).toContain("扩展已暂停");
-    expect(markup).not.toContain("checked=\"\"");
+    expect(markup).not.toContain('checked=""');
   });
 });
 
@@ -111,16 +115,16 @@ describe("popup settings client", () => {
               providerModel: null,
               approvedDomains: [],
               lastActiveProfileId: null,
-              featureFlags: {},
-            },
+              featureFlags: {}
+            }
           };
         }
 
         return {
           ok: true,
-          data: message.payload.settings,
+          data: message.payload.settings
         };
-      },
+      }
     );
     const client = createPopupSettingsClient(sendMessage);
 
@@ -130,7 +134,7 @@ describe("popup settings client", () => {
     expect(sendMessage).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenCalledWith({
       type: "settingsFetch",
-      payload: {},
+      payload: {}
     });
   });
 
@@ -150,16 +154,16 @@ describe("popup settings client", () => {
               providerModel: null,
               approvedDomains: ["example.com"],
               lastActiveProfileId: null,
-              featureFlags: {},
-            },
+              featureFlags: {}
+            }
           };
         }
 
         return {
           ok: true,
-          data: message.payload.settings,
+          data: message.payload.settings
         };
-      },
+      }
     );
     const client = createPopupSettingsClient(sendMessage);
 
@@ -179,9 +183,9 @@ describe("popup settings client", () => {
           providerModel: null,
           approvedDomains: ["example.com"],
           lastActiveProfileId: null,
-          featureFlags: {},
-        },
-      },
+          featureFlags: {}
+        }
+      }
     });
   });
 
@@ -247,7 +251,7 @@ describe("popup module boundaries", () => {
       "src/app/popup/components/popup-provider-status.tsx",
       "src/app/popup/hooks/use-popup-shell.ts",
       "src/app/popup/services/popup-settings-client.ts",
-      "src/app/popup/services/popup-sidepanel-opener.ts",
+      "src/app/popup/services/popup-sidepanel-opener.ts"
     ];
 
     for (const popupFile of popupFiles) {

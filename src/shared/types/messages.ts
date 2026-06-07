@@ -3,7 +3,11 @@ import type { ProfilePresetAnalysisInput } from "./profile-preset";
 import type { QuestionOption } from "./question";
 import type { SessionHistoryEntry } from "./session";
 import type { Settings } from "./settings";
-import type { AnswerPlanReviewStatus, RecommendationPreview, RecommendationPreviewItem } from "./answer-plan";
+import type {
+  AnswerPlanReviewStatus,
+  RecommendationPreview,
+  RecommendationPreviewItem
+} from "./answer-plan";
 
 export const MESSAGE_TYPES = {
   ping: "ping",
@@ -193,8 +197,7 @@ export type AnswerFillRunResult = {
 export type SessionHistoryFetchResult = SessionHistoryEntry[];
 
 export const CONTENT_COMMAND_TYPES = {
-  answerFillApply: "answerFillApply"
-  ,
+  answerFillApply: "answerFillApply",
   questionExtractionRun: "questionExtractionRun"
 } as const;
 
@@ -212,6 +215,7 @@ export type AnswerFillApplyCommand = {
   payload: {
     siteId: string;
     sessionId: string;
+    allowGenericFallbackFill?: boolean;
     selections: ContentAnswerFillSelection[];
   };
 };

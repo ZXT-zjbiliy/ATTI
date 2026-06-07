@@ -1,7 +1,7 @@
 import type {
   AppResult,
   ContentQuestionExtractionFailedMessage,
-  ContentQuestionsExtractedMessage,
+  ContentQuestionsExtractedMessage
 } from "../../shared/types";
 import type { BackgroundMessageHandler } from "./types";
 

@@ -23,7 +23,7 @@ export const settingsUiInitialState: SettingsUiState = {
   activeView: "general",
   isDirty: false,
   isSaving: false,
-  lastSaveError: null,
+  lastSaveError: null
 };
 
 export const createSettingsUiStore = () =>
@@ -43,7 +43,7 @@ export const createSettingsUiStore = () =>
     },
     reset: () => {
       set(settingsUiInitialState);
-    },
+    }
   }));
 
 export const settingsUiStore = createSettingsUiStore();

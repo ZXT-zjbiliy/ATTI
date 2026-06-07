@@ -2,6 +2,7 @@ import { createBackgroundMessageRouter } from "./message-router";
 import { createBackgroundOrchestrator } from "./services/orchestrator";
 import { createPermissionGuard } from "./services/permission-guard";
 import { createSessionManager } from "./services/session-manager";
+import { SettingsRepository } from "../storage/repos/settings-repo";
 
 type RuntimeMessageSender = unknown;
 
@@ -32,8 +33,9 @@ function toAppErrorResponse(error: unknown) {
 }
 
 export function startBackgroundRuntime() {
-  const router = createBackgroundMessageRouter();
-  const permissionGuard = createPermissionGuard();
+  const settingsRepository = new SettingsRepository();
+  const router = createBackgroundMessageRouter({ settingsRepository });
+  const permissionGuard = createPermissionGuard({ settingsRepository });
   const sessionManager = createSessionManager();
   const orchestrator = createBackgroundOrchestrator({
     router,

@@ -4,5 +4,5 @@ export {
   isSupportedSbtiAssessmentPage,
   locateSbtiQuestionRegions,
   matchesSbtiTestUrl,
-  sbtiSiteAdapter,
+  sbtiSiteAdapter
 } from "./sbti-site-adapter";

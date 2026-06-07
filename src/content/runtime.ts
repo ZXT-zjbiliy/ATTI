@@ -3,10 +3,10 @@ import type { AppResult } from "../shared/types";
 import { CONTENT_COMMAND_TYPES } from "../shared/types";
 import { applyAnswerFillCommand, isSupportedContentCommand } from "./answer-fill";
 import {
-    reportContentPageMetadata,
-    reportExtractedQuestions,
-    reportQuestionExtractionFailure,
-    type ContentRuntimeMessageSender
+  reportContentPageMetadata,
+  reportExtractedQuestions,
+  reportQuestionExtractionFailure,
+  type ContentRuntimeMessageSender
 } from "./content-message-client";
 import { collectContentPageMetadata } from "./page-metadata";
 import { extractQuestionsFromSupportedPage } from "./question-extraction";
@@ -59,11 +59,13 @@ function resolveDefaultDependencies(): ContentRuntimeDependencies {
     document,
     location,
     window,
-    runtime: (globalThis as typeof globalThis & {
-      chrome?: {
-        runtime?: ContentRuntimeDependencies["runtime"];
-      };
-    }).chrome?.runtime,
+    runtime: (
+      globalThis as typeof globalThis & {
+        chrome?: {
+          runtime?: ContentRuntimeDependencies["runtime"];
+        };
+      }
+    ).chrome?.runtime,
     wait(ms) {
       return new Promise((resolve) => {
         globalThis.setTimeout(resolve, ms);
@@ -86,7 +88,7 @@ async function resolveExtractionResult(
   const adapter = adapterRegistry.findMatchingAdapter({
     url: page.url,
     title: page.title,
-    html: dependencies.document.documentElement?.outerHTML ?? dependencies.document.body?.innerHTML,
+    html: dependencies.document.documentElement?.outerHTML ?? dependencies.document.body?.innerHTML
   });
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
@@ -119,7 +121,11 @@ async function runQuestionExtraction(
   dependencies: ContentRuntimeDependencies,
   sendMessage: ContentRuntimeMessageSender | undefined
 ) {
-  const page = collectContentPageMetadata(dependencies.document, dependencies.location, dependencies.window);
+  const page = collectContentPageMetadata(
+    dependencies.document,
+    dependencies.location,
+    dependencies.window
+  );
   const metadataResult = await reportContentPageMetadata(page, sendMessage);
 
   if (!metadataResult.ok) {

@@ -63,11 +63,7 @@ describe("options debug client", () => {
         }
       ])
     };
-    const client = createOptionsDebugClient(
-      settingsClient,
-      profileClient,
-      sessionClient,
-    );
+    const client = createOptionsDebugClient(settingsClient, profileClient, sessionClient);
 
     const snapshot = await client.fetchDebugSnapshot();
 

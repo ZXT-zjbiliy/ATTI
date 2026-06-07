@@ -40,12 +40,18 @@ async function installFetchMock(
   return {
     async getCalls() {
       return serviceWorker.evaluate(() => {
-        return Array.isArray((globalThis as typeof globalThis & {
-          __attiOpenAiMockCalls?: Array<{ input: string }>;
-        }).__attiOpenAiMockCalls)
-          ? (globalThis as typeof globalThis & {
+        return Array.isArray(
+          (
+            globalThis as typeof globalThis & {
               __attiOpenAiMockCalls?: Array<{ input: string }>;
-            }).__attiOpenAiMockCalls ?? []
+            }
+          ).__attiOpenAiMockCalls
+        )
+          ? ((
+              globalThis as typeof globalThis & {
+                __attiOpenAiMockCalls?: Array<{ input: string }>;
+              }
+            ).__attiOpenAiMockCalls ?? [])
           : [];
       });
     },

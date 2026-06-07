@@ -44,7 +44,7 @@ async function configureOpenAiProvider(
 }
 
 test.describe("e2e: SBTI trial flow", () => {
-  test("covers bootstrap-backed extraction and step-by-step auto-fill without auto-submit", async () => {
+  test("covers bootstrap-backed extraction and step-by-step explicit fill without auto-submit", async () => {
     const extensionHandle = await launchEdgeExtensionContext();
     const openAiRoute = await installMockOpenAiSuccessRoute(extensionHandle.context, {
       answerPlans: [
@@ -102,15 +102,16 @@ test.describe("e2e: SBTI trial flow", () => {
       await expect(sidepanelPage.getByText("本地画像草稿已保存。")).toBeVisible();
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
-      await expect(sidepanelPage.getByText("会话状态：answer-fill-complete")).toBeVisible();
-      await expect(
-        sidepanelPage.getByText("已加载 4 道题，其中 4 条已有 AI 推荐。")
-      ).toBeVisible();
+      await expect(sidepanelPage.getByText("会话状态：answer-planning-complete")).toBeVisible();
+      await expect(sidepanelPage.getByText("已加载 4 道题，其中 4 条已有 AI 推荐。")).toBeVisible();
 
       const openAiCalls = await openAiRoute.getCalls();
       expect(openAiCalls).toHaveLength(1);
       expect(openAiCalls[0]?.input).toContain("我会主动开口认识新朋友。");
       expect(openAiCalls[0]?.input).toContain("您平时有什么爱好？");
+
+      await sidepanelPage.getByRole("button", { name: "应用推荐填写" }).click();
+      await expect(sidepanelPage.getByText("会话状态：answer-fill-complete")).toBeVisible();
 
       await expect(assessmentPage.locator(".question-title")).toContainText(
         "我做决定前会先想清楚后果。"

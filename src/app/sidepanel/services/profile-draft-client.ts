@@ -19,7 +19,7 @@ type SidePanelProfileMessage =
   | SettingsFetchMessage;
 
 export type SidePanelMessageSender = (
-  message: SidePanelProfileMessage,
+  message: SidePanelProfileMessage
 ) => Promise<AppResult> | AppResult;
 
 export interface ProfileDraftClient {
@@ -56,7 +56,7 @@ function unwrapResult<TData>(result: AppResult): TData {
 }
 
 export function createProfileDraftClient(
-  sendMessage: SidePanelMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: SidePanelMessageSender = resolveRuntimeMessageSender()
 ): ProfileDraftClient {
   const fetchSettings = async () => {
     const settingsResult = await sendMessage({

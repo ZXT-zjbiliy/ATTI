@@ -8,7 +8,10 @@ export function RecommendationPreviewItemView({ item }: RecommendationPreviewIte
   const title = `${item.questionOrder + 1}. ${item.questionText}`;
 
   return (
-    <article aria-label={`推荐 ${item.questionOrder + 1}`} className="atti-surface atti-recommendation">
+    <article
+      aria-label={`推荐 ${item.questionOrder + 1}`}
+      className="atti-surface atti-recommendation"
+    >
       <h3 className="atti-recommendation__title">{title}</h3>
       {item.qualityStatus === "degraded" ? (
         <p className="atti-alert atti-alert--warning">

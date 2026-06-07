@@ -14,7 +14,11 @@ export function SectionStateView({ state }: SectionStateViewProps) {
   }
 
   if (state.kind === "error") {
-    return <p className="atti-status-text atti-status-text--error" role="alert">错误：{state.message}</p>;
+    return (
+      <p className="atti-status-text atti-status-text--error" role="alert">
+        错误：{state.message}
+      </p>
+    );
   }
 
   return (

@@ -9,7 +9,7 @@ import {
   fillSbtiAnswers,
   isSupportedSbtiAssessmentPage,
   locateSbtiQuestionRegions,
-  matchesSbtiTestUrl,
+  matchesSbtiTestUrl
 } from "../../src/adapters/sites/sbti";
 
 const sbtiFixture = readFileSync(
@@ -22,14 +22,14 @@ describe("SBTI adapter", () => {
     expect(
       matchesSbtiTestUrl({
         url: "https://sbti.cc/test",
-        title: "开始测试 | SBTI",
+        title: "开始测试 | SBTI"
       })
     ).toBe(true);
 
     expect(
       matchesSbtiTestUrl({
         url: "https://sbti.cc/about",
-        title: "测试说明 | SBTI",
+        title: "测试说明 | SBTI"
       })
     ).toBe(false);
   });
@@ -39,7 +39,7 @@ describe("SBTI adapter", () => {
       isSupportedSbtiAssessmentPage({
         url: "https://sbti.cc/test",
         title: "开始测试 | SBTI",
-        html: sbtiFixture,
+        html: sbtiFixture
       })
     ).toBe(true);
   });
@@ -48,7 +48,7 @@ describe("SBTI adapter", () => {
     const result = locateSbtiQuestionRegions({
       url: "https://sbti.cc/test",
       title: "开始测试 | SBTI",
-      html: sbtiFixture,
+      html: sbtiFixture
     });
 
     expect(result.isSupportedAssessmentPage).toBe(true);
@@ -56,23 +56,23 @@ describe("SBTI adapter", () => {
       {
         order: 0,
         promptText: "我会主动开口认识新朋友。",
-        locatorHint: "prompt-key:我会主动开口认识新朋友",
+        locatorHint: "prompt-key:我会主动开口认识新朋友"
       },
       {
         order: 1,
         promptText: "我做决定前会先想清楚后果。",
-        locatorHint: "prompt-key:我做决定前会先想清楚后果",
+        locatorHint: "prompt-key:我做决定前会先想清楚后果"
       },
       {
         order: 2,
         promptText: "您平时有什么爱好？",
-        locatorHint: "prompt-key:您平时有什么爱好",
+        locatorHint: "prompt-key:您平时有什么爱好"
       },
       {
         order: 3,
         promptText: "您对饮酒的态度是？",
-        locatorHint: "prompt-key:您对饮酒的态度是",
-      },
+        locatorHint: "prompt-key:您对饮酒的态度是"
+      }
     ]);
   });
 
@@ -80,7 +80,7 @@ describe("SBTI adapter", () => {
     const result = extractSbtiQuestions({
       url: "https://sbti.cc/test",
       title: "开始测试 | SBTI",
-      html: sbtiFixture,
+      html: sbtiFixture
     });
 
     expect(result.questionCount).toBe(4);
@@ -91,9 +91,9 @@ describe("SBTI adapter", () => {
         options: [
           { id: "1", text: "不认同", value: "1" },
           { id: "2", text: "中立", value: "2" },
-          { id: "3", text: "认同", value: "3" },
+          { id: "3", text: "认同", value: "3" }
         ],
-        order: 0,
+        order: 0
       },
       {
         text: "我做决定前会先想清楚后果。",
@@ -101,9 +101,9 @@ describe("SBTI adapter", () => {
         options: [
           { id: "1", text: "不认同", value: "1" },
           { id: "2", text: "中立", value: "2" },
-          { id: "3", text: "认同", value: "3" },
+          { id: "3", text: "认同", value: "3" }
         ],
-        order: 1,
+        order: 1
       },
       {
         text: "您平时有什么爱好？",
@@ -112,59 +112,59 @@ describe("SBTI adapter", () => {
           { id: "1", text: "吃喝拉撒", value: "1" },
           { id: "2", text: "艺术爱好", value: "2" },
           { id: "3", text: "饮酒", value: "3" },
-          { id: "4", text: "健身", value: "4" },
+          { id: "4", text: "健身", value: "4" }
         ],
-        order: 2,
+        order: 2
       },
       {
         text: "您对饮酒的态度是？",
         type: "single-choice-sbti",
         options: [
           { id: "1", text: "小酌怡情", value: "1" },
-          { id: "2", text: "保温杯里泡白酒", value: "2" },
+          { id: "2", text: "保温杯里泡白酒", value: "2" }
         ],
-        order: 3,
-      },
+        order: 3
+      }
     ]);
   });
 
   it("fills the live single-question flow by following prompt text instead of a fixed order", async () => {
     const dom = new JSDOM(sbtiFixture, {
       runScripts: "dangerously",
-      url: "https://sbti.cc/test",
+      url: "https://sbti.cc/test"
     });
     const { document } = dom.window;
 
     const result = await fillSbtiAnswers(
       {
         url: "https://sbti.cc/test",
-        document,
+        document
       },
       [
         {
           questionId: "bootstrap-q1",
           questionText: "我会主动开口认识新朋友。",
           questionOrder: 0,
-          selectedOptionIds: ["3"],
+          selectedOptionIds: ["3"]
         },
         {
           questionId: "bootstrap-q2",
           questionText: "我做决定前会先想清楚后果。",
           questionOrder: 1,
-          selectedOptionIds: ["2"],
+          selectedOptionIds: ["2"]
         },
         {
           questionId: "bootstrap-drink-gate-q1",
           questionText: "您平时有什么爱好？",
           questionOrder: 2,
-          selectedOptionIds: ["3"],
+          selectedOptionIds: ["3"]
         },
         {
           questionId: "bootstrap-drink-gate-q2",
           questionText: "您对饮酒的态度是？",
           questionOrder: 3,
-          selectedOptionIds: ["2"],
-        },
+          selectedOptionIds: ["2"]
+        }
       ]
     );
 
@@ -172,8 +172,8 @@ describe("SBTI adapter", () => {
     expect(document.querySelector(".question-title")?.textContent).toContain(
       "我做决定前会先想清楚后果。"
     );
-    expect(
-      (document.getElementById("submitBtn") as HTMLButtonElement | null)?.disabled
-    ).toBe(false);
+    expect((document.getElementById("submitBtn") as HTMLButtonElement | null)?.disabled).toBe(
+      false
+    );
   });
 });

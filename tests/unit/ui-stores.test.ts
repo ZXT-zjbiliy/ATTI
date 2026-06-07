@@ -3,17 +3,14 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import {
-  createPopupUiStore,
-  popupUiInitialState,
-} from "../../src/app/popup/state/popup-ui-store";
+import { createPopupUiStore, popupUiInitialState } from "../../src/app/popup/state/popup-ui-store";
 import {
   createSidepanelUiStore,
-  sidepanelUiInitialState,
+  sidepanelUiInitialState
 } from "../../src/app/sidepanel/state/sidepanel-ui-store";
 import {
   createSettingsUiStore,
-  settingsUiInitialState,
+  settingsUiInitialState
 } from "../../src/app/options/state/settings-ui-store";
 
 describe("popup ui store", () => {
@@ -21,9 +18,7 @@ describe("popup ui store", () => {
     const store = createPopupUiStore();
 
     expect(store.getState().isExpanded).toBe(popupUiInitialState.isExpanded);
-    expect(store.getState().statusMessage).toBe(
-      popupUiInitialState.statusMessage,
-    );
+    expect(store.getState().statusMessage).toBe(popupUiInitialState.statusMessage);
   });
 
   it("applies state transitions and can reset", () => {
@@ -38,9 +33,7 @@ describe("popup ui store", () => {
     store.getState().reset();
 
     expect(store.getState().isExpanded).toBe(popupUiInitialState.isExpanded);
-    expect(store.getState().statusMessage).toBe(
-      popupUiInitialState.statusMessage,
-    );
+    expect(store.getState().statusMessage).toBe(popupUiInitialState.statusMessage);
   });
 });
 
@@ -48,13 +41,9 @@ describe("sidepanel ui store", () => {
   it("starts with the expected default state", () => {
     const store = createSidepanelUiStore();
 
-    expect(store.getState().activeSection).toBe(
-      sidepanelUiInitialState.activeSection,
-    );
+    expect(store.getState().activeSection).toBe(sidepanelUiInitialState.activeSection);
     expect(store.getState().isBusy).toBe(sidepanelUiInitialState.isBusy);
-    expect(store.getState().selectedSessionId).toBe(
-      sidepanelUiInitialState.selectedSessionId,
-    );
+    expect(store.getState().selectedSessionId).toBe(sidepanelUiInitialState.selectedSessionId);
   });
 
   it("applies state transitions and can reset", () => {
@@ -70,13 +59,9 @@ describe("sidepanel ui store", () => {
 
     store.getState().reset();
 
-    expect(store.getState().activeSection).toBe(
-      sidepanelUiInitialState.activeSection,
-    );
+    expect(store.getState().activeSection).toBe(sidepanelUiInitialState.activeSection);
     expect(store.getState().isBusy).toBe(sidepanelUiInitialState.isBusy);
-    expect(store.getState().selectedSessionId).toBe(
-      sidepanelUiInitialState.selectedSessionId,
-    );
+    expect(store.getState().selectedSessionId).toBe(sidepanelUiInitialState.selectedSessionId);
   });
 });
 
@@ -87,9 +72,7 @@ describe("settings ui store", () => {
     expect(store.getState().activeView).toBe(settingsUiInitialState.activeView);
     expect(store.getState().isDirty).toBe(settingsUiInitialState.isDirty);
     expect(store.getState().isSaving).toBe(settingsUiInitialState.isSaving);
-    expect(store.getState().lastSaveError).toBe(
-      settingsUiInitialState.lastSaveError,
-    );
+    expect(store.getState().lastSaveError).toBe(settingsUiInitialState.lastSaveError);
   });
 
   it("applies state transitions and can reset", () => {
@@ -110,9 +93,7 @@ describe("settings ui store", () => {
     expect(store.getState().activeView).toBe(settingsUiInitialState.activeView);
     expect(store.getState().isDirty).toBe(settingsUiInitialState.isDirty);
     expect(store.getState().isSaving).toBe(settingsUiInitialState.isSaving);
-    expect(store.getState().lastSaveError).toBe(
-      settingsUiInitialState.lastSaveError,
-    );
+    expect(store.getState().lastSaveError).toBe(settingsUiInitialState.lastSaveError);
   });
 });
 
@@ -120,7 +101,7 @@ describe("ui store boundaries", () => {
   const storeFiles = [
     "src/app/popup/state/popup-ui-store.ts",
     "src/app/sidepanel/state/sidepanel-ui-store.ts",
-    "src/app/options/state/settings-ui-store.ts",
+    "src/app/options/state/settings-ui-store.ts"
   ];
 
   it("does not couple ui stores to persistence modules", () => {

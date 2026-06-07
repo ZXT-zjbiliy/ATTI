@@ -6,13 +6,13 @@ import type {
   AnswerFillSelection,
   QuestionExtractionResult,
   QuestionRegionLocatorResult,
-  SiteAdapter,
+  SiteAdapter
 } from "../../base/site-adapter";
 import {
   createSbtiPromptKey,
   extractSbtiBootstrapQuestions,
   toSbtiExtractedQuestions,
-  toSbtiLocatedQuestionRegions,
+  toSbtiLocatedQuestionRegions
 } from "./parse-sbti-bootstrap";
 
 const SBTI_HOSTNAME = "sbti.cc";
@@ -61,7 +61,7 @@ export function locateSbtiQuestionRegions(
   if (!isSupportedSbtiAssessmentPage(context)) {
     return {
       isSupportedAssessmentPage: false,
-      questionRegions: [],
+      questionRegions: []
     };
   }
 
@@ -69,7 +69,7 @@ export function locateSbtiQuestionRegions(
 
   return {
     isSupportedAssessmentPage: questions.length > 0,
-    questionRegions: toSbtiLocatedQuestionRegions(questions),
+    questionRegions: toSbtiLocatedQuestionRegions(questions)
   };
 }
 
@@ -77,7 +77,7 @@ export function extractSbtiQuestions(context: AdapterPageContext): QuestionExtra
   if (!isSupportedSbtiAssessmentPage(context)) {
     return {
       questionCount: 0,
-      questions: [],
+      questions: []
     };
   }
 
@@ -91,7 +91,7 @@ export function extractSbtiQuestions(context: AdapterPageContext): QuestionExtra
 
   return {
     questionCount: extractedQuestions.length,
-    questions: extractedQuestions,
+    questions: extractedQuestions
   };
 }
 
@@ -100,9 +100,7 @@ function resolveCurrentQuestionPrompt(document: Document): string {
 }
 
 function resolveCurrentOptionInputs(document: Document): HTMLInputElement[] {
-  return Array.from(
-    document.querySelectorAll<HTMLInputElement>('.options input[type="radio"]')
-  );
+  return Array.from(document.querySelectorAll<HTMLInputElement>('.options input[type="radio"]'));
 }
 
 function findOptionInput(
@@ -130,9 +128,7 @@ function isSubmitReady(document: Document): boolean {
   const submitButton = document.getElementById("submitBtn") as HTMLButtonElement | null;
 
   return (
-    submitButton !== null &&
-    !submitButton.classList.contains("is-hidden") &&
-    !submitButton.disabled
+    submitButton !== null && !submitButton.classList.contains("is-hidden") && !submitButton.disabled
   );
 }
 
@@ -236,7 +232,7 @@ export async function fillSbtiAnswers(
   }
 
   return {
-    filledCount,
+    filledCount
   };
 }
 
@@ -247,8 +243,8 @@ export const sbtiSiteAdapter: SiteAdapter = {
     capabilities: {
       supportsQuestionExtraction: true,
       supportsPreview: false,
-      supportsFill: true,
-    },
+      supportsFill: true
+    }
   },
   matches(context) {
     return matchesSbtiTestUrl(context);
@@ -264,5 +260,5 @@ export const sbtiSiteAdapter: SiteAdapter = {
   },
   fillAnswers(context, selections) {
     return fillSbtiAnswers(context, selections);
-  },
+  }
 };

@@ -11,8 +11,8 @@ Current support status:
 - highest-confidence live path: `Truity Enneagram`
 - additional adapter-scoped supported routes: `Truity DISC`, `Truity TypeFinder`
 - narrow second-site sample: `16Personalities`, with fixture-backed and browser-level extension coverage but no stable live-site verification in this environment because Cloudflare blocks access
-- additional adapter-scoped public test route: `SBTI / https://sbti.cc/test`, with dedicated extraction/fill support for its single-question stepping flow and full-session auto-fill progression
-- experimental last-resort path: generic fallback extraction for unsupported assessment pages; this remains limited and should not be treated as universal website support
+- additional adapter-scoped public test route: `SBTI / https://sbti.cc/test`, with dedicated extraction/fill support for its single-question stepping flow during explicit fill
+- experimental last-resort path: generic fallback extraction/preview for unsupported assessment pages; this remains limited, does not allow page fill by default, and should not be treated as universal website support
 
 ## Supported Pages
 
@@ -54,9 +54,9 @@ Chinese quick-copy version:
 
 ## Fill Actions
 
-- `Run answer planning` generates recommendations and then applies fill on the active supported page.
-- `Reapply fill` reruns page filling for the current session without generating a new answer plan.
-- `SBTI / test` now advances through its one-question-at-a-time flow until the page reaches a ready-to-submit state.
+- `Run answer planning` generates recommendations and refreshes the side-panel preview without filling the page.
+- `Apply recommended fill` applies the currently previewed recommendations to the active supported page without generating a new answer plan.
+- `SBTI / test` now advances through its one-question-at-a-time flow during the explicit fill step until the page reaches a ready-to-submit state.
 - ATTI still does not auto-submit the final questionnaire.
 
 ## Quick Start
@@ -84,6 +84,8 @@ Core implementation and architecture work should begin with these files:
   [docs/documentation-rules.md](./docs/documentation-rules.md)
 - Versioning rule:
   [docs/versioning.md](./docs/versioning.md)
+- Release confidence gate:
+  [docs/release-confidence-gate.md](./docs/release-confidence-gate.md)
 - Chinese workflow prompts:
   [docs/prompts/zh-CN/ai-task-prompts.zh-CN.md](./docs/prompts/zh-CN/ai-task-prompts.zh-CN.md)
 - Chinese user guide:

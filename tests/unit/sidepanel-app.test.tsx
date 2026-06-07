@@ -8,9 +8,7 @@ import { SidePanelView } from "../../src/app/sidepanel/App";
 import { defaultSidePanelShellModel } from "../../src/app/sidepanel/data/default-sidepanel-shell-model";
 import type { SidePanelShellModel } from "../../src/app/sidepanel/types/sidepanel-shell";
 
-function createSidePanelModel(
-  overrides: Partial<SidePanelShellModel> = {}
-): SidePanelShellModel {
+function createSidePanelModel(overrides: Partial<SidePanelShellModel> = {}): SidePanelShellModel {
   return {
     ...defaultSidePanelShellModel,
     ...overrides
@@ -23,7 +21,7 @@ describe("side panel shell", () => {
 
     expect(markup).toContain("ATTI AI");
     expect(markup).toContain("AI");
-    expect(markup).toContain("disabled=\"\"");
+    expect(markup).toContain('disabled=""');
   });
 
   it("renders loading placeholders", () => {
@@ -61,7 +59,7 @@ describe("side panel shell", () => {
     );
 
     expect(markup).toContain("无法读取当前会话状态。");
-    expect(markup).toContain("role=\"alert\"");
+    expect(markup).toContain('role="alert"');
   });
 
   it("renders preview data and the planning progress icon state", () => {
@@ -130,6 +128,8 @@ describe("side panel shell", () => {
 
     expect(markup).toContain("I enjoy collaborative planning.");
     expect(markup).toContain("页面填写：Accurate");
+    expect(markup).toContain("应用推荐填写");
+    expect(markup).not.toContain("再次填写");
     expect(markup).toContain("置信度：92%");
     expect(markup).toContain("规划进度：1 / 3");
     expect(markup).toContain("已收到规划结果");

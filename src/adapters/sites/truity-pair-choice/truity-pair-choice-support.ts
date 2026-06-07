@@ -9,7 +9,11 @@ import type {
   QuestionExtractionResult,
   QuestionRegionLocatorResult
 } from "../../base/site-adapter";
-import { extractVisibleTextLines, normalizeText, TRUITY_STEP_MARKER_PATTERN } from "../truity-enneagram/truity-enneagram-text";
+import {
+  extractVisibleTextLines,
+  normalizeText,
+  TRUITY_STEP_MARKER_PATTERN
+} from "../truity-enneagram/truity-enneagram-text";
 
 const TRUITY_HOSTNAME = "www.truity.com";
 
@@ -59,7 +63,12 @@ function createPairLocatorHint(leftText: string, rightText: string): string {
   return `pair-key:${createPairPromptKey(leftText, rightText)}`;
 }
 
-function createOptionLabel(position: number, total: number, leftText: string, rightText: string): string {
+function createOptionLabel(
+  position: number,
+  total: number,
+  leftText: string,
+  rightText: string
+): string {
   if (total === 5) {
     const labels = [
       `Stronger match: ${leftText}`,
@@ -90,7 +99,10 @@ function createOptionLabel(position: number, total: number, leftText: string, ri
 }
 
 function parseClassList(value: string | undefined): string[] {
-  return (value ?? "").split(/\s+/).map((item) => item.trim()).filter(Boolean);
+  return (value ?? "")
+    .split(/\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function hasAllClasses(value: string | undefined, requiredClasses: readonly string[]): boolean {
@@ -114,7 +126,8 @@ function parseDocument(html: string): Document | null {
 }
 
 function extractQuestionBlocks(html: string): string[] {
-  const blockPattern = /<div\b[^>]*class="[^"]*\bquestion\b[^"]*\bquestion-radio\b[^"]*"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gim;
+  const blockPattern =
+    /<div\b[^>]*class="[^"]*\bquestion\b[^"]*\bquestion-radio\b[^"]*"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gim;
 
   return [...html.matchAll(blockPattern)].map((match) => match[0] ?? "");
 }
@@ -140,38 +153,37 @@ function parsePairChoiceDescriptorsFromDocument(doc: Document): PairChoiceDescri
     doc.querySelectorAll<HTMLElement>(".question.question-radio, .question-radio")
   );
 
-  const descriptors: Array<PairChoiceDescriptor | null> = containers
-    .map((container, order) => {
-      const labels = Array.from(container.querySelectorAll<HTMLElement>("span.radio-label"))
-        .map((element) => normalizeText(element.textContent ?? ""))
-        .filter((label) => label.length > 0);
-      const inputValues = Array.from(
-        container.querySelectorAll<HTMLInputElement>('input[type="radio"]')
-      )
-        .map((input) => normalizeText(input.value))
-        .filter((value) => value.length > 0);
+  const descriptors: Array<PairChoiceDescriptor | null> = containers.map((container, order) => {
+    const labels = Array.from(container.querySelectorAll<HTMLElement>("span.radio-label"))
+      .map((element) => normalizeText(element.textContent ?? ""))
+      .filter((label) => label.length > 0);
+    const inputValues = Array.from(
+      container.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+    )
+      .map((input) => normalizeText(input.value))
+      .filter((value) => value.length > 0);
 
-      if (labels.length < 2 || inputValues.length < 3) {
-        return null;
-      }
+    if (labels.length < 2 || inputValues.length < 3) {
+      return null;
+    }
 
-      const leftText = labels[0] ?? "";
-      const rightText = labels[labels.length - 1] ?? "";
+    const leftText = labels[0] ?? "";
+    const rightText = labels[labels.length - 1] ?? "";
 
-      return {
-        order,
-        leftText,
-        rightText,
-        promptText: createPairPromptText(leftText, rightText),
-        promptKey: createPairPromptKey(leftText, rightText),
-        locatorHint: createPairLocatorHint(leftText, rightText),
-        options: inputValues.map((value, position) => ({
-          id: value,
-          text: createOptionLabel(position, inputValues.length, leftText, rightText),
-          value
-        }))
-      } satisfies PairChoiceDescriptor;
-    });
+    return {
+      order,
+      leftText,
+      rightText,
+      promptText: createPairPromptText(leftText, rightText),
+      promptKey: createPairPromptKey(leftText, rightText),
+      locatorHint: createPairLocatorHint(leftText, rightText),
+      options: inputValues.map((value, position) => ({
+        id: value,
+        text: createOptionLabel(position, inputValues.length, leftText, rightText),
+        value
+      }))
+    } satisfies PairChoiceDescriptor;
+  });
 
   return descriptors.filter(isDefined);
 }
@@ -187,8 +199,8 @@ function parsePairChoiceDescriptors(html: string): PairChoiceDescriptor[] {
     }
   }
 
-  const descriptors: Array<PairChoiceDescriptor | null> = extractQuestionBlocks(html)
-    .map((blockHtml, order) => {
+  const descriptors: Array<PairChoiceDescriptor | null> = extractQuestionBlocks(html).map(
+    (blockHtml, order) => {
       const labels = extractBlockLabels(blockHtml);
       const inputValues = extractBlockInputValues(blockHtml);
 
@@ -212,7 +224,8 @@ function parsePairChoiceDescriptors(html: string): PairChoiceDescriptor[] {
           value
         }))
       } satisfies PairChoiceDescriptor;
-    });
+    }
+  );
 
   return descriptors.filter(isDefined);
 }
@@ -316,7 +329,9 @@ function resolveQuestionContainers(document: Document): Element[] {
 
 function resolveContainerLabels(container: Element): string[] {
   return Array.from(container.querySelectorAll("span"))
-    .filter((element) => parseClassList(element.getAttribute("class") ?? undefined).includes("radio-label"))
+    .filter((element) =>
+      parseClassList(element.getAttribute("class") ?? undefined).includes("radio-label")
+    )
     .map((element) => normalizeText(element.textContent ?? ""))
     .filter((label) => label.length > 0);
 }
@@ -359,7 +374,10 @@ function resolveQuestionInputGroupForSelection(
 }
 
 function createFill(config: PairChoiceSiteConfig) {
-  return (context: AdapterFillContext, selections: readonly AnswerFillSelection[]): AnswerFillResult => {
+  return (
+    context: AdapterFillContext,
+    selections: readonly AnswerFillSelection[]
+  ): AnswerFillResult => {
     if (!matchesSiteUrl(context, config.path)) {
       throw new Error(`Unsupported fill target URL: ${context.url}`);
     }
@@ -376,7 +394,9 @@ function createFill(config: PairChoiceSiteConfig) {
       }
 
       const optionId = selection.selectedOptionIds[0];
-      const input = inputGroup.find((candidate) => normalizeText(candidate.value) === normalizeText(optionId));
+      const input = inputGroup.find(
+        (candidate) => normalizeText(candidate.value) === normalizeText(optionId)
+      );
 
       if (!input) {
         throw new Error(

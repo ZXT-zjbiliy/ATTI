@@ -67,12 +67,10 @@ export interface SiteAdapter {
   readonly descriptor: SiteAdapterDescriptor;
   matches: (context: AdapterMatchContext) => boolean;
   isSupportedAssessmentPage?: (context: AdapterPageContext) => boolean;
-  locateQuestionRegions?: (
-    context: AdapterPageContext,
-  ) => QuestionRegionLocatorResult;
+  locateQuestionRegions?: (context: AdapterPageContext) => QuestionRegionLocatorResult;
   extractQuestions?: (context: AdapterPageContext) => QuestionExtractionResult;
   fillAnswers?: (
     context: AdapterFillContext,
-    selections: readonly AnswerFillSelection[],
+    selections: readonly AnswerFillSelection[]
   ) => AnswerFillResult | Promise<AnswerFillResult>;
 }

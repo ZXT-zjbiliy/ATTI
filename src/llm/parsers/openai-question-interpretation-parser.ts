@@ -8,9 +8,7 @@ const questionInterpretationResponseSchema = z.object({
   inferredIntent: z.string().min(1)
 });
 
-export function parseOpenAiQuestionInterpretationResponse(
-  rawText: string
-): QuestionInterpretation {
+export function parseOpenAiQuestionInterpretationResponse(rawText: string): QuestionInterpretation {
   return questionInterpretationResponseSchema.parse(JSON.parse(rawText));
 }
 

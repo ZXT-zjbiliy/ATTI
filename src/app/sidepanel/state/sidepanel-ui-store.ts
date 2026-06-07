@@ -20,7 +20,7 @@ export type SidepanelUiStore = SidepanelUiState & SidepanelUiActions;
 export const sidepanelUiInitialState: SidepanelUiState = {
   activeSection: "overview",
   isBusy: false,
-  selectedSessionId: null,
+  selectedSessionId: null
 };
 
 export const createSidepanelUiStore = () =>
@@ -37,7 +37,7 @@ export const createSidepanelUiStore = () =>
     },
     reset: () => {
       set(sidepanelUiInitialState);
-    },
+    }
   }));
 
 export const sidepanelUiStore = createSidepanelUiStore();

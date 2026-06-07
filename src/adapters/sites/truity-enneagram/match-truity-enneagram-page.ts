@@ -1,7 +1,4 @@
-import type {
-  AdapterMatchContext,
-  AdapterPageContext,
-} from "../../base/site-adapter";
+import type { AdapterMatchContext, AdapterPageContext } from "../../base/site-adapter";
 import { extractVisibleTextLines, TRUITY_STEP_MARKER_PATTERN } from "./truity-enneagram-text";
 
 const TRUITY_HOSTNAME = "www.truity.com";
@@ -16,24 +13,17 @@ function tryParseUrl(url: string): URL | null {
   }
 }
 
-export function matchesTruityEnneagramUrl(
-  context: AdapterMatchContext,
-): boolean {
+export function matchesTruityEnneagramUrl(context: AdapterMatchContext): boolean {
   const parsedUrl = tryParseUrl(context.url);
 
   if (!parsedUrl) {
     return false;
   }
 
-  return (
-    parsedUrl.hostname === TRUITY_HOSTNAME &&
-    parsedUrl.pathname === TRUITY_ENNEAGRAM_PATH
-  );
+  return parsedUrl.hostname === TRUITY_HOSTNAME && parsedUrl.pathname === TRUITY_ENNEAGRAM_PATH;
 }
 
-export function isSupportedTruityEnneagramAssessmentPage(
-  context: AdapterPageContext,
-): boolean {
+export function isSupportedTruityEnneagramAssessmentPage(context: AdapterPageContext): boolean {
   if (!matchesTruityEnneagramUrl(context)) {
     return false;
   }

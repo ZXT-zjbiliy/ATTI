@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-import {
-  adapterDiagnosticsDraftSchema,
-  adapterDiagnosticsSchema
-} from "../../shared/schemas";
+import { adapterDiagnosticsDraftSchema, adapterDiagnosticsSchema } from "../../shared/schemas";
 import type { AdapterDiagnostics } from "../../shared/types";
 import { attiDb, type AttiDatabase } from "../db";
 
@@ -24,9 +21,7 @@ function createDiagnosticsId(): string {
   return `adapter-diagnostics-${Date.now()}`;
 }
 
-function buildDiagnosticsRecord(
-  draft: AdapterDiagnosticsDraft
-): AdapterDiagnostics {
+function buildDiagnosticsRecord(draft: AdapterDiagnosticsDraft): AdapterDiagnostics {
   return {
     id: createDiagnosticsId(),
     sessionId: draft.sessionId,
@@ -40,13 +35,9 @@ function buildDiagnosticsRecord(
 }
 
 export class AdapterDiagnosticsRepository {
-  constructor(
-    private readonly database: Pick<AttiDatabase, "adapterDiagnostics"> = attiDb
-  ) {}
+  constructor(private readonly database: Pick<AttiDatabase, "adapterDiagnostics"> = attiDb) {}
 
-  async writeDiagnostic(
-    draft: AdapterDiagnosticsDraft
-  ): Promise<AdapterDiagnostics> {
+  async writeDiagnostic(draft: AdapterDiagnosticsDraft): Promise<AdapterDiagnostics> {
     const validatedDraft = adapterDiagnosticsDraftSchema.parse(draft);
     const diagnosticsRecord = adapterDiagnosticsSchema.parse(
       buildDiagnosticsRecord(validatedDraft)

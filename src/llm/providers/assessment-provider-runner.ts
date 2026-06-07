@@ -2,7 +2,7 @@ import type {
   AnswerPlanningResult,
   AssessmentProvider,
   ProfileSummary,
-  QuestionInterpretation,
+  QuestionInterpretation
 } from "./assessment-provider";
 import type { Profile, Question } from "../../shared/types";
 
@@ -10,17 +10,17 @@ export interface AssessmentProviderRunner {
   summarizeProfile: (profile: Profile) => Promise<ProfileSummary>;
   interpretQuestion: (
     question: Question,
-    profileSummary: ProfileSummary,
+    profileSummary: ProfileSummary
   ) => Promise<QuestionInterpretation>;
   planAnswers: (
     sessionId: string,
     questions: Question[],
-    profile: Profile,
+    profile: Profile
   ) => Promise<AnswerPlanningResult>;
 }
 
 export function createAssessmentProviderRunner(
-  provider: AssessmentProvider,
+  provider: AssessmentProvider
 ): AssessmentProviderRunner {
   return {
     summarizeProfile(profile) {
@@ -31,6 +31,6 @@ export function createAssessmentProviderRunner(
     },
     planAnswers(sessionId, questions, profile) {
       return provider.planAnswers({ sessionId, questions, profile });
-    },
+    }
   };
 }

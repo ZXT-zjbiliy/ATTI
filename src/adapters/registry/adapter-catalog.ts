@@ -15,5 +15,5 @@ export const siteAdapterCatalog: readonly SiteAdapter[] = [
   sixteenPersonalitiesSiteAdapter,
   sbtiSiteAdapter,
   genericFallbackSiteAdapter,
-  placeholderSiteAdapter,
+  placeholderSiteAdapter
 ];

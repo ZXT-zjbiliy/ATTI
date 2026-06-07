@@ -6,10 +6,7 @@ const PLACEHOLDER_PATH_PREFIX = "/assessment-shell";
 function matchesPlaceholderUrl(context: AdapterMatchContext): boolean {
   const url = new URL(context.url);
 
-  return (
-    url.hostname === PLACEHOLDER_HOSTNAME &&
-    url.pathname.startsWith(PLACEHOLDER_PATH_PREFIX)
-  );
+  return url.hostname === PLACEHOLDER_HOSTNAME && url.pathname.startsWith(PLACEHOLDER_PATH_PREFIX);
 }
 
 export const placeholderSiteAdapter: SiteAdapter = {
@@ -19,10 +16,10 @@ export const placeholderSiteAdapter: SiteAdapter = {
     capabilities: {
       supportsQuestionExtraction: false,
       supportsPreview: false,
-      supportsFill: false,
-    },
+      supportsFill: false
+    }
   },
   matches(context) {
     return matchesPlaceholderUrl(context);
-  },
+  }
 };

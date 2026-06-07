@@ -16,14 +16,12 @@ type SidePanelPreviewMessage =
   | AnswerPlanReviewSaveMessage;
 
 export type RecommendationPreviewMessageSender = (
-  message: SidePanelPreviewMessage,
+  message: SidePanelPreviewMessage
 ) => Promise<AppResult> | AppResult;
 
 export interface RecommendationPreviewClient {
   fetchLatestPreview: () => Promise<{ session: Session; preview: RecommendationPreview } | null>;
-  saveReview: (
-    input: AnswerPlanReviewSaveMessage["payload"],
-  ) => Promise<RecommendationPreviewItem>;
+  saveReview: (input: AnswerPlanReviewSaveMessage["payload"]) => Promise<RecommendationPreviewItem>;
 }
 
 type RuntimeWithMessaging = typeof globalThis & {
@@ -65,12 +63,12 @@ function matchesSessionPageUrl(sessionPageUrl: string, activeTabUrl: string): bo
 
 export function createRecommendationPreviewClient(
   sendMessage: RecommendationPreviewMessageSender = resolveRuntimeMessageSender(),
-  activeTabClient: ActiveTabClient = createActiveTabClient(),
+  activeTabClient: ActiveTabClient = createActiveTabClient()
 ): RecommendationPreviewClient {
   return {
     async fetchLatestPreview() {
       const latestSession = unwrapResult<Session | null>(
-        await sendMessage({ type: MESSAGE_TYPES.sessionLatestFetch, payload: {} }),
+        await sendMessage({ type: MESSAGE_TYPES.sessionLatestFetch, payload: {} })
       );
 
       if (!latestSession) {
@@ -86,8 +84,8 @@ export function createRecommendationPreviewClient(
       const preview = unwrapResult<RecommendationPreview>(
         await sendMessage({
           type: MESSAGE_TYPES.recommendationPreviewFetch,
-          payload: { sessionId: latestSession.id },
-        }),
+          payload: { sessionId: latestSession.id }
+        })
       );
 
       return { session: latestSession, preview };
@@ -96,8 +94,8 @@ export function createRecommendationPreviewClient(
       return unwrapResult<RecommendationPreviewItem>(
         await sendMessage({
           type: MESSAGE_TYPES.answerPlanReviewSave,
-          payload: input,
-        }),
+          payload: input
+        })
       );
     }
   };

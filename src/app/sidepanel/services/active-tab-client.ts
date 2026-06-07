@@ -49,7 +49,9 @@ function resolveTabsApi(): BrowserTabsApi | null {
   return (globalThis as RuntimeWithTabs).chrome?.tabs ?? null;
 }
 
-export function createActiveTabClient(tabsApi: BrowserTabsApi | null = resolveTabsApi()): ActiveTabClient {
+export function createActiveTabClient(
+  tabsApi: BrowserTabsApi | null = resolveTabsApi()
+): ActiveTabClient {
   return {
     async fetchActiveTabUrl() {
       if (!tabsApi) {

@@ -166,7 +166,7 @@ export function getProviderConfigurationState(
   const resolvedApiUrl =
     normalizedActiveProvider === "compatible"
       ? normalizeCompatibleProviderUrl(normalizedProviderBaseUrl)
-      : normalizedProviderBaseUrl ?? preset.defaultApiUrl;
+      : (normalizedProviderBaseUrl ?? preset.defaultApiUrl);
   const resolvedModel = normalizedProviderModel ?? preset.defaultModel;
   const missingBaseUrl = preset.requiresCustomBaseUrl && !resolvedApiUrl;
   const missingModel = preset.requiresCustomModel && !resolvedModel;

@@ -6,7 +6,11 @@ describe("background runtime", () => {
   it("returns a structured error response when background handling rejects", async () => {
     const sendResponse = vi.fn();
     let listener:
-      | ((message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void)
+      | ((
+          message: unknown,
+          sender: unknown,
+          sendResponse: (response: unknown) => void
+        ) => boolean | void)
       | undefined;
 
     const previousChrome = globalThis.chrome;
@@ -18,20 +22,32 @@ describe("background runtime", () => {
             listener = nextListener;
           }
         }
+      },
+      storage: {
+        local: {
+          get: vi.fn(),
+          set: vi.fn()
+        }
       }
     });
 
-    const originalCreateBackgroundMessageRouterModule = await import("../../src/background/message-router");
-    const originalCreatePermissionGuardModule = await import("../../src/background/services/permission-guard");
-    const originalCreateSessionManagerModule = await import("../../src/background/services/session-manager");
-    const originalCreateBackgroundOrchestratorModule = await import("../../src/background/services/orchestrator");
+    const originalCreateBackgroundMessageRouterModule =
+      await import("../../src/background/message-router");
+    const originalCreatePermissionGuardModule =
+      await import("../../src/background/services/permission-guard");
+    const originalCreateSessionManagerModule =
+      await import("../../src/background/services/session-manager");
+    const originalCreateBackgroundOrchestratorModule =
+      await import("../../src/background/services/orchestrator");
 
     const routerSpy = vi
       .spyOn(originalCreateBackgroundMessageRouterModule, "createBackgroundMessageRouter")
       .mockReturnValue({} as never);
     const permissionSpy = vi
       .spyOn(originalCreatePermissionGuardModule, "createPermissionGuard")
-      .mockReturnValue({ canProcessBackgroundMessages: () => true });
+      .mockReturnValue({
+        canProcessBackgroundMessage: vi.fn(async () => ({ allowed: true }))
+      });
     const sessionSpy = vi
       .spyOn(originalCreateSessionManagerModule, "createSessionManager")
       .mockReturnValue({ getCurrentSessionId: () => null });

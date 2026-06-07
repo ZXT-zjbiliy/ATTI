@@ -13,8 +13,7 @@ const sixteenPersonalitiesFixtureHtml = readFileSync(
   resolve(process.cwd(), "tests/fixtures/adapters/sixteen-personalities-assessment.html"),
   "utf8"
 );
-const sixteenPersonalitiesAssessmentUrl =
-  "https://www.16personalities.com/free-personality-test";
+const sixteenPersonalitiesAssessmentUrl = "https://www.16personalities.com/free-personality-test";
 
 function createInteractiveSixteenPersonalitiesFixture() {
   return sixteenPersonalitiesFixtureHtml.replace(
@@ -71,12 +70,10 @@ async function configureOpenAiProvider(
 }
 
 async function fillSavedProfileDraft(sidepanelPage: import("@playwright/test").Page) {
-  await sidepanelPage.getByLabel("画像摘要").fill(
-    "I prefer friendly but exploratory choices."
-  );
-  await sidepanelPage.getByLabel("证据备注").fill(
-    "Enjoy meeting new people\nExplore random topics"
-  );
+  await sidepanelPage.getByLabel("画像摘要").fill("I prefer friendly but exploratory choices.");
+  await sidepanelPage
+    .getByLabel("证据备注")
+    .fill("Enjoy meeting new people\nExplore random topics");
   await sidepanelPage.getByRole("button", { name: "保存本地画像草稿" }).click();
   await expect(sidepanelPage.getByText("本地画像草稿已保存。")).toBeVisible();
 }
@@ -126,16 +123,18 @@ test.describe("e2e: 16Personalities trial flow", () => {
       await fillSavedProfileDraft(sidepanelPage);
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
-      await expect(sidepanelPage.getByText("会话状态：answer-fill-complete")).toBeVisible();
+      await expect(sidepanelPage.getByText("会话状态：answer-planning-complete")).toBeVisible();
       await expect(
-        sidepanelPage.getByRole("article", { name: "推荐 1" }).getByText(
-          "You regularly make new friends."
-        )
+        sidepanelPage
+          .getByRole("article", { name: "推荐 1" })
+          .getByText("You regularly make new friends.")
       ).toBeVisible();
       await expect(
-        sidepanelPage.getByRole("article", { name: "推荐 2" }).getByText(
-          "You spend a lot of your free time exploring various random topics that pique your interest."
-        )
+        sidepanelPage
+          .getByRole("article", { name: "推荐 2" })
+          .getByText(
+            "You spend a lot of your free time exploring various random topics that pique your interest."
+          )
       ).toBeVisible();
       await expect(sidepanelPage.getByText("页面填写：Agree")).toBeVisible();
       await expect(sidepanelPage.getByText("页面填写：Slightly Disagree")).toBeVisible();
@@ -159,10 +158,22 @@ test.describe("e2e: 16Personalities trial flow", () => {
 
       await expect(
         assessmentPage.locator('[data-atti-16p-question="question-1"]')
-      ).toHaveAttribute("data-atti-selected-value", "2");
+      ).not.toHaveAttribute("data-atti-selected-value", "2");
       await expect(
         assessmentPage.locator('[data-atti-16p-question="question-2"]')
-      ).toHaveAttribute("data-atti-selected-value", "5");
+      ).not.toHaveAttribute("data-atti-selected-value", "5");
+
+      await sidepanelPage.getByRole("button", { name: "应用推荐填写" }).click();
+      await expect(sidepanelPage.getByText("会话状态：answer-fill-complete")).toBeVisible();
+
+      await expect(assessmentPage.locator('[data-atti-16p-question="question-1"]')).toHaveAttribute(
+        "data-atti-selected-value",
+        "2"
+      );
+      await expect(assessmentPage.locator('[data-atti-16p-question="question-2"]')).toHaveAttribute(
+        "data-atti-selected-value",
+        "5"
+      );
     } finally {
       await openAiRoute.dispose();
       await extensionHandle.close();
@@ -209,9 +220,9 @@ test.describe("e2e: 16Personalities trial flow", () => {
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
       await expect(sidepanelPage.getByText("OpenAI provider 返回了非成功状态码。")).toBeVisible();
-      await expect(
-        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
-      ).toHaveCount(0);
+      await expect(sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")).toHaveCount(
+        0
+      );
 
       const openAiCalls = await openAiRoute.getCalls();
       expect(openAiCalls).toHaveLength(1);
@@ -265,12 +276,8 @@ test.describe("e2e: 16Personalities trial flow", () => {
       await fillSavedProfileDraft(sidepanelPage);
 
       await sidepanelPage.getByRole("button", { name: "开始 AI 规划" }).click();
-      await expect(
-        sidepanelPage.getByText("当前会话没有可执行填写的推荐结果")
-      ).toBeVisible();
-      await expect(
-        sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")
-      ).toBeVisible();
+      await expect(sidepanelPage.getByText("会话状态：answer-planning-complete")).toBeVisible();
+      await expect(sidepanelPage.getByText("已加载 2 道题，其中 2 条已有 AI 推荐。")).toBeVisible();
       await expect(
         sidepanelPage.getByText("质量状态：已降级（low-confidence, placeholder-rationale）")
       ).toHaveCount(2);
@@ -280,6 +287,9 @@ test.describe("e2e: 16Personalities trial flow", () => {
       await expect(
         assessmentPage.locator('[data-atti-16p-question="question-2"]')
       ).not.toHaveAttribute("data-atti-selected-value", "5");
+
+      await sidepanelPage.getByRole("button", { name: "应用推荐填写" }).click();
+      await expect(sidepanelPage.getByText("当前会话没有可执行填写的推荐结果")).toBeVisible();
     } finally {
       await openAiRoute.dispose();
       await extensionHandle.close();

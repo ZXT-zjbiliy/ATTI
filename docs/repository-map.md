@@ -44,6 +44,8 @@ Grouped documentation now lives under:
   Implementation plans and staged execution plans.
 - `docs/versioning.md`
   Repository release-version rule using `x.y.z`.
+- `docs/release-confidence-gate.md`
+  Required and advisory release validation gates for local handoff and CI.
 - `docs/prompts/zh-CN/`
   Chinese workflow prompt packs.
 - `docs/guides/zh-CN/`

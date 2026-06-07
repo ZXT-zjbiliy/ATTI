@@ -62,6 +62,7 @@ These rules are mandatory and must always be applied.
 - `Always`: After every major feature or milestone, update [memory-bank/@architecture.md](./memory-bank/@architecture.md).
 - `Always`: Keep repository and release versions in `x.y.z` format as documented in [docs/versioning.md](./docs/versioning.md).
 - `Always`: For any repository version change, produce an Edge build artifact; use `pnpm build:edge` by default.
+- `Always`: Before release handoff or CI confidence checks, run the release confidence gate documented in [docs/release-confidence-gate.md](./docs/release-confidence-gate.md).
 - `Always`: Keep the codebase modular and multi-file. Split by domain, runtime, and feature.
 - `Always`: Do not create monolithic files that mix UI, storage, LLM, and DOM automation logic.
 - `Always`: Validate all external inputs with `Zod`.

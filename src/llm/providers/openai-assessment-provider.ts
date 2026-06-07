@@ -1,7 +1,4 @@
-import {
-  profileSchema,
-  questionSchema
-} from "../../shared/schemas";
+import { profileSchema, questionSchema } from "../../shared/schemas";
 import type { Profile, Question } from "../../shared/types";
 import { buildOpenAiAnswerPlanningPrompt } from "../prompts/openai-answer-planning-prompt";
 import { buildOpenAiProfileSummaryPrompt } from "../prompts/openai-profile-summary-prompt";
@@ -18,18 +15,18 @@ import {
   getOpenAiQuestionInterpretationJsonSchema,
   parseOpenAiQuestionInterpretationResponse
 } from "../parsers/openai-question-interpretation-parser";
-import type {
-  AssessmentProvider,
-  ProfileSummary
-} from "./assessment-provider";
+import type { AssessmentProvider, ProfileSummary } from "./assessment-provider";
 import { ProviderExecutionError } from "./provider-error";
+import {
+  executeProviderJsonRequest,
+  resolveProviderFetch,
+  type FetchLike
+} from "./provider-http-executor";
 
 const OPENAI_PROVIDER_ID = "openai-assessment-provider";
 const OPENAI_DEFAULT_MODEL = "gpt-5.2";
 const OPENAI_DEFAULT_API_URL = "https://api.openai.com/v1/responses";
 const OPENAI_PROMPT_VERSION = "openai-v1";
-
-type FetchLike = typeof fetch;
 
 interface OpenAiResponsesSuccess {
   readonly output_text?: string;
@@ -44,8 +41,7 @@ export interface OpenAiAssessmentProviderOptions {
 
 function resolveApiKey(explicitApiKey?: string): string {
   const apiKey =
-    explicitApiKey ??
-    (typeof process !== "undefined" ? process.env.OPENAI_API_KEY : undefined);
+    explicitApiKey ?? (typeof process !== "undefined" ? process.env.OPENAI_API_KEY : undefined);
 
   if (!apiKey) {
     throw new ProviderExecutionError({
@@ -57,31 +53,6 @@ function resolveApiKey(explicitApiKey?: string): string {
   }
 
   return apiKey;
-}
-
-function resolveFetch(fetchImpl?: FetchLike): FetchLike {
-  if (fetchImpl) {
-    return fetchImpl;
-  }
-
-  if (typeof fetch === "function") {
-    return fetch.bind(globalThis);
-  }
-
-  throw new ProviderExecutionError({
-    providerId: OPENAI_PROVIDER_ID,
-    code: "OPENAI_FETCH_UNAVAILABLE",
-    message: "当前运行环境无法为 OpenAI provider 发起网络请求。",
-    retryable: false
-  });
-}
-
-async function readErrorBody(response: Response): Promise<string> {
-  try {
-    return await response.text();
-  } catch {
-    return "";
-  }
 }
 
 async function createJsonResponse(args: {
@@ -96,10 +67,14 @@ async function createJsonResponse(args: {
   >;
   model: string;
 }): Promise<OpenAiResponsesSuccess> {
-  let response: Response;
-
-  try {
-    response = await args.fetchImpl(args.apiUrl, {
+  const data = await executeProviderJsonRequest<OpenAiResponsesSuccess>({
+    authFailedCode: "OPENAI_AUTH_FAILED",
+    authFailedMessage: "已保存的 OpenAI API key 被拒绝。请检查设置页中的 key 后重试。",
+    fetchImpl: args.fetchImpl,
+    providerId: OPENAI_PROVIDER_ID,
+    requestFailedCode: "OPENAI_REQUEST_FAILED",
+    requestFailedMessage: () => "OpenAI provider 在收到响应前请求失败。",
+    responseInit: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,37 +92,11 @@ async function createJsonResponse(args: {
           }
         }
       })
-    });
-  } catch (error) {
-    throw new ProviderExecutionError({
-      providerId: OPENAI_PROVIDER_ID,
-      code: "OPENAI_REQUEST_FAILED",
-      message: "OpenAI provider 在收到响应前请求失败。",
-      retryable: true,
-      details: {
-        cause: error instanceof Error ? error.message : "unknown"
-      }
-    });
-  }
-
-  if (!response.ok) {
-    const isAuthFailure = response.status === 401 || response.status === 403;
-
-    throw new ProviderExecutionError({
-      providerId: OPENAI_PROVIDER_ID,
-      code: isAuthFailure ? "OPENAI_AUTH_FAILED" : "OPENAI_RESPONSE_NOT_OK",
-      message: isAuthFailure
-        ? "已保存的 OpenAI API key 被拒绝。请检查设置页中的 key 后重试。"
-        : "OpenAI provider 返回了非成功状态码。",
-      statusCode: response.status,
-      retryable: response.status >= 500,
-      details: {
-        body: await readErrorBody(response)
-      }
-    });
-  }
-
-  const data = (await response.json()) as OpenAiResponsesSuccess;
+    },
+    responseNotOkCode: "OPENAI_RESPONSE_NOT_OK",
+    responseNotOkMessage: "OpenAI provider 返回了非成功状态码。",
+    url: args.apiUrl
+  });
 
   if (!data.output_text) {
     throw new ProviderExecutionError({
@@ -164,7 +113,12 @@ async function createJsonResponse(args: {
 export function createOpenAiAssessmentProvider(
   options: OpenAiAssessmentProviderOptions = {}
 ): AssessmentProvider {
-  const fetchImpl = resolveFetch(options.fetchImpl);
+  const fetchImpl = resolveProviderFetch({
+    fetchImpl: options.fetchImpl,
+    providerId: OPENAI_PROVIDER_ID,
+    unavailableCode: "OPENAI_FETCH_UNAVAILABLE",
+    unavailableMessage: "当前运行环境无法为 OpenAI provider 发起网络请求。"
+  });
   const apiUrl = options.apiUrl ?? OPENAI_DEFAULT_API_URL;
   const model = options.model ?? OPENAI_DEFAULT_MODEL;
 

@@ -1,7 +1,4 @@
-import type {
-  ProfilePresetAnalysisInput,
-  ProfilePresetQuestion
-} from "../../shared/types";
+import type { ProfilePresetAnalysisInput, ProfilePresetQuestion } from "../../shared/types";
 
 export const PROFILE_PRESET_QUESTIONNAIRE_VERSION = 1;
 
@@ -77,7 +74,9 @@ export function resolveProfilePresetAnswers(
     const option = question?.options.find((item) => item.id === answer.selectedOptionId);
 
     if (!question || !option) {
-      throw new Error(`Invalid preset profile answer: ${answer.questionId}/${answer.selectedOptionId}`);
+      throw new Error(
+        `Invalid preset profile answer: ${answer.questionId}/${answer.selectedOptionId}`
+      );
     }
 
     return {

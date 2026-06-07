@@ -2,14 +2,14 @@ import type {
   AppResult,
   Settings,
   SettingsFetchMessage,
-  SettingsUpdateMessage,
+  SettingsUpdateMessage
 } from "../../../shared/types";
 import { MESSAGE_TYPES } from "../../../shared/types";
 
 export type OptionsMessageResult = Promise<AppResult> | AppResult;
 
 export type OptionsMessageSender = (
-  message: SettingsFetchMessage | SettingsUpdateMessage,
+  message: SettingsFetchMessage | SettingsUpdateMessage
 ) => OptionsMessageResult;
 
 export interface OptionsSettingsClient {
@@ -21,7 +21,7 @@ type RuntimeWithMessaging = typeof globalThis & {
   chrome?: {
     runtime?: {
       sendMessage?: (
-        message: SettingsFetchMessage | SettingsUpdateMessage,
+        message: SettingsFetchMessage | SettingsUpdateMessage
       ) => Promise<AppResult> | AppResult;
     };
   };
@@ -46,12 +46,12 @@ function unwrapResult(result: AppResult): Settings {
 }
 
 export function createOptionsSettingsClient(
-  sendMessage: OptionsMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: OptionsMessageSender = resolveRuntimeMessageSender()
 ): OptionsSettingsClient {
   const fetchSettings = async (): Promise<Settings> => {
     const result = await sendMessage({
       type: MESSAGE_TYPES.settingsFetch,
-      payload: {},
+      payload: {}
     });
 
     return unwrapResult(result);
@@ -66,12 +66,12 @@ export function createOptionsSettingsClient(
         payload: {
           settings: {
             ...currentSettings,
-            ...patch,
-          },
-        },
+            ...patch
+          }
+        }
       });
 
       return unwrapResult(result);
-    },
+    }
   };
 }

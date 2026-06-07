@@ -149,8 +149,7 @@ export function ProviderSelectionSection({
         <p className="atti-status-text">当前模型：{providerStatus.resolvedModel}</p>
       ) : null}
       <p className="atti-status-text">
-        API 密钥状态：
-        {" "}
+        API 密钥状态：{" "}
         {providerStatus?.usesRemoteProvider
           ? providerStatus.hasProviderApiKey
             ? "已保存在本地"

@@ -1,7 +1,4 @@
-import type {
-  AppResult,
-  ContentMetadataReportMessage,
-} from "../../shared/types";
+import type { AppResult, ContentMetadataReportMessage } from "../../shared/types";
 import type { BackgroundMessageHandler } from "./types";
 
 export const handleContentMetadataReportMessage: BackgroundMessageHandler<
@@ -11,7 +8,7 @@ export const handleContentMetadataReportMessage: BackgroundMessageHandler<
     ok: true,
     data: {
       received: true,
-      pageUrl: message.payload.page.url,
-    },
+      pageUrl: message.payload.page.url
+    }
   };
 };

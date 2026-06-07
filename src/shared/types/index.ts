@@ -37,10 +37,7 @@ export type {
   SettingsFetchMessage,
   SettingsUpdateMessage
 } from "./messages";
-export {
-  CONTENT_COMMAND_TYPES,
-  MESSAGE_TYPES
-} from "./messages";
+export { CONTENT_COMMAND_TYPES, MESSAGE_TYPES } from "./messages";
 export type {
   AnswerFillApplyCommand,
   QuestionExtractionRunCommand,

@@ -1,6 +1,6 @@
 {
   "name": "atti",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.0",
@@ -21,6 +21,10 @@
     "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
     "test:watch": "vitest --configLoader native",
     "typecheck": "tsc --noEmit",
+    "quality:advisory": "node scripts/release-confidence-gate.mjs --advisory-quality",
+    "quality:strict": "node scripts/release-confidence-gate.mjs --strict-quality",
+    "release:check": "node scripts/release-confidence-gate.mjs",
+    "release:check:e2e": "node scripts/release-confidence-gate.mjs --with-e2e",
     "postinstall": "wxt prepare"
   },
   "dependencies": {

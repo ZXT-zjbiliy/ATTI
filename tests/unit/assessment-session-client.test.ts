@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { createAssessmentSessionClient } from "../../src/app/sidepanel/services/assessment-session-client";
-import type { AnswerFillRunMessage, AnswerPlanningRunMessage, AppResult } from "../../src/shared/types";
+import type {
+  AnswerFillRunMessage,
+  AnswerPlanningRunMessage,
+  AppResult
+} from "../../src/shared/types";
 
 type SupportedAssessmentSessionMessage = AnswerPlanningRunMessage | AnswerFillRunMessage;
 

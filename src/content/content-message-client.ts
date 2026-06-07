@@ -4,7 +4,7 @@ import type {
   ContentQuestionExtractionFailedMessage,
   ContentQuestionsExtractedMessage,
   ContentMetadataReportMessage,
-  ExtractedQuestionDraft,
+  ExtractedQuestionDraft
 } from "../shared/types";
 import { MESSAGE_TYPES } from "../shared/types";
 
@@ -14,15 +14,13 @@ export type ContentRuntimeMessage =
   | ContentQuestionExtractionFailedMessage;
 
 export type ContentRuntimeMessageSender = (
-  message: ContentRuntimeMessage,
+  message: ContentRuntimeMessage
 ) => Promise<AppResult> | AppResult;
 
 type GlobalWithChromeRuntime = typeof globalThis & {
   chrome?: {
     runtime?: {
-      sendMessage?: (
-        message: ContentRuntimeMessage,
-      ) => Promise<AppResult> | AppResult;
+      sendMessage?: (message: ContentRuntimeMessage) => Promise<AppResult> | AppResult;
     };
   };
 };
@@ -39,15 +37,15 @@ export function resolveRuntimeMessageSender(): ContentRuntimeMessageSender {
 
 export async function reportContentPageMetadata(
   page: ContentPageMetadata,
-  sendMessage: ContentRuntimeMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: ContentRuntimeMessageSender = resolveRuntimeMessageSender()
 ): Promise<AppResult> {
   return Promise.resolve(
     sendMessage({
       type: MESSAGE_TYPES.contentMetadataReport,
       payload: {
-        page,
-      },
-    }),
+        page
+      }
+    })
   );
 }
 
@@ -57,24 +55,24 @@ export async function reportExtractedQuestions(
     page: ContentPageMetadata;
     questions: ExtractedQuestionDraft[];
   },
-  sendMessage: ContentRuntimeMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: ContentRuntimeMessageSender = resolveRuntimeMessageSender()
 ): Promise<AppResult> {
   return Promise.resolve(
     sendMessage({
       type: MESSAGE_TYPES.contentQuestionsExtracted,
-      payload: args,
-    }),
+      payload: args
+    })
   );
 }
 
 export async function reportQuestionExtractionFailure(
   args: ContentQuestionExtractionFailedMessage["payload"],
-  sendMessage: ContentRuntimeMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: ContentRuntimeMessageSender = resolveRuntimeMessageSender()
 ): Promise<AppResult> {
   return Promise.resolve(
     sendMessage({
       type: MESSAGE_TYPES.contentQuestionExtractionFailed,
-      payload: args,
-    }),
+      payload: args
+    })
   );
 }

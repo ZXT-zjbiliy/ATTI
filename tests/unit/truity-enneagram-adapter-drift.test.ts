@@ -47,7 +47,10 @@ class FakeElement {
   }
 
   querySelectorAll<TElement extends FakeElement = FakeElement>(selector: string): TElement[] {
-    const selectors = selector.split(",").map((item) => item.trim()).filter(Boolean);
+    const selectors = selector
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
     const matches: TElement[] = [];
 
     for (const child of this.children) {
@@ -66,7 +69,7 @@ class FakeElement {
       return this.tagName === "fieldset";
     }
 
-    if (selector === 'fieldset[data-atti-question-block]') {
+    if (selector === "fieldset[data-atti-question-block]") {
       return this.tagName === "fieldset" && "data-atti-question-block" in this.attributes;
     }
 
@@ -79,9 +82,7 @@ class FakeElement {
     }
 
     if (selector.startsWith(".")) {
-      return (this.attributes.class ?? "")
-        .split(/\s+/)
-        .includes(selector.slice(1));
+      return (this.attributes.class ?? "").split(/\s+/).includes(selector.slice(1));
     }
 
     return this.tagName === selector.toLowerCase();

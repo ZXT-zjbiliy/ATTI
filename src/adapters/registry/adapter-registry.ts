@@ -22,12 +22,12 @@ function assertUniqueSiteIds(adapters: readonly SiteAdapter[]): void {
 }
 
 export function createAdapterRegistry(
-  adapters: readonly SiteAdapter[] = siteAdapterCatalog,
+  adapters: readonly SiteAdapter[] = siteAdapterCatalog
 ): AdapterRegistry {
   const stableAdapters = [...adapters];
   const descriptorIndex = stableAdapters.map((adapter) => adapter.descriptor);
   const adapterBySiteId = new Map(
-    stableAdapters.map((adapter) => [adapter.descriptor.siteId, adapter] as const),
+    stableAdapters.map((adapter) => [adapter.descriptor.siteId, adapter] as const)
   );
 
   assertUniqueSiteIds(stableAdapters);
@@ -44,7 +44,7 @@ export function createAdapterRegistry(
     },
     findMatchingAdapter(context) {
       return stableAdapters.find((adapter) => adapter.matches(context)) ?? null;
-    },
+    }
   };
 }
 

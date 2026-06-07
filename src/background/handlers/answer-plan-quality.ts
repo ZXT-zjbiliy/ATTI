@@ -20,9 +20,7 @@ function getQualityIssues(answerPlan: AnswerPlan): string[] {
     qualityIssues.push("low-confidence");
   }
 
-  if (
-    PLACEHOLDER_RATIONALE_PATTERNS.some((pattern) => normalizedRationale.includes(pattern))
-  ) {
+  if (PLACEHOLDER_RATIONALE_PATTERNS.some((pattern) => normalizedRationale.includes(pattern))) {
     qualityIssues.push("placeholder-rationale");
   }
 

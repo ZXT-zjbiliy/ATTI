@@ -1,16 +1,18 @@
 import type {
-    AdapterFillContext,
-    AnswerFillSelection,
-    ExtractedQuestionDraft,
-    QuestionRegionLocatorResult,
-    SiteAdapter,
+  AdapterFillContext,
+  AnswerFillSelection,
+  ExtractedQuestionDraft,
+  QuestionRegionLocatorResult,
+  SiteAdapter
 } from "../base/site-adapter";
 
 const FALLBACK_FEATURE_FLAG_NAME = "fallbackAdapter";
 let fallbackEnabledOverride = false;
 
-const GENERIC_ASSESSMENT_SIGNAL = /\b(test|quiz|assessment|personality|survey|inventory|question)\b|测评|测试|测验|问卷|人格|性格|题目/iu;
-const GENERIC_NEGATIVE_SIGNAL = /\b(placeholder\.assessment\.local|localhost|127\.0\.0\.1|admin|dashboard|login|signup|checkout|cart|payment)\b|登录|注册|结账|购物|支付|付款/iu;
+const GENERIC_ASSESSMENT_SIGNAL =
+  /\b(test|quiz|assessment|personality|survey|inventory|question)\b|测评|测试|测验|问卷|人格|性格|题目/iu;
+const GENERIC_NEGATIVE_SIGNAL =
+  /\b(placeholder\.assessment\.local|localhost|127\.0\.0\.1|admin|dashboard|login|signup|checkout|cart|payment)\b|登录|注册|结账|购物|支付|付款/iu;
 
 const GENERIC_QUESTION_BLOCK_SELECTORS = [
   "fieldset",
@@ -33,7 +35,7 @@ const GENERIC_QUESTION_BLOCK_SELECTORS = [
   ".question-wrapper",
   ".answer-block",
   ".answer-group",
-  ".options",
+  ".options"
 ];
 
 const GENERIC_OPTION_SELECTORS = [
@@ -46,7 +48,7 @@ const GENERIC_OPTION_SELECTORS = [
   "[class*='choice']",
   "[class*='answer']",
   "[class*='item']",
-  "[class*='button']",
+  "[class*='button']"
 ].join(",");
 
 const GENERIC_PROMPT_SELECTORS =
@@ -64,7 +66,8 @@ function normalizeText(value: string | null | undefined): string {
 }
 
 function getGlobalFeatureFlags(): Record<string, boolean> | undefined {
-  return (globalThis as unknown as { __ATTI_FEATURE_FLAGS__?: Record<string, boolean> }).__ATTI_FEATURE_FLAGS__;
+  return (globalThis as unknown as { __ATTI_FEATURE_FLAGS__?: Record<string, boolean> })
+    .__ATTI_FEATURE_FLAGS__;
 }
 
 function getDomParserConstructor(): typeof DOMParser | undefined {
@@ -82,7 +85,7 @@ function parseDocument(html: string): Document | null {
 
 function hasDisallowedHtmlSignal(html: string): boolean {
   return /\b(password|login|sign in|sign-up|register|checkout|cart|payment|credit card|billing|captcha|verify|verification)\b|鐧诲綍|娉ㄥ唽|缁撹处|璐墿|鏀粯|浠樻/iu.test(
-    html,
+    html
   );
 }
 
@@ -91,8 +94,14 @@ function hasAssessmentHtmlSignal(html: string, title?: string): boolean {
 }
 
 function hasQuestionBlockHtmlSignal(html: string): boolean {
-  const promptCount = (html.match(/question|prompt|survey|assessment|quiz|legend|fieldset|闂嵎|娴嬭瘯|娴嬭瘎|棰樼洰/giu) ?? []).length;
-  const optionCount = (html.match(/radio|checkbox|button|option|choice|answer|鍚屾剰|涓嶅悓鎰?/giu) ?? []).length;
+  const promptCount = (
+    html.match(
+      /question|prompt|survey|assessment|quiz|legend|fieldset|闂嵎|娴嬭瘯|娴嬭瘎|棰樼洰/giu
+    ) ?? []
+  ).length;
+  const optionCount = (
+    html.match(/radio|checkbox|button|option|choice|answer|鍚屾剰|涓嶅悓鎰?/giu) ?? []
+  ).length;
 
   return promptCount >= 2 && optionCount >= 4;
 }
@@ -111,10 +120,12 @@ function extractQuestionsFromHtmlWithoutDom(html: string): ExtractedQuestionDraf
     return html.slice(startIndex, nextStartIndex);
   });
 
-  const questions = blockHtmlChunks.reduce<ExtractedQuestionDraft[]>((allQuestions, blockHtml, questionIndex) => {
+  const questions = blockHtmlChunks.reduce<ExtractedQuestionDraft[]>(
+    (allQuestions, blockHtml, questionIndex) => {
       const promptMatch =
-        blockHtml.match(/<div[^>]*class=["'][^"']*(?:question|prompt|title|headline)[^"']*["'][^>]*>([\s\S]*?)<\/div>/iu) ??
-        blockHtml.match(/<legend[^>]*>([\s\S]*?)<\/legend>/iu);
+        blockHtml.match(
+          /<div[^>]*class=["'][^"']*(?:question|prompt|title|headline)[^"']*["'][^>]*>([\s\S]*?)<\/div>/iu
+        ) ?? blockHtml.match(/<legend[^>]*>([\s\S]*?)<\/legend>/iu);
       const prompt = stripHtmlTags(promptMatch?.[1] ?? "");
 
       if (prompt.length < 5) {
@@ -122,9 +133,12 @@ function extractQuestionsFromHtmlWithoutDom(html: string): ExtractedQuestionDraf
       }
 
       const optionMatches = Array.from(
-        blockHtml.matchAll(/<div[^>]*class=["'][^"']*(?:answer|option|choice|item|button)[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu),
+        blockHtml.matchAll(
+          /<div[^>]*class=["'][^"']*(?:answer|option|choice|item|button)[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu
+        )
       );
-      const options = optionMatches.reduce<FallbackQuestionOption[]>((allOptions, optionMatch, optionIndex) => {
+      const options = optionMatches.reduce<FallbackQuestionOption[]>(
+        (allOptions, optionMatch, optionIndex) => {
           const text = stripHtmlTags(optionMatch[1] ?? "");
           if (text.length === 0) {
             return allOptions;
@@ -133,11 +147,13 @@ function extractQuestionsFromHtmlWithoutDom(html: string): ExtractedQuestionDraf
           allOptions.push({
             id: `${questionIndex}-${optionIndex}`,
             text,
-            value: text,
+            value: text
           });
 
           return allOptions;
-        }, []);
+        },
+        []
+      );
 
       if (options.length < 2) {
         return allQuestions;
@@ -148,26 +164,33 @@ function extractQuestionsFromHtmlWithoutDom(html: string): ExtractedQuestionDraf
         text: prompt,
         type: "single-choice",
         options,
-        order: questionIndex,
+        order: questionIndex
       });
 
       return allQuestions;
-    }, []);
+    },
+    []
+  );
 
   if (questions.length > 0) {
     return questions;
   }
 
   const promptMatches = Array.from(
-    html.matchAll(/<div[^>]*class=["'][^"']*(?:question|prompt|title|headline)[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu),
+    html.matchAll(
+      /<div[^>]*class=["'][^"']*(?:question|prompt|title|headline)[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu
+    )
   );
   const optionMatches = Array.from(
-    html.matchAll(/<div[^>]*class=["'][^"']*(?:answer|option|choice|item|button)[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu),
+    html.matchAll(
+      /<div[^>]*class=["'][^"']*(?:answer|option|choice|item|button)[^"']*["'][^>]*>([\s\S]*?)<\/div>/giu
+    )
   );
 
   if (promptMatches.length >= 1 && optionMatches.length >= 2) {
     const prompt = stripHtmlTags(promptMatches[0]?.[1] ?? "");
-    const options = optionMatches.reduce<FallbackQuestionOption[]>((allOptions, optionMatch, optionIndex) => {
+    const options = optionMatches.reduce<FallbackQuestionOption[]>(
+      (allOptions, optionMatch, optionIndex) => {
         const text = stripHtmlTags(optionMatch[1] ?? "");
         if (text.length === 0) {
           return allOptions;
@@ -176,11 +199,13 @@ function extractQuestionsFromHtmlWithoutDom(html: string): ExtractedQuestionDraf
         allOptions.push({
           id: `0-${optionIndex}`,
           text,
-          value: text,
+          value: text
         });
 
         return allOptions;
-      }, []);
+      },
+      []
+    );
 
     if (prompt.length >= 5 && options.length >= 2) {
       return [
@@ -189,8 +214,8 @@ function extractQuestionsFromHtmlWithoutDom(html: string): ExtractedQuestionDraf
           text: prompt,
           type: "single-choice",
           options,
-          order: 0,
-        },
+          order: 0
+        }
       ];
     }
   }
@@ -226,9 +251,9 @@ function isNegativeSignal(url: string, title: string): boolean {
 function hasAssessmentPageSignal(doc: Document, title?: string): boolean {
   const hintText = [
     title,
-    ...Array.from(doc.querySelectorAll("meta[name='description'], meta[name='keywords'], meta[property^='og:']")).map(
-      (element) => element.getAttribute("content") ?? "",
-    ),
+    ...Array.from(
+      doc.querySelectorAll("meta[name='description'], meta[name='keywords'], meta[property^='og:']")
+    ).map((element) => element.getAttribute("content") ?? "")
   ]
     .join(" ")
     .toLowerCase();
@@ -236,7 +261,9 @@ function hasAssessmentPageSignal(doc: Document, title?: string): boolean {
   const pageText = [
     hintText,
     normalizeText(doc.body?.textContent),
-    ...Array.from(doc.querySelectorAll(GENERIC_PROMPT_SELECTORS)).map((element) => normalizeText(element.textContent)),
+    ...Array.from(doc.querySelectorAll(GENERIC_PROMPT_SELECTORS)).map((element) =>
+      normalizeText(element.textContent)
+    )
   ]
     .join(" ")
     .toLowerCase();
@@ -245,7 +272,11 @@ function hasAssessmentPageSignal(doc: Document, title?: string): boolean {
 }
 
 function hasDisallowedPageStructure(doc: Document): boolean {
-  if (doc.querySelector("input[type='password'], input[name*='password'], button[type='submit'][value*='login'], button[type='submit'][value*='sign in']")) {
+  if (
+    doc.querySelector(
+      "input[type='password'], input[name*='password'], button[type='submit'][value*='login'], button[type='submit'][value*='sign in']"
+    )
+  ) {
     return true;
   }
 
@@ -254,7 +285,7 @@ function hasDisallowedPageStructure(doc: Document): boolean {
     const formText = normalizeText(formElement.textContent).toLowerCase();
     if (
       /\b(checkout|cart|payment|credit card|billing|invoice|subscribe|subscription|coupon|promo|order summary|login|sign in|sign-up|register|password|captcha|verify|verification)\b|登录|注册|结账|购物|支付|付款/.test(
-        formText,
+        formText
       )
     ) {
       return true;
@@ -264,7 +295,10 @@ function hasDisallowedPageStructure(doc: Document): boolean {
   return false;
 }
 
-function hasAssessmentPageContentSignal(context: { readonly title?: string; readonly html?: string }): boolean {
+function hasAssessmentPageContentSignal(context: {
+  readonly title?: string;
+  readonly html?: string;
+}): boolean {
   if (!context.html) {
     return false;
   }
@@ -275,7 +309,10 @@ function hasAssessmentPageContentSignal(context: { readonly title?: string; read
       return false;
     }
 
-    return hasAssessmentHtmlSignal(context.html, context.title) || hasQuestionBlockHtmlSignal(context.html);
+    return (
+      hasAssessmentHtmlSignal(context.html, context.title) ||
+      hasQuestionBlockHtmlSignal(context.html)
+    );
   }
 
   if (hasDisallowedPageStructure(doc)) {
@@ -313,7 +350,9 @@ function isLikelyOptionCandidate(element: Element): boolean {
 
 function findFallbackOptionCandidates(block: Element): Element[] {
   const fallbackOptions = Array.from(
-    block.querySelectorAll(":scope > div, :scope > li, :scope > a, :scope > span, :scope > button, :scope > label"),
+    block.querySelectorAll(
+      ":scope > div, :scope > li, :scope > a, :scope > span, :scope > button, :scope > label"
+    )
   ).filter((element) => isLikelyOptionCandidate(element));
 
   return fallbackOptions;
@@ -335,40 +374,44 @@ function looksLikeOptionOnlyBlock(prompt: string, optionElements: Element[]): bo
 
 // Question extraction helpers
 function locateQuestionBlocks(doc: Document): Element[] {
-  const fieldsetCandidates = Array.from(doc.querySelectorAll("fieldset")).filter((fieldset) =>
-    fieldset.querySelector(GENERIC_OPTION_SELECTORS) !== null,
+  const fieldsetCandidates = Array.from(doc.querySelectorAll("fieldset")).filter(
+    (fieldset) => fieldset.querySelector(GENERIC_OPTION_SELECTORS) !== null
   );
 
-  const sectionCandidates = Array.from(doc.querySelectorAll(GENERIC_QUESTION_BLOCK_SELECTORS.join(","))).filter((element) =>
-    element.querySelector(GENERIC_OPTION_SELECTORS) !== null,
+  const sectionCandidates = Array.from(
+    doc.querySelectorAll(GENERIC_QUESTION_BLOCK_SELECTORS.join(","))
+  ).filter((element) => element.querySelector(GENERIC_OPTION_SELECTORS) !== null);
+
+  const heuristicCandidates = Array.from(doc.querySelectorAll("div, section, article, li")).filter(
+    (element) => {
+      if (normalizeText(element.textContent).length < 10) {
+        return false;
+      }
+
+      const prompt = extractPromptText(element);
+      if (prompt.length < 5) {
+        return false;
+      }
+
+      const options = extractOptionElements(element);
+      if (looksLikeOptionOnlyBlock(prompt, options)) {
+        return false;
+      }
+      if (options.length >= 2) {
+        return true;
+      }
+
+      const fallbackOptions = findFallbackOptionCandidates(element);
+      if (looksLikeOptionOnlyBlock(prompt, fallbackOptions)) {
+        return false;
+      }
+      return fallbackOptions.length >= 2;
+    }
   );
 
-  const heuristicCandidates = Array.from(doc.querySelectorAll("div, section, article, li")).filter((element) => {
-    if (normalizeText(element.textContent).length < 10) {
-      return false;
-    }
-
-    const prompt = extractPromptText(element);
-    if (prompt.length < 5) {
-      return false;
-    }
-
-    const options = extractOptionElements(element);
-    if (looksLikeOptionOnlyBlock(prompt, options)) {
-      return false;
-    }
-    if (options.length >= 2) {
-      return true;
-    }
-
-    const fallbackOptions = findFallbackOptionCandidates(element);
-    if (looksLikeOptionOnlyBlock(prompt, fallbackOptions)) {
-      return false;
-    }
-    return fallbackOptions.length >= 2;
-  });
-
-  const candidates = Array.from(new Set([...fieldsetCandidates, ...sectionCandidates, ...heuristicCandidates]));
+  const candidates = Array.from(
+    new Set([...fieldsetCandidates, ...sectionCandidates, ...heuristicCandidates])
+  );
 
   return candidates
     .filter((element) => {
@@ -379,8 +422,9 @@ function locateQuestionBlocks(doc: Document): Element[] {
       return !looksLikeOptionOnlyBlock(prompt, fallbackOptions);
     })
     .filter((element) => normalizeText(element.textContent).length > 0)
-    .filter((element, _, allCandidates) =>
-      !allCandidates.some((other) => other !== element && other.contains(element))
+    .filter(
+      (element, _, allCandidates) =>
+        !allCandidates.some((other) => other !== element && other.contains(element))
     )
     .slice(0, 30);
 }
@@ -428,7 +472,9 @@ function extractOptionValue(optionElement: Element): string {
   }
 
   if (optionElement instanceof HTMLLabelElement) {
-    const input = optionElement.querySelector<HTMLInputElement>("input[type='radio'], input[type='checkbox']");
+    const input = optionElement.querySelector<HTMLInputElement>(
+      "input[type='radio'], input[type='checkbox']"
+    );
     if (input?.value) {
       return normalizeText(input.value);
     }
@@ -455,25 +501,35 @@ function extractOptionValue(optionElement: Element): string {
 }
 
 function extractOptionElements(block: Element): Element[] {
-  const labelElements = Array.from(block.querySelectorAll("label")).filter((label) => normalizeText(label.textContent).length > 0);
+  const labelElements = Array.from(block.querySelectorAll("label")).filter(
+    (label) => normalizeText(label.textContent).length > 0
+  );
 
   if (labelElements.length > 0) {
     return labelElements;
   }
 
-  const radioInputs = Array.from(block.querySelectorAll("input[type='radio'], input[type='checkbox']"));
+  const radioInputs = Array.from(
+    block.querySelectorAll("input[type='radio'], input[type='checkbox']")
+  );
 
   if (radioInputs.length > 0) {
     return radioInputs;
   }
 
-  const buttonElements = Array.from(block.querySelectorAll("button, [role='radio'], [role='option']")).filter((button) => normalizeText(button.textContent).length > 0);
+  const buttonElements = Array.from(
+    block.querySelectorAll("button, [role='radio'], [role='option']")
+  ).filter((button) => normalizeText(button.textContent).length > 0);
 
   if (buttonElements.length > 0) {
     return buttonElements;
   }
 
-  const styledOptions = Array.from(block.querySelectorAll("[class*='option'], [class*='choice'], [class*='answer'], [class*='item'], [class*='button'], .option, .choice, .answer-option, .answer-choice, .quiz-option, [data-option], [role='listitem']")).filter((element) => normalizeText(element.textContent).length > 0);
+  const styledOptions = Array.from(
+    block.querySelectorAll(
+      "[class*='option'], [class*='choice'], [class*='answer'], [class*='item'], [class*='button'], .option, .choice, .answer-option, .answer-choice, .quiz-option, [data-option], [role='listitem']"
+    )
+  ).filter((element) => normalizeText(element.textContent).length > 0);
   if (styledOptions.length > 0) {
     return styledOptions;
   }
@@ -501,13 +557,17 @@ function extractPromptText(block: Element): string {
   }
 
   const textContent = normalizeText(block.textContent);
-  const firstLine = textContent.split("\n").map((line) => line.trim()).find((line) => line.length > 0);
+  const firstLine = textContent
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.length > 0);
 
   return firstLine ?? "";
 }
 
 function extractQuestionsFromDocument(doc: Document): ExtractedQuestionDraft[] {
-  return locateQuestionBlocks(doc).reduce<ExtractedQuestionDraft[]>((questions, block, questionIndex) => {
+  return locateQuestionBlocks(doc).reduce<ExtractedQuestionDraft[]>(
+    (questions, block, questionIndex) => {
       const prompt = extractPromptText(block);
       const optionElements = extractOptionElements(block);
 
@@ -515,7 +575,8 @@ function extractQuestionsFromDocument(doc: Document): ExtractedQuestionDraft[] {
         return questions;
       }
 
-      const options = optionElements.reduce<FallbackQuestionOption[]>((allOptions, element, optionIndex) => {
+      const options = optionElements.reduce<FallbackQuestionOption[]>(
+        (allOptions, element, optionIndex) => {
           const text = extractOptionText(element);
           if (text.length === 0) {
             return allOptions;
@@ -526,11 +587,13 @@ function extractQuestionsFromDocument(doc: Document): ExtractedQuestionDraft[] {
           allOptions.push({
             id: `${questionIndex}-${optionIndex}`,
             text,
-            value,
+            value
           });
 
           return allOptions;
-        }, []);
+        },
+        []
+      );
 
       if (options.length < 2 || options.length > 10) {
         return questions;
@@ -541,13 +604,14 @@ function extractQuestionsFromDocument(doc: Document): ExtractedQuestionDraft[] {
         text: prompt,
         type: "single-choice",
         options,
-        order: questionIndex,
+        order: questionIndex
       });
 
       return questions;
-    }, []);
+    },
+    []
+  );
 }
-
 
 function buildLocatorHint(question: ExtractedQuestionDraft): string {
   return `fallback-question-${question.order}-${question.text
@@ -556,14 +620,16 @@ function buildLocatorHint(question: ExtractedQuestionDraft): string {
     .replace(/(^-|-$)/g, "")}`;
 }
 
-function buildQuestionRegionLocatorResults(questions: ExtractedQuestionDraft[]): QuestionRegionLocatorResult {
+function buildQuestionRegionLocatorResults(
+  questions: ExtractedQuestionDraft[]
+): QuestionRegionLocatorResult {
   return {
     isSupportedAssessmentPage: questions.length >= 1,
     questionRegions: questions.map((question) => ({
       order: question.order,
       promptText: question.text,
-      locatorHint: buildLocatorHint(question),
-    })),
+      locatorHint: buildLocatorHint(question)
+    }))
   };
 }
 
@@ -574,7 +640,9 @@ function getOptionMatchCandidates(element: Element): string[] {
   const ariaLabel = normalizeText(element.getAttribute("aria-label"));
   const id = normalizeText((element as HTMLElement).id);
   const value = element instanceof HTMLInputElement ? normalizeText(element.value) : "";
-  const candidates = [id, value, dataValue, ariaLabel, text].filter((candidate) => candidate.length > 0);
+  const candidates = [id, value, dataValue, ariaLabel, text].filter(
+    (candidate) => candidate.length > 0
+  );
 
   if (element instanceof HTMLLabelElement) {
     const forId = normalizeText(element.getAttribute("for"));
@@ -589,7 +657,7 @@ function getOptionMatchCandidates(element: Element): string[] {
 function findMatchingOptionElement(
   document: Document,
   questionOrder: number,
-  selection: AnswerFillSelection,
+  selection: AnswerFillSelection
 ): HTMLInputElement | HTMLElement | null {
   const blocks = locateQuestionBlocks(document);
   const block = blocks[questionOrder];
@@ -597,13 +665,17 @@ function findMatchingOptionElement(
     return null;
   }
 
-  const candidateInputs = Array.from(block.querySelectorAll<HTMLInputElement>("input[type='radio'], input[type='checkbox']"));
+  const candidateInputs = Array.from(
+    block.querySelectorAll<HTMLInputElement>("input[type='radio'], input[type='checkbox']")
+  );
   const candidateLabels = Array.from(block.querySelectorAll<HTMLLabelElement>("label"));
   const candidateGenericOptions = extractOptionElements(block).filter(
-    (element) => !(element instanceof HTMLInputElement) && !(element instanceof HTMLLabelElement),
+    (element) => !(element instanceof HTMLInputElement) && !(element instanceof HTMLLabelElement)
   ) as HTMLElement[];
 
-  const candidates = Array.from(new Set([...candidateInputs, ...candidateLabels, ...candidateGenericOptions])) as Array<HTMLInputElement | HTMLElement>;
+  const candidates = Array.from(
+    new Set([...candidateInputs, ...candidateLabels, ...candidateGenericOptions])
+  ) as Array<HTMLInputElement | HTMLElement>;
   const targetValues = selection.selectedOptionIds.map(normalizeText);
 
   for (const option of candidates) {
@@ -653,8 +725,8 @@ export const genericFallbackSiteAdapter: SiteAdapter = {
     capabilities: {
       supportsQuestionExtraction: true,
       supportsPreview: true,
-      supportsFill: true,
-    },
+      supportsFill: false
+    }
   },
   matches(context) {
     if (!isFallbackAdapterEnabled()) {
@@ -715,7 +787,7 @@ export const genericFallbackSiteAdapter: SiteAdapter = {
     if (!doc) {
       return {
         isSupportedAssessmentPage: false,
-        questionRegions: [],
+        questionRegions: []
       };
     }
     const questions = extractQuestionsFromDocument(doc);
@@ -728,14 +800,14 @@ export const genericFallbackSiteAdapter: SiteAdapter = {
       const questions = extractQuestionsFromHtmlWithoutDom(context.html);
       return {
         questionCount: questions.length,
-        questions,
+        questions
       };
     }
     const questions = extractQuestionsFromDocument(doc);
 
     return {
       questionCount: questions.length,
-      questions,
+      questions
     };
   },
   fillAnswers(context: AdapterFillContext, selections) {
@@ -749,5 +821,5 @@ export const genericFallbackSiteAdapter: SiteAdapter = {
     }
 
     return { filledCount };
-  },
+  }
 };

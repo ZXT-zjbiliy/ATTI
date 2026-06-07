@@ -8,7 +8,7 @@ import type {
 import { MESSAGE_TYPES } from "../../../shared/types";
 
 export type SessionDebugMessageSender = (
-  message: SessionLatestFetchMessage | SessionHistoryFetchMessage,
+  message: SessionLatestFetchMessage | SessionHistoryFetchMessage
 ) => Promise<AppResult> | AppResult;
 
 export interface SessionDebugClient {
@@ -20,7 +20,7 @@ type RuntimeWithMessaging = typeof globalThis & {
   chrome?: {
     runtime?: {
       sendMessage?: (
-        message: SessionLatestFetchMessage | SessionHistoryFetchMessage,
+        message: SessionLatestFetchMessage | SessionHistoryFetchMessage
       ) => Promise<AppResult> | AppResult;
     };
   };
@@ -45,7 +45,7 @@ function unwrapResult<TData>(result: AppResult): TData {
 }
 
 export function createSessionDebugClient(
-  sendMessage: SessionDebugMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: SessionDebugMessageSender = resolveRuntimeMessageSender()
 ): SessionDebugClient {
   return {
     async fetchLatestSession() {

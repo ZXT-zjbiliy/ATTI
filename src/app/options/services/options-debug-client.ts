@@ -1,13 +1,10 @@
 import type { Profile, Session, SessionHistoryEntry, Settings } from "../../../shared/types";
-import { createProfileDraftClient, type ProfileDraftClient } from "../../sidepanel/services/profile-draft-client";
 import {
-  createOptionsSettingsClient,
-  type OptionsSettingsClient
-} from "./options-settings-client";
-import {
-  createSessionDebugClient,
-  type SessionDebugClient
-} from "./session-debug-client";
+  createProfileDraftClient,
+  type ProfileDraftClient
+} from "../../sidepanel/services/profile-draft-client";
+import { createOptionsSettingsClient, type OptionsSettingsClient } from "./options-settings-client";
+import { createSessionDebugClient, type SessionDebugClient } from "./session-debug-client";
 
 export interface DebugSnapshot {
   readonly runtimeName: "options";
@@ -34,16 +31,17 @@ function buildLastSessionSummary(session: Session | null): string {
 export function createOptionsDebugClient(
   settingsClient: OptionsSettingsClient = createOptionsSettingsClient(),
   profileClient: ProfileDraftClient = createProfileDraftClient(),
-  sessionClient: SessionDebugClient = createSessionDebugClient(),
+  sessionClient: SessionDebugClient = createSessionDebugClient()
 ): OptionsDebugClient {
   return {
     async fetchDebugSnapshot() {
-      const [activeSettings, activeProfile, latestSession, recentSessionHistory] = await Promise.all([
-        settingsClient.fetchSettings(),
-        profileClient.fetchActiveProfile(),
-        sessionClient.fetchLatestSession(),
-        sessionClient.fetchRecentSessionHistory()
-      ]);
+      const [activeSettings, activeProfile, latestSession, recentSessionHistory] =
+        await Promise.all([
+          settingsClient.fetchSettings(),
+          profileClient.fetchActiveProfile(),
+          sessionClient.fetchLatestSession(),
+          sessionClient.fetchRecentSessionHistory()
+        ]);
 
       return {
         runtimeName: "options",

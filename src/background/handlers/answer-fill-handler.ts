@@ -11,6 +11,16 @@ function createErrorResult(code: string, message: string): AppResult {
   };
 }
 
+const GENERIC_FALLBACK_SITE_ID = "generic-fallback-assessment";
+const GENERIC_FALLBACK_FILL_FLAG = "genericFallbackFill";
+
+function isGenericFallbackFillAllowed(settings: {
+  debugMode: boolean;
+  featureFlags: Record<string, boolean>;
+}): boolean {
+  return settings.debugMode || settings.featureFlags[GENERIC_FALLBACK_FILL_FLAG] === true;
+}
+
 export const handleAnswerFillRunMessage: BackgroundMessageHandler<AnswerFillRunMessage> = async (
   message,
   context
@@ -18,10 +28,14 @@ export const handleAnswerFillRunMessage: BackgroundMessageHandler<AnswerFillRunM
   const session = await context.sessionRepository.getSessionById(message.payload.sessionId);
 
   if (!session) {
-    return createErrorResult("SESSION_NOT_FOUND", `Session not found: ${message.payload.sessionId}`);
+    return createErrorResult(
+      "SESSION_NOT_FOUND",
+      `Session not found: ${message.payload.sessionId}`
+    );
   }
 
-  const [questions, answerPlans] = await Promise.all([
+  const [settings, questions, answerPlans] = await Promise.all([
+    context.settingsRepository.getSettings(),
     context.questionRepository.listBySessionId(session.id),
     context.answerPlanRepository.listBySessionId(session.id)
   ]);
@@ -79,6 +93,27 @@ export const handleAnswerFillRunMessage: BackgroundMessageHandler<AnswerFillRunM
     );
   }
 
+  if (session.siteId === GENERIC_FALLBACK_SITE_ID && !isGenericFallbackFillAllowed(settings)) {
+    await context.adapterDiagnosticsRepository.writeDiagnostic({
+      sessionId: session.id,
+      siteId: session.siteId,
+      selectorVersion: "answer-fill-v1",
+      phase: "answer-fill",
+      message: "Generic fallback fill is disabled by default.",
+      payload: {
+        failureBoundary: "router-policy",
+        failureStage: "answer-fill-gating",
+        failureCategory: "policy",
+        requiredFeatureFlag: GENERIC_FALLBACK_FILL_FLAG
+      }
+    });
+
+    return createErrorResult(
+      "GENERIC_FALLBACK_FILL_DISABLED",
+      "实验性 generic fallback 页面默认只允许预览，不允许填写；如需调试填写，请开启 debug mode 或 genericFallbackFill feature flag。"
+    );
+  }
+
   if (!context.contentAutomationGateway) {
     return createErrorResult(
       "CONTENT_AUTOMATION_UNAVAILABLE",
@@ -87,10 +122,13 @@ export const handleAnswerFillRunMessage: BackgroundMessageHandler<AnswerFillRunM
   }
 
   try {
+    const allowGenericFallbackFill =
+      session.siteId === GENERIC_FALLBACK_SITE_ID && isGenericFallbackFillAllowed(settings);
     const fillResult = await context.contentAutomationGateway.applyAnswerFill({
       pageUrl: session.pageUrl,
       sessionId: session.id,
       siteId: session.siteId,
+      allowGenericFallbackFill,
       selections: approvedSelections
     });
 

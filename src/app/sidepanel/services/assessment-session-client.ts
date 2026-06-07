@@ -8,7 +8,7 @@ import type {
 import { MESSAGE_TYPES } from "../../../shared/types";
 
 export type AssessmentSessionMessageSender = (
-  message: AnswerPlanningRunMessage | AnswerFillRunMessage | ContentExtractionRunMessage,
+  message: AnswerPlanningRunMessage | AnswerFillRunMessage | ContentExtractionRunMessage
 ) => Promise<AppResult> | AppResult;
 
 export interface AssessmentSessionClient {
@@ -21,7 +21,7 @@ type RuntimeWithMessaging = typeof globalThis & {
   chrome?: {
     runtime?: {
       sendMessage?: (
-        message: AnswerPlanningRunMessage | AnswerFillRunMessage | ContentExtractionRunMessage,
+        message: AnswerPlanningRunMessage | AnswerFillRunMessage | ContentExtractionRunMessage
       ) => Promise<AppResult> | AppResult;
     };
   };
@@ -46,7 +46,7 @@ function unwrapResult<TData>(result: AppResult): TData {
 }
 
 export function createAssessmentSessionClient(
-  sendMessage: AssessmentSessionMessageSender = resolveRuntimeMessageSender(),
+  sendMessage: AssessmentSessionMessageSender = resolveRuntimeMessageSender()
 ): AssessmentSessionClient {
   return {
     async runAnswerPlanning(sessionId) {

@@ -1,12 +1,12 @@
 import type {
-    AdapterFillContext,
-    AdapterMatchContext,
-    AdapterPageContext,
-    AnswerFillResult,
-    AnswerFillSelection,
-    ExtractedQuestionDraft,
-    QuestionRegionLocatorResult,
-    SiteAdapter,
+  AdapterFillContext,
+  AdapterMatchContext,
+  AdapterPageContext,
+  AnswerFillResult,
+  AnswerFillSelection,
+  ExtractedQuestionDraft,
+  QuestionRegionLocatorResult,
+  SiteAdapter
 } from "../base/site-adapter";
 
 const SIXTEEN_PERSONALITIES_HOSTNAME = "www.16personalities.com";
@@ -22,7 +22,7 @@ const FIXED_SIXTEEN_PERSONALITIES_OPTIONS: ExtractedQuestionDraft["options"] = [
   { id: "4", text: "Neutral", value: "4" },
   { id: "5", text: "Slightly Disagree", value: "5" },
   { id: "6", text: "Disagree", value: "6" },
-  { id: "7", text: "Strongly Disagree", value: "7" },
+  { id: "7", text: "Strongly Disagree", value: "7" }
 ];
 
 function normalizeText(text: string): string {
@@ -37,7 +37,7 @@ function stripHtmlTags(text: string): string {
   return text
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, "\"")
+    .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
@@ -77,7 +77,7 @@ export function matchesSixteenPersonalitiesTestUrl(context: AdapterMatchContext)
 }
 
 export function isSupportedSixteenPersonalitiesAssessmentPage(
-  context: AdapterPageContext,
+  context: AdapterPageContext
 ): boolean {
   if (!matchesSixteenPersonalitiesTestUrl(context)) {
     return false;
@@ -111,20 +111,18 @@ function collectQuestionContainers(doc: Document): HTMLElement[] {
     "[data-question-id]",
     "fieldset",
     "section",
-    "article",
+    "article"
   ];
 
-  return Array.from(doc.querySelectorAll<HTMLElement>(selectors.join(","))).filter(
-    (container) => {
-      const promptText = resolvePromptText(container);
-      if (!promptText || promptText.length < 10) {
-        return false;
-      }
+  return Array.from(doc.querySelectorAll<HTMLElement>(selectors.join(","))).filter((container) => {
+    const promptText = resolvePromptText(container);
+    if (!promptText || promptText.length < 10) {
+      return false;
+    }
 
-      const optionElements = collectOptionElements(container);
-      return optionElements.length >= 5;
-    },
-  );
+    const optionElements = collectOptionElements(container);
+    return optionElements.length >= 5;
+  });
 }
 
 function parseQuestionDescriptors(html: string): Array<{
@@ -164,7 +162,7 @@ function parseQuestionDescriptors(html: string): Array<{
         order: descriptors.length,
         promptText,
         locatorHint: createLocatorHint(promptText),
-        options: FIXED_SIXTEEN_PERSONALITIES_OPTIONS.map((option) => ({ ...option })),
+        options: FIXED_SIXTEEN_PERSONALITIES_OPTIONS.map((option) => ({ ...option }))
       });
       seenKeys.add(promptKey);
     }
@@ -175,14 +173,14 @@ function parseQuestionDescriptors(html: string): Array<{
   }
 
   const blockPattern =
-    /<(section|article|fieldset|div)\b[^>]*(?:data-atti-16p-question\b|class=(?:"[^"]*\bquestion-card\b[^\"]*"|'[^']*\bquestion-card\b[^']*')|class=(?:"[^"]*\bquestion\b[^"]*"|'[^']*\bquestion\b[^']*'))[^>]*>[\s\S]*?<\/\1>/gim;
+    /<(section|article|fieldset|div)\b[^>]*(?:data-atti-16p-question\b|class=(?:"[^"]*\bquestion-card\b[^"]*"|'[^']*\bquestion-card\b[^']*')|class=(?:"[^"]*\bquestion\b[^"]*"|'[^']*\bquestion\b[^']*'))[^>]*>[\s\S]*?<\/\1>/gim;
 
   for (const blockMatch of html.matchAll(blockPattern)) {
     const blockHtml = blockMatch[0] ?? "";
     const promptMatch =
       blockHtml.match(/data-atti-16p-prompt[^>]*>([\s\S]*?)<\/[^>]+>/i) ??
       blockHtml.match(
-        /<(?:h1|h2|h3|h4|p|span|div)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3|h4|p|span|div)>/i,
+        /<(?:h1|h2|h3|h4|p|span|div)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3|h4|p|span|div)>/i
       );
 
     if (!promptMatch) {
@@ -200,7 +198,7 @@ function parseQuestionDescriptors(html: string): Array<{
       order: descriptors.length,
       promptText,
       locatorHint: createLocatorHint(promptText),
-      options: FIXED_SIXTEEN_PERSONALITIES_OPTIONS.map((option) => ({ ...option })),
+      options: FIXED_SIXTEEN_PERSONALITIES_OPTIONS.map((option) => ({ ...option }))
     });
   }
 
@@ -208,12 +206,12 @@ function parseQuestionDescriptors(html: string): Array<{
 }
 
 export function locateSixteenPersonalitiesQuestionRegions(
-  context: AdapterPageContext,
+  context: AdapterPageContext
 ): QuestionRegionLocatorResult {
   if (!isSupportedSixteenPersonalitiesAssessmentPage(context)) {
     return {
       isSupportedAssessmentPage: false,
-      questionRegions: [],
+      questionRegions: []
     };
   }
 
@@ -222,18 +220,19 @@ export function locateSixteenPersonalitiesQuestionRegions(
     questionRegions: parseQuestionDescriptors(context.html).map((descriptor) => ({
       order: descriptor.order,
       promptText: descriptor.promptText,
-      locatorHint: descriptor.locatorHint,
-    })),
+      locatorHint: descriptor.locatorHint
+    }))
   };
 }
 
-export function extractSixteenPersonalitiesQuestions(
-  context: AdapterPageContext,
-): { questionCount: number; questions: readonly ExtractedQuestionDraft[] } {
+export function extractSixteenPersonalitiesQuestions(context: AdapterPageContext): {
+  questionCount: number;
+  questions: readonly ExtractedQuestionDraft[];
+} {
   if (!isSupportedSixteenPersonalitiesAssessmentPage(context)) {
     return {
       questionCount: 0,
-      questions: [],
+      questions: []
     };
   }
 
@@ -241,7 +240,7 @@ export function extractSixteenPersonalitiesQuestions(
 
   if (descriptors.length === 0) {
     throw new Error(
-      "Failed to locate 16Personalities question blocks within the adapter boundary.",
+      "Failed to locate 16Personalities question blocks within the adapter boundary."
     );
   }
 
@@ -251,14 +250,14 @@ export function extractSixteenPersonalitiesQuestions(
       text: descriptor.promptText,
       type: "single-choice-rating",
       options: descriptor.options.map((option) => ({ ...option })),
-      order: descriptor.order,
-    })),
+      order: descriptor.order
+    }))
   };
 }
 
 function matchesSelectionPrompt(
   selection: AnswerFillSelection,
-  candidateText: string | null | undefined,
+  candidateText: string | null | undefined
 ): boolean {
   return createPromptKey(candidateText ?? "") === createPromptKey(selection.questionText);
 }
@@ -276,7 +275,7 @@ function resolvePromptText(container: Element): string {
     "h4",
     "p",
     "span",
-    "div",
+    "div"
   ];
 
   for (const selector of prioritizedSelectors) {
@@ -298,7 +297,7 @@ function resolvePromptText(container: Element): string {
 
 function collectOptionElements(container: Element): HTMLElement[] {
   const directValueButtons = Array.from(
-    container.querySelectorAll<HTMLElement>("button[data-value], [role=\"radio\"][data-value]"),
+    container.querySelectorAll<HTMLElement>('button[data-value], [role="radio"][data-value]')
   );
 
   if (directValueButtons.length > 0) {
@@ -306,7 +305,7 @@ function collectOptionElements(container: Element): HTMLElement[] {
   }
 
   const radioInputs = Array.from(
-    container.querySelectorAll<HTMLInputElement>("input[type=\"radio\"]"),
+    container.querySelectorAll<HTMLInputElement>('input[type="radio"]')
   );
 
   if (radioInputs.length >= 5) {
@@ -315,8 +314,8 @@ function collectOptionElements(container: Element): HTMLElement[] {
 
   const optionCandidates = Array.from(
     container.querySelectorAll<HTMLElement>(
-      "button, [role=\"radio\"], [role=\"button\"], label, span.sp-radio, [class*=\"sp-radio\"]",
-    ),
+      'button, [role="radio"], [role="button"], label, span.sp-radio, [class*="sp-radio"]'
+    )
   ).filter((candidate) => {
     if (candidate.tagName.toLowerCase() === "label") {
       return !!candidate.querySelector('input[type="radio"]');
@@ -330,7 +329,7 @@ function collectOptionElements(container: Element): HTMLElement[] {
 
 function resolveOptionElements(
   context: AdapterFillContext,
-  selection: AnswerFillSelection,
+  selection: AnswerFillSelection
 ): HTMLElement[] | null {
   const containers = Array.from(
     context.document.querySelectorAll<HTMLElement>(
@@ -342,9 +341,9 @@ function resolveOptionElements(
         "[data-question-id]",
         "fieldset",
         "section",
-        "article",
-      ].join(", "),
-    ),
+        "article"
+      ].join(", ")
+    )
   );
 
   for (const container of containers) {
@@ -401,7 +400,7 @@ function clickOptionElement(optionElement: HTMLElement): void {
 
 export function fillSixteenPersonalitiesAnswers(
   context: AdapterFillContext,
-  selections: readonly AnswerFillSelection[],
+  selections: readonly AnswerFillSelection[]
 ): AnswerFillResult {
   if (!matchesSixteenPersonalitiesTestUrl(context)) {
     throw new Error(`Unsupported fill target URL: ${context.url}`);
@@ -414,7 +413,7 @@ export function fillSixteenPersonalitiesAnswers(
 
     if (!optionElements) {
       throw new Error(
-        `Unable to locate 16Personalities question target within adapter boundary: questionId=${selection.questionId} promptKey=${createPromptKey(selection.questionText)} order=${selection.questionOrder}`,
+        `Unable to locate 16Personalities question target within adapter boundary: questionId=${selection.questionId} promptKey=${createPromptKey(selection.questionText)} order=${selection.questionOrder}`
       );
     }
 
@@ -422,19 +421,21 @@ export function fillSixteenPersonalitiesAnswers(
       const explicitValueMatch = optionElements.find((candidate) => {
         const dataValue = normalizeText(candidate.getAttribute("data-value") ?? "");
         const radioValue = normalizeText(
-          candidate.querySelector<HTMLInputElement>('input[type="radio"]')?.value ?? "",
+          candidate.querySelector<HTMLInputElement>('input[type="radio"]')?.value ?? ""
         );
 
         return dataValue === optionId || radioValue === optionId;
       });
       const orderIndex = Number.parseInt(optionId, 10) - 1;
       const fallbackMatch =
-        Number.isFinite(orderIndex) && orderIndex >= 0 ? optionElements[orderIndex] ?? null : null;
+        Number.isFinite(orderIndex) && orderIndex >= 0
+          ? (optionElements[orderIndex] ?? null)
+          : null;
       const target = explicitValueMatch ?? fallbackMatch;
 
       if (!target) {
         throw new Error(
-          `Unable to locate 16Personalities option target: ${selection.questionId} / ${optionId}`,
+          `Unable to locate 16Personalities option target: ${selection.questionId} / ${optionId}`
         );
       }
 
@@ -445,7 +446,7 @@ export function fillSixteenPersonalitiesAnswers(
   }
 
   return {
-    filledCount,
+    filledCount
   };
 }
 
@@ -456,8 +457,8 @@ export const sixteenPersonalitiesSiteAdapter: SiteAdapter = {
     capabilities: {
       supportsQuestionExtraction: true,
       supportsPreview: false,
-      supportsFill: true,
-    },
+      supportsFill: true
+    }
   },
   matches(context) {
     return matchesSixteenPersonalitiesTestUrl(context);
@@ -473,5 +474,5 @@ export const sixteenPersonalitiesSiteAdapter: SiteAdapter = {
   },
   fillAnswers(context, selections) {
     return fillSixteenPersonalitiesAnswers(context, selections);
-  },
+  }
 };

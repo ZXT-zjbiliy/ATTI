@@ -115,7 +115,9 @@ export const handleAnswerPlanningRunMessage: BackgroundMessageHandler<
       questions,
       sessionId: session.id
     });
-    const qualityEvaluatedAnswerPlans = applyAnswerPlanQualityBaseline(structurallyValidatedAnswerPlans);
+    const qualityEvaluatedAnswerPlans = applyAnswerPlanQualityBaseline(
+      structurallyValidatedAnswerPlans
+    );
     const degradedAnswerPlans = qualityEvaluatedAnswerPlans.filter(
       (answerPlan) => answerPlan.qualityStatus === "degraded"
     );
@@ -126,10 +128,11 @@ export const handleAnswerPlanningRunMessage: BackgroundMessageHandler<
         siteId: session.siteId,
         selectorVersion: "provider-planning-v1",
         phase: "answer-planning",
-        message: `Recommendation quality degraded for question: ${degradedAnswerPlan.questionId}`.slice(
-          0,
-          200
-        ),
+        message:
+          `Recommendation quality degraded for question: ${degradedAnswerPlan.questionId}`.slice(
+            0,
+            200
+          ),
         payload: {
           providerId: provider.providerId,
           errorCode: "ANSWER_PLAN_QUALITY_DEGRADED",

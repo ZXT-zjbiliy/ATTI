@@ -68,23 +68,27 @@ describe("sidepanel recommendation preview client", () => {
             sessionId: session.id,
             siteId: session.siteId,
             sessionStatus: session.status,
-            items: previewAnswerPlan ? [{
-              answerPlanId: previewAnswerPlan.id,
-              questionId: question.id,
-              questionText: question.text,
-              questionType: question.type,
-              questionOrder: question.order,
-              hasRecommendation: true,
-              options: question.options,
-              recommendedOptionIds: previewAnswerPlan.recommendedOptionIds,
-              selectedOptionIds: previewAnswerPlan.selectedOptionIds,
-              confidence: previewAnswerPlan.confidence,
-              rationale: previewAnswerPlan.rationale,
-              requiresConfirmation: previewAnswerPlan.requiresConfirmation,
-              reviewStatus: previewAnswerPlan.reviewStatus,
-              qualityStatus: previewAnswerPlan.qualityStatus,
-              qualityIssues: previewAnswerPlan.qualityIssues
-            }] : []
+            items: previewAnswerPlan
+              ? [
+                  {
+                    answerPlanId: previewAnswerPlan.id,
+                    questionId: question.id,
+                    questionText: question.text,
+                    questionType: question.type,
+                    questionOrder: question.order,
+                    hasRecommendation: true,
+                    options: question.options,
+                    recommendedOptionIds: previewAnswerPlan.recommendedOptionIds,
+                    selectedOptionIds: previewAnswerPlan.selectedOptionIds,
+                    confidence: previewAnswerPlan.confidence,
+                    rationale: previewAnswerPlan.rationale,
+                    requiresConfirmation: previewAnswerPlan.requiresConfirmation,
+                    reviewStatus: previewAnswerPlan.reviewStatus,
+                    qualityStatus: previewAnswerPlan.qualityStatus,
+                    qualityIssues: previewAnswerPlan.qualityIssues
+                  }
+                ]
+              : []
           }
         };
       }

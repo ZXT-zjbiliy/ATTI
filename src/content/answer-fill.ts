@@ -1,12 +1,11 @@
 import type { SiteAdapter } from "../adapters/base/site-adapter";
-import type {
-  AdapterFillContext,
-  AnswerFillSelection
-} from "../adapters/base/site-adapter";
+import type { AdapterFillContext, AnswerFillSelection } from "../adapters/base/site-adapter";
 import { adapterRegistry, type AdapterRegistry } from "../adapters/registry/adapter-registry";
-import { answerFillApplyCommandSchema, questionExtractionRunCommandSchema } from "../shared/schemas";
+import {
+  answerFillApplyCommandSchema,
+  questionExtractionRunCommandSchema
+} from "../shared/schemas";
 import type { AnswerFillApplyCommand, AppResult, ContentCommand } from "../shared/types";
-import { CONTENT_COMMAND_TYPES } from "../shared/types";
 
 export interface ContentFillDependencies {
   readonly document: Document;
@@ -24,6 +23,18 @@ function createErrorResult(code: string, message: string): AppResult {
       message
     }
   };
+}
+
+const GENERIC_FALLBACK_SITE_ID = "generic-fallback-assessment";
+
+function isGenericFallbackFillBlocked(
+  command: AnswerFillApplyCommand,
+  adapter: SiteAdapter
+): boolean {
+  return (
+    adapter.descriptor.siteId === GENERIC_FALLBACK_SITE_ID &&
+    command.payload.allowGenericFallbackFill !== true
+  );
 }
 
 function resolveFillAdapter(
@@ -54,7 +65,17 @@ export async function applyAnswerFillCommand(
   });
 
   if (!adapter) {
-    return createErrorResult("ADAPTER_NOT_FOUND", `No adapter matches fill target: ${dependencies.location.href}`);
+    return createErrorResult(
+      "ADAPTER_NOT_FOUND",
+      `No adapter matches fill target: ${dependencies.location.href}`
+    );
+  }
+
+  if (isGenericFallbackFillBlocked(validatedCommand, adapter)) {
+    return createErrorResult(
+      "GENERIC_FALLBACK_FILL_DISABLED",
+      "Generic fallback fill requires an explicit background debug or feature-flag allowance."
+    );
   }
 
   if (!adapter.fillAnswers) {
@@ -71,7 +92,10 @@ export async function applyAnswerFillCommand(
   };
 
   try {
-    const result = await adapter.fillAnswers(fillContext, parseAnswerFillSelections(validatedCommand));
+    const result = await adapter.fillAnswers(
+      fillContext,
+      parseAnswerFillSelections(validatedCommand)
+    );
 
     return {
       ok: true,

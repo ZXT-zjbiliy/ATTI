@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import type { AppMessage, AppResult, AnswerFillApplyCommand, QuestionExtractionRunCommand } from "../types";
+import type {
+  AppMessage,
+  AppResult,
+  AnswerFillApplyCommand,
+  QuestionExtractionRunCommand
+} from "../types";
 import { CONTENT_COMMAND_TYPES, MESSAGE_TYPES } from "../types";
 import { answerPlanReviewStatusSchema } from "./answer-plan";
 import { adapterDiagnosticsPayloadSchema } from "./adapter-diagnostics";
@@ -164,6 +169,7 @@ export const answerFillApplyCommandSchema = z.object({
   payload: z.object({
     siteId: nonEmptyStringSchema,
     sessionId: nonEmptyStringSchema,
+    allowGenericFallbackFill: z.boolean().optional(),
     selections: z.array(contentAnswerFillSelectionSchema)
   })
 }) satisfies z.ZodType<AnswerFillApplyCommand>;

@@ -36,10 +36,7 @@ const TRUITY_NON_QUESTION_LINE_PATTERNS = [
 ];
 
 function extractAttributeValue(tagHtml: string, attributeName: string): string | null {
-  const pattern = new RegExp(
-    `${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,
-    "i"
-  );
+  const pattern = new RegExp(`${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, "i");
   const match = tagHtml.match(pattern);
 
   if (!match) {
@@ -129,10 +126,14 @@ export function parseTruityLiveQuestionDescriptors(html: string): TruityQuestion
     instructionIndex !== -1 ? instructionIndex + 1 : firstStepIndex !== -1 ? firstStepIndex + 1 : 0;
   const trailingStepIndex =
     instructionIndex !== -1
-      ? lines.findIndex((line, index) => index >= regionStart && TRUITY_STEP_MARKER_PATTERN.test(line))
+      ? lines.findIndex(
+          (line, index) => index >= regionStart && TRUITY_STEP_MARKER_PATTERN.test(line)
+        )
       : -1;
   const questionRegion =
-    trailingStepIndex === -1 ? lines.slice(regionStart) : lines.slice(regionStart, trailingStepIndex);
+    trailingStepIndex === -1
+      ? lines.slice(regionStart)
+      : lines.slice(regionStart, trailingStepIndex);
   const descriptors: TruityQuestionDescriptor[] = [];
 
   for (let index = 0; index < questionRegion.length; index += 1) {
@@ -173,7 +174,9 @@ export function parseTruityLiveQuestionDescriptors(html: string): TruityQuestion
 
     const promptText = normalizeText(promptLines.join(" "));
 
-    if (!isTruityQuestionPromptFollowedByScale([promptText, ...questionRegion.slice(scanIndex)], 0)) {
+    if (
+      !isTruityQuestionPromptFollowedByScale([promptText, ...questionRegion.slice(scanIndex)], 0)
+    ) {
       continue;
     }
 

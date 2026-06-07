@@ -1,7 +1,7 @@
 import type {
   AdapterPageContext,
   ExtractedQuestionDraft,
-  QuestionExtractionResult,
+  QuestionExtractionResult
 } from "../../base/site-adapter";
 import { isSupportedTruityEnneagramAssessmentPage } from "./match-truity-enneagram-page";
 import { parseTruityQuestionDescriptors } from "./parse-truity-enneagram-question-descriptors";
@@ -29,7 +29,9 @@ export function extractTruityEnneagramQuestions(
     questions: descriptors.map((descriptor) => ({
       text: descriptor.promptText,
       type: "single-choice-rating",
-      options: descriptor.options.map((option) => ({ ...option })) as ExtractedQuestionDraft["options"],
+      options: descriptor.options.map((option) => ({
+        ...option
+      })) as ExtractedQuestionDraft["options"],
       order: descriptor.order
     }))
   };

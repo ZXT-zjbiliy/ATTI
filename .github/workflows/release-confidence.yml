@@ -1,0 +1,27 @@
+name: Release confidence
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  release-check:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run release confidence gate
+        run: pnpm release:check

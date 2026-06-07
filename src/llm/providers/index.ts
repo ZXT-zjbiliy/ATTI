@@ -2,7 +2,7 @@ export type {
   AnswerPlanningResult,
   AssessmentProvider,
   ProfileSummary,
-  QuestionInterpretation,
+  QuestionInterpretation
 } from "./assessment-provider";
 export type { AssessmentProviderResolver } from "./assessment-provider-resolver";
 export { createAssessmentProviderResolver } from "./assessment-provider-resolver";
@@ -11,3 +11,5 @@ export { createCompatibleChatAssessmentProvider } from "./compatible-chat-assess
 export { fakeAssessmentProvider } from "./fake-assessment-provider";
 export { createOpenAiAssessmentProvider } from "./openai-assessment-provider";
 export { ProviderExecutionError } from "./provider-error";
+export type { FetchLike, ProviderJsonRequestOptions } from "./provider-http-executor";
+export { executeProviderJsonRequest, resolveProviderFetch } from "./provider-http-executor";

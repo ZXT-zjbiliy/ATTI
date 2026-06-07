@@ -186,7 +186,9 @@ describe("shared message payload schemas", () => {
     expect(pingPayloadSchema.safeParse({}).success).toBe(true);
     expect(settingsFetchPayloadSchema.safeParse({}).success).toBe(true);
     expect(sessionHistoryFetchPayloadSchema.safeParse({ limit: 5 }).success).toBe(true);
-    expect(recommendationPreviewFetchPayloadSchema.safeParse({ sessionId: "session-1" }).success).toBe(true);
+    expect(
+      recommendationPreviewFetchPayloadSchema.safeParse({ sessionId: "session-1" }).success
+    ).toBe(true);
     expect(answerFillRunPayloadSchema.safeParse({ sessionId: "session-1" }).success).toBe(true);
     expect(
       settingsUpdatePayloadSchema.safeParse({
@@ -222,7 +224,9 @@ describe("shared message payload schemas", () => {
       }).success
     ).toBe(false);
     expect(sessionFetchPayloadSchema.safeParse({ sessionId: "" }).success).toBe(false);
-    expect(recommendationPreviewFetchPayloadSchema.safeParse({ sessionId: "" }).success).toBe(false);
+    expect(recommendationPreviewFetchPayloadSchema.safeParse({ sessionId: "" }).success).toBe(
+      false
+    );
     expect(answerFillRunPayloadSchema.safeParse({ sessionId: "" }).success).toBe(false);
     expect(profileFetchPayloadSchema.safeParse({ profileId: "" }).success).toBe(false);
     expect(profilePresetAnalyzePayloadSchema.safeParse({ answers: [] }).success).toBe(false);

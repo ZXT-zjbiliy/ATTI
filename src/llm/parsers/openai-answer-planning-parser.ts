@@ -66,7 +66,7 @@ function extractBalancedJsonObject(rawText: string): string | null {
       continue;
     }
 
-    if (character === "\"") {
+    if (character === '"') {
       inString = !inString;
       continue;
     }
@@ -217,22 +217,24 @@ export function parseOpenAiAnswerPlanningResponse(args: {
   });
 
   return {
-    answerPlans: orderedAnswerPlans.map((answerPlanDraft): AnswerPlan => ({
-      id: `${args.providerId}-plan-${answerPlanDraft.questionId}`,
-      sessionId: args.sessionId,
-      questionId: answerPlanDraft.questionId,
-      recommendedOptionIds: [...answerPlanDraft.recommendedOptionIds],
-      selectedOptionIds: [...answerPlanDraft.recommendedOptionIds],
-      confidence: answerPlanDraft.confidence,
-      rationale: normalizeRationale(answerPlanDraft.rationale),
-      requiresConfirmation: answerPlanDraft.requiresConfirmation,
-      reviewStatus: "pending",
-      providerId: args.providerId,
-      promptVersion: args.promptVersion,
-      qualityStatus: "normal",
-      qualityIssues: [],
-      createdAt: new Date().toISOString()
-    }))
+    answerPlans: orderedAnswerPlans.map(
+      (answerPlanDraft): AnswerPlan => ({
+        id: `${args.providerId}-plan-${answerPlanDraft.questionId}`,
+        sessionId: args.sessionId,
+        questionId: answerPlanDraft.questionId,
+        recommendedOptionIds: [...answerPlanDraft.recommendedOptionIds],
+        selectedOptionIds: [...answerPlanDraft.recommendedOptionIds],
+        confidence: answerPlanDraft.confidence,
+        rationale: normalizeRationale(answerPlanDraft.rationale),
+        requiresConfirmation: answerPlanDraft.requiresConfirmation,
+        reviewStatus: "pending",
+        providerId: args.providerId,
+        promptVersion: args.promptVersion,
+        qualityStatus: "normal",
+        qualityIssues: [],
+        createdAt: new Date().toISOString()
+      })
+    )
   };
 }
 

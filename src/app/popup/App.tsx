@@ -23,8 +23,8 @@ export function PopupView({ model }: PopupViewProps) {
             <span className="atti-hero__eyebrow">AI 驱动的多站点过渡版</span>
             <h1 className="atti-hero__title">ATTI 智能助手</h1>
             <p className="atti-hero__subtitle">
-              当前界面已切换为中文体验，产品路线正在向 AI-first 适配演进，稳定试用路径仍以
-              Truity 九型人格页面为主。
+              当前界面已切换为中文体验，产品路线正在向 AI-first 适配演进，稳定试用路径仍以 Truity
+              九型人格页面为主。
             </p>
           </header>
           <section className="atti-grid atti-grid--columns-2">

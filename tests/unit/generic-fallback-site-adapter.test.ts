@@ -3,7 +3,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AdapterPageContext } from "../../src/adapters/base/site-adapter";
-import { genericFallbackSiteAdapter, setGenericFallbackAdapterEnabledForTesting } from "../../src/adapters/sites/generic-fallback-site-adapter";
+import {
+  genericFallbackSiteAdapter,
+  setGenericFallbackAdapterEnabledForTesting
+} from "../../src/adapters/sites/generic-fallback-site-adapter";
 
 const genericQuizHtml = `
   <html>
@@ -30,7 +33,7 @@ function createPageContext(html: string): AdapterPageContext {
   return {
     url: "https://www.example.com/quiz/personality-test",
     title: "Personality Quiz",
-    html,
+    html
   };
 }
 
@@ -41,6 +44,14 @@ function createDocumentFromHtml(html: string): Document {
 describe("generic fallback site adapter", () => {
   afterEach(() => {
     setGenericFallbackAdapterEnabledForTesting(false);
+  });
+
+  it("advertises extraction and preview but not default fill capability", () => {
+    expect(genericFallbackSiteAdapter.descriptor.capabilities).toEqual({
+      supportsQuestionExtraction: true,
+      supportsPreview: true,
+      supportsFill: false
+    });
   });
 
   it("matches by default when page signals look like an assessment", () => {
@@ -63,7 +74,7 @@ describe("generic fallback site adapter", () => {
     const context: AdapterPageContext = {
       url: "https://www.example.com/quiz/personality-test",
       title: "性格测试 - 免费人格评估",
-      html: `<html><head><title>性格测试 - 免费人格评估</title></head><body></body></html>`,
+      html: `<html><head><title>性格测试 - 免费人格评估</title></head><body></body></html>`
     };
 
     expect(genericFallbackSiteAdapter.matches(context)).toBe(true);
@@ -84,7 +95,7 @@ describe("generic fallback site adapter", () => {
             </form>
           </body>
         </html>
-      `,
+      `
     };
 
     expect(genericFallbackSiteAdapter.matches(context)).toBe(false);
@@ -106,7 +117,7 @@ describe("generic fallback site adapter", () => {
             </div>
           </body>
         </html>
-      `,
+      `
     };
 
     expect(genericFallbackSiteAdapter.matches(context)).toBe(true);
@@ -128,9 +139,9 @@ describe("generic fallback site adapter", () => {
         options: [
           { id: "0-0", text: "At home", value: "home" },
           { id: "0-1", text: "Outdoors", value: "outdoors" },
-          { id: "0-2", text: "A mix of both", value: "mixed" },
+          { id: "0-2", text: "A mix of both", value: "mixed" }
         ],
-        order: 0,
+        order: 0
       },
       {
         section: undefined,
@@ -138,10 +149,10 @@ describe("generic fallback site adapter", () => {
         type: "single-choice",
         options: [
           { id: "1-0", text: "Plan ahead", value: "plan" },
-          { id: "1-1", text: "Go with the flow", value: "go-with-flow" },
+          { id: "1-1", text: "Go with the flow", value: "go-with-flow" }
         ],
-        order: 1,
-      },
+        order: 1
+      }
     ]);
   });
 
@@ -177,7 +188,7 @@ describe("generic fallback site adapter", () => {
     expect(result?.questionCount).toBe(2);
     expect(result?.questions.map((q) => q.text)).toEqual([
       "Do you enjoy social gatherings?",
-      "Do you make plans in advance?",
+      "Do you make plans in advance?"
     ]);
   });
 
@@ -241,7 +252,7 @@ describe("generic fallback site adapter", () => {
     expect(result?.questions[0].options.map((option) => option.text)).toEqual(["早起", "晚睡"]);
   });
 
-  it("fills CSS-module option blocks by clicking the matched element", () => {
+  it("keeps internal debug fill behavior for CSS-module option blocks", () => {
     setGenericFallbackAdapterEnabledForTesting(true);
 
     const html = `
@@ -260,7 +271,7 @@ describe("generic fallback site adapter", () => {
     const context = {
       url: "https://www.example.com/quiz/personality-test",
       title: "性格测试",
-      document,
+      document
     };
 
     const optionElement = document.querySelector<HTMLElement>("#opt1");
@@ -272,8 +283,8 @@ describe("generic fallback site adapter", () => {
           questionId: "0-1",
           questionText: "你喜欢社交场合吗？",
           questionOrder: 0,
-          selectedOptionIds: ["opt1"],
-        },
+          selectedOptionIds: ["opt1"]
+        }
       ]);
 
       expect(result).toEqual({ filledCount: 1 });
@@ -281,14 +292,14 @@ describe("generic fallback site adapter", () => {
     }
   });
 
-  it("fills selected options without submitting the form", () => {
+  it("keeps internal debug fill behavior without submitting the form", () => {
     setGenericFallbackAdapterEnabledForTesting(true);
 
     const document = createDocumentFromHtml(genericQuizHtml);
     const context = {
       url: "https://www.example.com/quiz/personality-test",
       title: "Personality Quiz",
-      document,
+      document
     };
 
     const selections = [
@@ -296,14 +307,14 @@ describe("generic fallback site adapter", () => {
         questionId: "0-2",
         questionText: "How do you prefer to spend a weekend?",
         questionOrder: 0,
-        selectedOptionIds: ["0-2"],
+        selectedOptionIds: ["0-2"]
       },
       {
         questionId: "1-1",
         questionText: "When you have a difficult choice, you usually",
         questionOrder: 1,
-        selectedOptionIds: ["1-1"],
-      },
+        selectedOptionIds: ["1-1"]
+      }
     ];
 
     const result = genericFallbackSiteAdapter.fillAnswers?.(context, selections);

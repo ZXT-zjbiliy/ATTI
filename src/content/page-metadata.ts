@@ -17,12 +17,12 @@ export interface ContentWindowLike {
 export function collectContentPageMetadata(
   document: ContentDocumentLike,
   location: ContentLocationLike,
-  window: ContentWindowLike,
+  window: ContentWindowLike
 ): ContentPageMetadata {
   return {
     url: location.href,
     title: document.title,
     readyState: document.readyState,
-    isTopLevel: window.self === window.top,
+    isTopLevel: window.self === window.top
   };
 }

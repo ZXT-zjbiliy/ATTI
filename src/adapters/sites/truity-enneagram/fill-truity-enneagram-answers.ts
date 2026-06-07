@@ -138,7 +138,7 @@ function resolveQuestionRadioGroup(
   );
 
   return (
-    (matchingFieldset ? collectRadioGroups(matchingFieldset)[0] ?? null : null) ??
+    (matchingFieldset ? (collectRadioGroups(matchingFieldset)[0] ?? null) : null) ??
     resolveStructuredQuestionGroup(context, selection) ??
     resolveLiveQuestionGroupByPrompt(context, selection) ??
     resolveLiveQuestionGroupByOrder(context, selection)
@@ -150,10 +150,14 @@ function applyRadioSelection(
   radioGroup: readonly HTMLInputElement[]
 ): void {
   for (const optionId of selection.selectedOptionIds) {
-    const input = radioGroup.find((candidate) => normalizeText(candidate.value) === normalizeText(optionId));
+    const input = radioGroup.find(
+      (candidate) => normalizeText(candidate.value) === normalizeText(optionId)
+    );
 
     if (!input) {
-      throw new Error(`Unable to locate Truity option target: ${selection.questionId} / ${optionId}`);
+      throw new Error(
+        `Unable to locate Truity option target: ${selection.questionId} / ${optionId}`
+      );
     }
 
     if (!input.checked) {

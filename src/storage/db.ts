@@ -1,12 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
 
-import type {
-  AdapterDiagnostics,
-  AnswerPlan,
-  Profile,
-  Question,
-  Session
-} from "../shared/types";
+import type { AdapterDiagnostics, AnswerPlan, Profile, Question, Session } from "../shared/types";
 import { ATTI_DB_NAME, ATTI_DB_STORES, ATTI_DB_VERSION } from "./schema";
 
 export class AttiDatabase extends Dexie {

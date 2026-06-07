@@ -49,7 +49,10 @@ class FakeElement {
   }
 
   querySelectorAll<TElement extends FakeElement = FakeElement>(selector: string): TElement[] {
-    const selectors = selector.split(",").map((item) => item.trim()).filter(Boolean);
+    const selectors = selector
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
     const matches: TElement[] = [];
 
     for (const child of this.children) {
@@ -112,7 +115,9 @@ class FakeDocument extends FakeElement {
   }
 }
 
-function createPairQuestionDocument(questionPairs: Array<{ left: string; values: string[]; right: string }>) {
+function createPairQuestionDocument(
+  questionPairs: Array<{ left: string; values: string[]; right: string }>
+) {
   const document = new FakeDocument();
   const body = document.appendChild(new FakeElement("div"));
 

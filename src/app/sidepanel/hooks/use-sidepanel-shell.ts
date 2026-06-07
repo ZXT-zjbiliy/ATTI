@@ -11,7 +11,10 @@ import type {
 import { profilePresetQuestions } from "../../../domain/profile/profile-preset-questionnaire";
 import { getProviderConfigurationState } from "../../../shared/utils/provider-configuration";
 import { defaultSidePanelShellModel } from "../data/default-sidepanel-shell-model";
-import { createProfileDraftClient, type ProfileDraftClient } from "../services/profile-draft-client";
+import {
+  createProfileDraftClient,
+  type ProfileDraftClient
+} from "../services/profile-draft-client";
 import {
   createRecommendationPreviewClient,
   type RecommendationPreviewClient
@@ -68,7 +71,9 @@ function wait(delayMs: number): Promise<void> {
   });
 }
 
-function mapPageDetectionState(session: Session | null): SidePanelShellModel["pageDetectionStatus"] {
+function mapPageDetectionState(
+  session: Session | null
+): SidePanelShellModel["pageDetectionStatus"] {
   if (!session) {
     return {
       kind: "loading",
@@ -208,19 +213,24 @@ export function useSidePanelShell(
   const [presetAnswers, setPresetAnswers] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "empty" | "error" | "ready">("loading");
-  const [pageDetectionStatus, setPageDetectionStatus] =
-    useState<SidePanelShellModel["pageDetectionStatus"]>(defaultSidePanelShellModel.pageDetectionStatus);
-  const [pageDetectionProgress, setPageDetectionProgress] =
-    useState<SidePanelShellModel["pageDetectionProgress"]>(defaultSidePanelShellModel.pageDetectionProgress);
-  const [sessionStatus, setSessionStatus] =
-    useState<SidePanelShellModel["sessionStatus"]>(defaultSidePanelShellModel.sessionStatus);
-  const [sessionProgress, setSessionProgress] =
-    useState<SidePanelShellModel["sessionProgress"]>(defaultSidePanelShellModel.sessionProgress);
-  const [recommendationPreviewStatus, setRecommendationPreviewStatus] =
-    useState<SidePanelShellModel["recommendationPreviewStatus"]>({
-      kind: "loading",
-      message: "正在加载 AI 推荐预览。"
-    });
+  const [pageDetectionStatus, setPageDetectionStatus] = useState<
+    SidePanelShellModel["pageDetectionStatus"]
+  >(defaultSidePanelShellModel.pageDetectionStatus);
+  const [pageDetectionProgress, setPageDetectionProgress] = useState<
+    SidePanelShellModel["pageDetectionProgress"]
+  >(defaultSidePanelShellModel.pageDetectionProgress);
+  const [sessionStatus, setSessionStatus] = useState<SidePanelShellModel["sessionStatus"]>(
+    defaultSidePanelShellModel.sessionStatus
+  );
+  const [sessionProgress, setSessionProgress] = useState<SidePanelShellModel["sessionProgress"]>(
+    defaultSidePanelShellModel.sessionProgress
+  );
+  const [recommendationPreviewStatus, setRecommendationPreviewStatus] = useState<
+    SidePanelShellModel["recommendationPreviewStatus"]
+  >({
+    kind: "loading",
+    message: "正在加载 AI 推荐预览。"
+  });
   const [settings, setSettings] = useState<Settings | null>(null);
   const [latestSession, setLatestSession] = useState<Session | null>(null);
   const [planningRequestState, setPlanningRequestState] = useState<PlanningRequestState>("idle");
@@ -268,13 +278,19 @@ export function useSidePanelShell(
 
       const recommendedItemCount = countRecommendedItems(result.preview.items);
       const nextRequestState =
-        planningRequestState === "sending" || recommendedItemCount > 0 ? "sent" : planningRequestState;
+        planningRequestState === "sending" || recommendedItemCount > 0
+          ? "sent"
+          : planningRequestState;
 
       setPlanningRequestState(nextRequestState);
       setLatestSession(result.session);
-      setSessionProgress(createSessionProgress(result.session, recommendedItemCount, nextRequestState));
+      setSessionProgress(
+        createSessionProgress(result.session, recommendedItemCount, nextRequestState)
+      );
       setPageDetectionStatus(mapPageDetectionState(result.session));
-      setSessionStatus(mapSessionStatusState(result.session, recommendedItemCount, currentSettings));
+      setSessionStatus(
+        mapSessionStatusState(result.session, recommendedItemCount, currentSettings)
+      );
       setRecommendationPreviewStatus(
         result.preview.items.length === 0
           ? {
@@ -421,17 +437,6 @@ export function useSidePanelShell(
         await stableAssessmentSessionClient.runAnswerPlanning(latestSession.id);
         setPlanningRequestState("sent");
         await refreshRecommendationPreview(settings);
-
-        try {
-          await stableAssessmentSessionClient.applyReviewedAnswers(latestSession.id);
-          await refreshRecommendationPreview(settings);
-        } catch (error) {
-          await refreshRecommendationPreview(settings);
-          setSessionStatus({
-            kind: "error",
-            message: error instanceof Error ? error.message : "无法执行 AI 规划。"
-          });
-        }
       } catch (error) {
         setPlanningRequestState("sent");
         setSessionProgress(createSessionProgress(latestSession, 0, "sent"));

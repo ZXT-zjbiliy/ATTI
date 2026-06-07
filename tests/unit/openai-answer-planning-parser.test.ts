@@ -67,7 +67,9 @@ describe("openai answer planning parser", () => {
     expect(result.answerPlans.map((plan) => plan.questionId)).toEqual(["question-1", "question-2"]);
     expect(result.answerPlans[0]?.recommendedOptionIds).toEqual(["2"]);
     expect(result.answerPlans[1]?.recommendedOptionIds).toEqual(["5"]);
-    expect(result.answerPlans[0]?.rationale).toBe("The profile shows some structure but not rigidity.");
+    expect(result.answerPlans[0]?.rationale).toBe(
+      "The profile shows some structure but not rigidity."
+    );
     expect(result.answerPlans[0]?.qualityStatus).toBe("normal");
     expect(result.answerPlans[0]?.qualityIssues).toEqual([]);
   });

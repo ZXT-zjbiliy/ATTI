@@ -5,7 +5,10 @@ import { describe, expect, it } from "vitest";
 import { createProfileDraftClient } from "../../src/app/sidepanel/services/profile-draft-client";
 import { createAttiDatabase } from "../../src/storage/db";
 import { ProfileRepository } from "../../src/storage/repos/profile-repo";
-import { SettingsRepository, type SettingsStorageArea } from "../../src/storage/repos/settings-repo";
+import {
+  SettingsRepository,
+  type SettingsStorageArea
+} from "../../src/storage/repos/settings-repo";
 import type {
   AppResult,
   ProfileDraftSaveMessage,

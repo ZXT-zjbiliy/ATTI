@@ -1,7 +1,7 @@
 import type {
   AdapterPageContext,
   LocatedQuestionRegion,
-  QuestionRegionLocatorResult,
+  QuestionRegionLocatorResult
 } from "../../base/site-adapter";
 import { isSupportedTruityEnneagramAssessmentPage } from "./match-truity-enneagram-page";
 import {
@@ -10,7 +10,7 @@ import {
 } from "./parse-truity-enneagram-question-descriptors";
 
 export function locateTruityEnneagramQuestionRegions(
-  context: AdapterPageContext,
+  context: AdapterPageContext
 ): QuestionRegionLocatorResult {
   if (!isSupportedTruityEnneagramAssessmentPage(context)) {
     return {

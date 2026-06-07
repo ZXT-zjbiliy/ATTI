@@ -15,7 +15,7 @@ export type PopupUiStore = PopupUiState & PopupUiActions;
 
 export const popupUiInitialState: PopupUiState = {
   isExpanded: false,
-  statusMessage: null,
+  statusMessage: null
 };
 
 export const createPopupUiStore = () =>
@@ -29,7 +29,7 @@ export const createPopupUiStore = () =>
     },
     reset: () => {
       set(popupUiInitialState);
-    },
+    }
   }));
 
 export const popupUiStore = createPopupUiStore();

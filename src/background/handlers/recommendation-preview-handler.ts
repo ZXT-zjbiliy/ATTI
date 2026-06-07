@@ -18,7 +18,10 @@ function createErrorResult(code: string, message: string): AppResult {
   };
 }
 
-function mapRecommendationPreviewItem(answerPlan: AnswerPlan, question: Question): RecommendationPreviewItem {
+function mapRecommendationPreviewItem(
+  answerPlan: AnswerPlan,
+  question: Question
+): RecommendationPreviewItem {
   return {
     answerPlanId: answerPlan.id,
     questionId: question.id,
@@ -64,7 +67,10 @@ export const handleRecommendationPreviewFetchMessage: BackgroundMessageHandler<
   const session = await context.sessionRepository.getSessionById(message.payload.sessionId);
 
   if (!session) {
-    return createErrorResult("SESSION_NOT_FOUND", `Session not found: ${message.payload.sessionId}`);
+    return createErrorResult(
+      "SESSION_NOT_FOUND",
+      `Session not found: ${message.payload.sessionId}`
+    );
   }
 
   const [questions, answerPlans] = await Promise.all([
@@ -72,7 +78,9 @@ export const handleRecommendationPreviewFetchMessage: BackgroundMessageHandler<
     context.answerPlanRepository.listBySessionId(session.id)
   ]);
   const questionMap = new Map(questions.map((question) => [question.id, question]));
-  const answerPlanMap = new Map(answerPlans.map((answerPlan) => [answerPlan.questionId, answerPlan]));
+  const answerPlanMap = new Map(
+    answerPlans.map((answerPlan) => [answerPlan.questionId, answerPlan])
+  );
   const items: RecommendationPreviewItem[] = [];
 
   for (const question of questions) {
@@ -125,7 +133,10 @@ export const handleAnswerPlanReviewSaveMessage: BackgroundMessageHandler<
   const question = await context.questionRepository.getQuestionById(currentAnswerPlan.questionId);
 
   if (!question) {
-    return createErrorResult("QUESTION_NOT_FOUND", `Question not found: ${currentAnswerPlan.questionId}`);
+    return createErrorResult(
+      "QUESTION_NOT_FOUND",
+      `Question not found: ${currentAnswerPlan.questionId}`
+    );
   }
 
   const validOptionIds = new Set(question.options.map((option) => option.id));
@@ -137,7 +148,10 @@ export const handleAnswerPlanReviewSaveMessage: BackgroundMessageHandler<
     );
   }
 
-  if (message.payload.reviewStatus !== "rejected" && message.payload.selectedOptionIds.length === 0) {
+  if (
+    message.payload.reviewStatus !== "rejected" &&
+    message.payload.selectedOptionIds.length === 0
+  ) {
     return createErrorResult(
       "INVALID_REVIEW_SELECTION",
       "Confirmed or modified recommendations must keep at least one selected option."

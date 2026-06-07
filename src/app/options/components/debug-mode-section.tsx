@@ -6,11 +6,7 @@ interface DebugModeSectionProps {
   readonly onToggle: (debugMode: boolean) => void;
 }
 
-export function DebugModeSection({
-  debugMode,
-  disabled,
-  onToggle,
-}: DebugModeSectionProps) {
+export function DebugModeSection({ debugMode, disabled, onToggle }: DebugModeSectionProps) {
   return (
     <OptionsSection title="调试模式">
       <p className="atti-copy-muted">仅用于开发和排查问题，不会改变当前产品边界。</p>

@@ -49,9 +49,7 @@ describe("adapter diagnostics repository", () => {
     const diagnostics = await repository.listBySessionId("session-1");
 
     expect(diagnostics).toHaveLength(2);
-    expect(diagnostics.every((record) => record.sessionId === "session-1")).toBe(
-      true
-    );
+    expect(diagnostics.every((record) => record.sessionId === "session-1")).toBe(true);
 
     database.close();
   });

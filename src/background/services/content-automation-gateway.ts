@@ -11,6 +11,7 @@ export interface FillExecutionRequest {
   readonly sessionId: string;
   readonly siteId: string;
   readonly selections: ContentAnswerFillSelection[];
+  readonly allowGenericFallbackFill?: boolean;
 }
 
 export interface FillExecutionResult {
@@ -20,7 +21,10 @@ export interface FillExecutionResult {
 
 export interface ContentAutomationGateway {
   applyAnswerFill(request: FillExecutionRequest): Promise<FillExecutionResult>;
-  runQuestionExtraction(request: { pageUrl: string; sessionId: string }): Promise<{ questionCount: number }>;
+  runQuestionExtraction(request: {
+    pageUrl: string;
+    sessionId: string;
+  }): Promise<{ questionCount: number }>;
 }
 
 interface BrowserTab {
@@ -30,7 +34,10 @@ interface BrowserTab {
 
 interface BrowserTabsApi {
   query(queryInfo: Record<string, unknown>): Promise<BrowserTab[]>;
-  sendMessage(tabId: number, message: AnswerFillApplyCommand | QuestionExtractionRunCommand): Promise<AppResult>;
+  sendMessage(
+    tabId: number,
+    message: AnswerFillApplyCommand | QuestionExtractionRunCommand
+  ): Promise<AppResult>;
 }
 
 type GlobalWithChromeTabs = typeof globalThis & {
@@ -101,6 +108,7 @@ export function createChromeContentAutomationGateway(
           payload: {
             siteId: request.siteId,
             sessionId: request.sessionId,
+            allowGenericFallbackFill: request.allowGenericFallbackFill,
             selections: request.selections.map((selection) => ({
               ...selection,
               selectedOptionIds: [...selection.selectedOptionIds]

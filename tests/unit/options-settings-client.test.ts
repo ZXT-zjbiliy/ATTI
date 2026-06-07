@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import { createOptionsSettingsClient } from "../../src/app/options/services/options-settings-client";
 import { createPopupSettingsClient } from "../../src/app/popup/services/popup-settings-client";
-import { SettingsRepository, type SettingsStorageArea } from "../../src/storage/repos/settings-repo";
+import {
+  SettingsRepository,
+  type SettingsStorageArea
+} from "../../src/storage/repos/settings-repo";
 import type {
   AppResult,
   SettingsFetchMessage,
-  SettingsUpdateMessage,
+  SettingsUpdateMessage
 } from "../../src/shared/types";
 
 class InMemorySettingsStorageArea implements SettingsStorageArea {
@@ -14,7 +17,7 @@ class InMemorySettingsStorageArea implements SettingsStorageArea {
 
   get(key: string): Record<string, unknown> {
     return {
-      [key]: this.records.get(key),
+      [key]: this.records.get(key)
     };
   }
 
@@ -25,22 +28,18 @@ class InMemorySettingsStorageArea implements SettingsStorageArea {
   }
 }
 
-function createSettingsMessageDispatcher(
-  settingsRepository: SettingsRepository,
-) {
-  return async (
-    message: SettingsFetchMessage | SettingsUpdateMessage,
-  ): Promise<AppResult> => {
+function createSettingsMessageDispatcher(settingsRepository: SettingsRepository) {
+  return async (message: SettingsFetchMessage | SettingsUpdateMessage): Promise<AppResult> => {
     if (message.type === "settingsFetch") {
       return {
         ok: true,
-        data: await settingsRepository.getSettings(),
+        data: await settingsRepository.getSettings()
       };
     }
 
     return {
       ok: true,
-      data: await settingsRepository.saveSettings(message.payload.settings),
+      data: await settingsRepository.saveSettings(message.payload.settings)
     };
   };
 }

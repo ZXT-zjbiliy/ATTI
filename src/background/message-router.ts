@@ -128,7 +128,9 @@ const supportedMessageHandlers: Record<
     handleSessionHistoryFetchMessage as BackgroundMessageHandler<SupportedBackgroundMessage>
 } as const;
 
-function isSupportedBackgroundMessageType(type: string): type is keyof typeof supportedMessageSchemas {
+function isSupportedBackgroundMessageType(
+  type: string
+): type is keyof typeof supportedMessageSchemas {
   return supportedBackgroundMessageTypes.includes(type as MessageType);
 }
 
@@ -142,9 +144,9 @@ function createErrorResult(code: string, message: string): AppResult {
   };
 }
 
-function parseSupportedMessage(rawMessage: unknown):
-  | { ok: true; data: SupportedBackgroundMessage }
-  | { ok: false; error: AppResult } {
+function parseSupportedMessage(
+  rawMessage: unknown
+): { ok: true; data: SupportedBackgroundMessage } | { ok: false; error: AppResult } {
   const envelopeResult = messageEnvelopeSchema.safeParse(rawMessage);
 
   if (!envelopeResult.success) {

@@ -19,7 +19,7 @@ export function SidePanelView({ model }: SidePanelViewProps) {
             <span className="atti-hero__eyebrow">AI 问卷工作台</span>
             <h1 className="atti-hero__title">ATTI AI 侧边栏</h1>
             <p className="atti-hero__subtitle">
-              当前界面面向 AI-first 多站点路线重排，但真实稳定适配范围仍以 Truity 九型人格试用流为主。
+              当前界面面向 AI-first 多站点路线重排，真实稳定适配范围仍以 Truity 九型人格试用流为主。
             </p>
           </header>
           <section className="atti-grid atti-grid--columns-2">
@@ -49,16 +49,16 @@ export function SidePanelView({ model }: SidePanelViewProps) {
             <SessionStatusCard
               progress={model.sessionProgress}
               isRunAnswerPlanningDisabled={model.isRunAnswerPlanningDisabled}
-              isReapplyAnswerFillDisabled={model.isReapplyAnswerFillDisabled}
               onRunAnswerPlanning={() => {
                 void model.runAnswerPlanning();
-              }}
-              onReapplyAnswerFill={() => {
-                void model.reapplyAnswerFill();
               }}
               state={model.sessionStatus}
             />
             <RecommendationPreviewCard
+              isApplyAnswerFillDisabled={model.isReapplyAnswerFillDisabled}
+              onApplyAnswerFill={() => {
+                void model.reapplyAnswerFill();
+              }}
               onRefresh={() => {
                 void model.refreshRecommendationPreview();
               }}

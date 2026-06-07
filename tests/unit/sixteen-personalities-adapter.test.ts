@@ -4,18 +4,15 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-    extractSixteenPersonalitiesQuestions,
-    isSupportedSixteenPersonalitiesAssessmentPage,
-    locateSixteenPersonalitiesQuestionRegions,
-    matchesSixteenPersonalitiesTestUrl,
+  extractSixteenPersonalitiesQuestions,
+  isSupportedSixteenPersonalitiesAssessmentPage,
+  locateSixteenPersonalitiesQuestionRegions,
+  matchesSixteenPersonalitiesTestUrl
 } from "../../src/adapters/sites/sixteen-personalities-site-adapter";
 
 const sixteenPersonalitiesFixture = readFileSync(
-  resolve(
-    process.cwd(),
-    "tests/fixtures/adapters/sixteen-personalities-assessment.html",
-  ),
-  "utf8",
+  resolve(process.cwd(), "tests/fixtures/adapters/sixteen-personalities-assessment.html"),
+  "utf8"
 );
 
 describe("16Personalities adapter", () => {
@@ -23,14 +20,14 @@ describe("16Personalities adapter", () => {
     expect(
       matchesSixteenPersonalitiesTestUrl({
         url: "https://www.16personalities.com/free-personality-test",
-        title: "Free Personality Test | 16Personalities",
-      }),
+        title: "Free Personality Test | 16Personalities"
+      })
     ).toBe(true);
     expect(
       matchesSixteenPersonalitiesTestUrl({
         url: "https://www.16personalities.com/personality-types",
-        title: "Personality Types",
-      }),
+        title: "Personality Types"
+      })
     ).toBe(false);
   });
 
@@ -39,8 +36,8 @@ describe("16Personalities adapter", () => {
       isSupportedSixteenPersonalitiesAssessmentPage({
         url: "https://www.16personalities.com/free-personality-test",
         title: "Free Personality Test | 16Personalities",
-        html: sixteenPersonalitiesFixture,
-      }),
+        html: sixteenPersonalitiesFixture
+      })
     ).toBe(true);
   });
 
@@ -48,7 +45,7 @@ describe("16Personalities adapter", () => {
     const result = locateSixteenPersonalitiesQuestionRegions({
       url: "https://www.16personalities.com/free-personality-test",
       title: "Free Personality Test | 16Personalities",
-      html: sixteenPersonalitiesFixture,
+      html: sixteenPersonalitiesFixture
     });
 
     expect(result.isSupportedAssessmentPage).toBe(true);
@@ -56,15 +53,15 @@ describe("16Personalities adapter", () => {
       {
         order: 0,
         promptText: "You regularly make new friends.",
-        locatorHint: "prompt-key:you-regularly-make-new-friends",
+        locatorHint: "prompt-key:you-regularly-make-new-friends"
       },
       {
         order: 1,
         promptText:
           "You spend a lot of your free time exploring various random topics that pique your interest.",
         locatorHint:
-          "prompt-key:you-spend-a-lot-of-your-free-time-exploring-various-random-topics-that-pique-your-interest",
-      },
+          "prompt-key:you-spend-a-lot-of-your-free-time-exploring-various-random-topics-that-pique-your-interest"
+      }
     ]);
   });
 
@@ -72,7 +69,7 @@ describe("16Personalities adapter", () => {
     const result = extractSixteenPersonalitiesQuestions({
       url: "https://www.16personalities.com/free-personality-test",
       title: "Free Personality Test | 16Personalities",
-      html: sixteenPersonalitiesFixture,
+      html: sixteenPersonalitiesFixture
     });
 
     expect(result.questionCount).toBe(2);
@@ -87,13 +84,12 @@ describe("16Personalities adapter", () => {
           { id: "4", text: "Neutral", value: "4" },
           { id: "5", text: "Slightly Disagree", value: "5" },
           { id: "6", text: "Disagree", value: "6" },
-          { id: "7", text: "Strongly Disagree", value: "7" },
+          { id: "7", text: "Strongly Disagree", value: "7" }
         ],
-        order: 0,
+        order: 0
       },
       {
-        text:
-          "You spend a lot of your free time exploring various random topics that pique your interest.",
+        text: "You spend a lot of your free time exploring various random topics that pique your interest.",
         type: "single-choice-rating",
         options: [
           { id: "1", text: "Strongly Agree", value: "1" },
@@ -102,10 +98,10 @@ describe("16Personalities adapter", () => {
           { id: "4", text: "Neutral", value: "4" },
           { id: "5", text: "Slightly Disagree", value: "5" },
           { id: "6", text: "Disagree", value: "6" },
-          { id: "7", text: "Strongly Disagree", value: "7" },
+          { id: "7", text: "Strongly Disagree", value: "7" }
         ],
-        order: 1,
-      },
+        order: 1
+      }
     ]);
   });
 
@@ -117,13 +113,13 @@ describe("16Personalities adapter", () => {
     const result = extractSixteenPersonalitiesQuestions({
       url: "https://www.16personalities.com/free-personality-test",
       title: "Free Personality Test | 16Personalities",
-      html: htmlWithoutMarkers,
+      html: htmlWithoutMarkers
     });
 
     expect(result.questionCount).toBe(2);
     expect(result.questions.map((question) => question.text)).toEqual([
       "You regularly make new friends.",
-      "You spend a lot of your free time exploring various random topics that pique your interest.",
+      "You spend a lot of your free time exploring various random topics that pique your interest."
     ]);
   });
 
@@ -155,7 +151,7 @@ describe("16Personalities adapter", () => {
     const result = extractSixteenPersonalitiesQuestions({
       url: "https://www.16personalities.com/free-personality-test",
       title: "Free Personality Test | 16Personalities",
-      html: fieldsetHtml,
+      html: fieldsetHtml
     });
 
     expect(result.questionCount).toBe(1);

@@ -40,9 +40,7 @@ const defaultDebugSnapshot: DebugSnapshot = {
   ]
 };
 
-function createOptionsModel(
-  overrides: Partial<OptionsShellModel> = {}
-): OptionsShellModel {
+function createOptionsModel(overrides: Partial<OptionsShellModel> = {}): OptionsShellModel {
   return {
     settings: {
       extensionEnabled: true,

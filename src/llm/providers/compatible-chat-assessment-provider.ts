@@ -1,25 +1,18 @@
 import { profileSchema, questionSchema } from "../../shared/schemas";
 import type { Profile, Question } from "../../shared/types";
-import {
-  getOpenAiAnswerPlanningJsonSchema,
-  parseOpenAiAnswerPlanningResponse
-} from "../parsers/openai-answer-planning-parser";
-import {
-  parseOpenAiProfileSummaryResponse
-} from "../parsers/openai-profile-summary-parser";
-import {
-  parseOpenAiQuestionInterpretationResponse
-} from "../parsers/openai-question-interpretation-parser";
+import { parseOpenAiAnswerPlanningResponse } from "../parsers/openai-answer-planning-parser";
+import { parseOpenAiProfileSummaryResponse } from "../parsers/openai-profile-summary-parser";
+import { parseOpenAiQuestionInterpretationResponse } from "../parsers/openai-question-interpretation-parser";
 import { buildOpenAiAnswerPlanningPrompt } from "../prompts/openai-answer-planning-prompt";
 import { buildOpenAiProfileSummaryPrompt } from "../prompts/openai-profile-summary-prompt";
 import { buildOpenAiQuestionInterpretationPrompt } from "../prompts/openai-question-interpretation-prompt";
-import type {
-  AssessmentProvider,
-  ProfileSummary
-} from "./assessment-provider";
+import type { AssessmentProvider, ProfileSummary } from "./assessment-provider";
 import { ProviderExecutionError } from "./provider-error";
-
-type FetchLike = typeof fetch;
+import {
+  executeProviderJsonRequest,
+  resolveProviderFetch,
+  type FetchLike
+} from "./provider-http-executor";
 
 interface ChatCompletionsMessage {
   readonly content?: string | Array<{ readonly text?: string; readonly type?: string }>;
@@ -65,18 +58,6 @@ function splitQuestionsIntoChunks(
   return chunks;
 }
 
-function resolveFetch(fetchImpl?: FetchLike): FetchLike {
-  if (fetchImpl) {
-    return fetchImpl;
-  }
-
-  if (typeof fetch === "function") {
-    return fetch.bind(globalThis);
-  }
-
-  throw new Error("Compatible chat provider fetch is unavailable.");
-}
-
 function resolveMessageContent(content: ChatCompletionsMessage["content"]): string {
   if (typeof content === "string") {
     return content;
@@ -96,14 +77,6 @@ function createRawSnippet(rawText: string): string {
   return rawText.trim().replace(/\s+/g, " ").slice(0, 240);
 }
 
-async function readErrorBody(response: Response): Promise<string> {
-  try {
-    return await response.text();
-  } catch {
-    return "";
-  }
-}
-
 async function createJsonResponse(args: {
   apiKey: string;
   apiUrl: string;
@@ -114,11 +87,15 @@ async function createJsonResponse(args: {
   providerId: string;
   providerLabel: string;
 }): Promise<string> {
-  let response: Response;
-  let requestFailureCause = "unknown";
-
-  try {
-    response = await args.fetchImpl(args.apiUrl, {
+  const data = await executeProviderJsonRequest<ChatCompletionsSuccess>({
+    authFailedCode: "COMPATIBLE_CHAT_AUTH_FAILED",
+    authFailedMessage: `${args.providerLabel} API key 被拒绝。请检查设置页中的 key 后重试。`,
+    fetchImpl: args.fetchImpl,
+    providerId: args.providerId,
+    requestFailedCode: "COMPATIBLE_CHAT_REQUEST_FAILED",
+    requestFailedMessage: (cause) =>
+      `${args.providerLabel} provider 在收到响应前请求失败。原因：${cause}`,
+    responseInit: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -138,39 +115,12 @@ async function createJsonResponse(args: {
         },
         ...(typeof args.maxTokens === "number" ? { max_tokens: args.maxTokens } : {})
       })
-    });
-  } catch (error) {
-    requestFailureCause = error instanceof Error ? error.message : "unknown";
+    },
+    responseNotOkCode: "COMPATIBLE_CHAT_RESPONSE_NOT_OK",
+    responseNotOkMessage: `${args.providerLabel} provider 返回了非成功状态码。`,
+    url: args.apiUrl
+  });
 
-    throw new ProviderExecutionError({
-      providerId: args.providerId,
-      code: "COMPATIBLE_CHAT_REQUEST_FAILED",
-      message: `${args.providerLabel} provider 在收到响应前请求失败。原因：${requestFailureCause}`,
-      retryable: true,
-      details: {
-        cause: requestFailureCause
-      }
-    });
-  }
-
-  if (!response.ok) {
-    const isAuthFailure = response.status === 401 || response.status === 403;
-
-    throw new ProviderExecutionError({
-      providerId: args.providerId,
-      code: isAuthFailure ? "COMPATIBLE_CHAT_AUTH_FAILED" : "COMPATIBLE_CHAT_RESPONSE_NOT_OK",
-      message: isAuthFailure
-        ? `${args.providerLabel} API key 被拒绝。请检查设置页中的 key 后重试。`
-        : `${args.providerLabel} provider 返回了非成功状态码。`,
-      statusCode: response.status,
-      retryable: response.status >= 500,
-      details: {
-        body: await readErrorBody(response)
-      }
-    });
-  }
-
-  const data = (await response.json()) as ChatCompletionsSuccess;
   const outputText = resolveMessageContent(data.choices?.[0]?.message?.content);
 
   if (!outputText) {
@@ -188,7 +138,12 @@ async function createJsonResponse(args: {
 export function createCompatibleChatAssessmentProvider(
   options: CompatibleChatAssessmentProviderOptions
 ): AssessmentProvider {
-  const fetchImpl = resolveFetch(options.fetchImpl);
+  const fetchImpl = resolveProviderFetch({
+    fetchImpl: options.fetchImpl,
+    providerId: options.providerId,
+    unavailableCode: "COMPATIBLE_CHAT_FETCH_UNAVAILABLE",
+    unavailableMessage: "Compatible chat provider fetch is unavailable."
+  });
   const apiKey = options.apiKey ?? "";
 
   if (!apiKey) {

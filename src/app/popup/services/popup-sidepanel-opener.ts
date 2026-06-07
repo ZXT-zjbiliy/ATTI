@@ -35,7 +35,7 @@ function resolveWindowApi(): PopupWindowApi {
 
 export async function openPopupSidePanel(
   sidePanelApi: PopupSidePanelApi = resolveSidePanelApi(),
-  windowApi: PopupWindowApi = resolveWindowApi(),
+  windowApi: PopupWindowApi = resolveWindowApi()
 ): Promise<void> {
   const currentWindow = await Promise.resolve(windowApi.getCurrent());
 
@@ -45,7 +45,7 @@ export async function openPopupSidePanel(
 
   await Promise.resolve(
     sidePanelApi.open({
-      windowId: currentWindow.id,
-    }),
+      windowId: currentWindow.id
+    })
   );
 }

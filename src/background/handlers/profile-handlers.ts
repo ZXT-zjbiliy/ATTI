@@ -22,10 +22,9 @@ function createErrorResult(code: string, message: string): AppResult {
   };
 }
 
-export const handleProfileDraftSaveMessage: BackgroundMessageHandler<ProfileDraftSaveMessage> = async (
-  message,
-  context
-): Promise<AppResult> => {
+export const handleProfileDraftSaveMessage: BackgroundMessageHandler<
+  ProfileDraftSaveMessage
+> = async (message, context): Promise<AppResult> => {
   const profile = await context.profileRepository.saveDraft(message.payload.draft);
   const settings = await context.settingsRepository.getSettings();
 
@@ -86,10 +85,9 @@ function toProfileAnalysisError(error: unknown): AppResult {
   );
 }
 
-export const handleProfilePresetAnalyzeMessage: BackgroundMessageHandler<ProfilePresetAnalyzeMessage> = async (
-  message,
-  context
-): Promise<AppResult> => {
+export const handleProfilePresetAnalyzeMessage: BackgroundMessageHandler<
+  ProfilePresetAnalyzeMessage
+> = async (message, context): Promise<AppResult> => {
   try {
     const settings = await context.settingsRepository.getSettings();
     const provider = context.assessmentProviderResolver.resolve({
@@ -100,7 +98,8 @@ export const handleProfilePresetAnalyzeMessage: BackgroundMessageHandler<Profile
       providerModel: settings.providerModel
     });
     const temporaryProfile = createTemporaryPresetProfile(message);
-    const summary = await createAssessmentProviderRunner(provider).summarizeProfile(temporaryProfile);
+    const summary =
+      await createAssessmentProviderRunner(provider).summarizeProfile(temporaryProfile);
     const now = new Date().toISOString();
     const profile = await context.profileRepository.saveProfile({
       ...temporaryProfile,
@@ -135,7 +134,10 @@ export const handleProfileFetchMessage: BackgroundMessageHandler<ProfileFetchMes
   const profile = await context.profileRepository.getProfileById(message.payload.profileId);
 
   if (!profile) {
-    return createErrorResult("PROFILE_NOT_FOUND", `Profile not found: ${message.payload.profileId}`);
+    return createErrorResult(
+      "PROFILE_NOT_FOUND",
+      `Profile not found: ${message.payload.profileId}`
+    );
   }
 
   return {

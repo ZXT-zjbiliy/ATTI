@@ -1,48 +1,61 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { JSDOM } from "jsdom";
 import { describe, expect, it, vi } from "vitest";
 
 import { setGenericFallbackAdapterEnabledForTesting } from "../../src/adapters/sites/generic-fallback-site-adapter";
 import { startContentRuntime } from "../../src/content/runtime";
-import { MESSAGE_TYPES } from "../../src/shared/types";
+import { applyAnswerFillCommand } from "../../src/content/answer-fill";
+import { CONTENT_COMMAND_TYPES, MESSAGE_TYPES } from "../../src/shared/types";
 
 const truityEnneagramFixture = readFileSync(
-  resolve(
-    process.cwd(),
-    "tests/fixtures/adapters/truity-enneagram-assessment.html",
-  ),
-  "utf8",
+  resolve(process.cwd(), "tests/fixtures/adapters/truity-enneagram-assessment.html"),
+  "utf8"
 );
 const sixteenPersonalitiesFixture = readFileSync(
-  resolve(
-    process.cwd(),
-    "tests/fixtures/adapters/sixteen-personalities-assessment.html",
-  ),
-  "utf8",
+  resolve(process.cwd(), "tests/fixtures/adapters/sixteen-personalities-assessment.html"),
+  "utf8"
 );
+
+function createDocumentFromHtml(html: string): Document {
+  return new JSDOM(html).window.document;
+}
+
+function installDocumentConstructors(document: Document): void {
+  const view = document.defaultView;
+
+  if (!view) {
+    throw new Error("JSDOM document has no defaultView");
+  }
+
+  vi.stubGlobal("DOMParser", view.DOMParser);
+  vi.stubGlobal("HTMLElement", view.HTMLElement);
+  vi.stubGlobal("HTMLInputElement", view.HTMLInputElement);
+  vi.stubGlobal("HTMLLabelElement", view.HTMLLabelElement);
+}
 
 describe("content runtime", () => {
   it("loads on a test page and sends a structured message", async () => {
     const sendMessage = vi.fn(async () => ({
       ok: true as const,
       data: {
-        received: true,
-      },
+        received: true
+      }
     }));
     const dependencies = {
       document: {
         title: "Assessment Landing Page",
         readyState: "complete",
         body: {
-          innerHTML: "<main><h1>Test Page</h1></main>",
-        },
+          innerHTML: "<main><h1>Test Page</h1></main>"
+        }
       },
       location: {
-        href: "https://example.com/assessment",
+        href: "https://example.com/assessment"
       },
       window: {} as { self: unknown; top: unknown },
-      sendMessage,
+      sendMessage
     };
 
     dependencies.window.self = dependencies.window;
@@ -56,33 +69,33 @@ describe("content runtime", () => {
           url: "https://example.com/assessment",
           title: "Assessment Landing Page",
           readyState: "complete",
-          isTopLevel: true,
-        },
-      },
+          isTopLevel: true
+        }
+      }
     });
   });
 
   it("does not modify page content", async () => {
     const body = {
-      innerHTML: "<main><p>Original Body</p></main>",
+      innerHTML: "<main><p>Original Body</p></main>"
     };
     const sendMessage = vi.fn(async () => ({
       ok: true as const,
       data: {
-        received: true,
-      },
+        received: true
+      }
     }));
     const dependencies = {
       document: {
         title: "Safe Test Page",
         readyState: "interactive",
-        body,
+        body
       },
       location: {
-        href: "https://example.com/passive",
+        href: "https://example.com/passive"
       },
       window: {} as { self: unknown; top: unknown },
-      sendMessage,
+      sendMessage
     };
 
     dependencies.window.self = dependencies.window;
@@ -101,16 +114,16 @@ describe("content runtime", () => {
         return {
           ok: true as const,
           data: {
-            persisted: true,
-          },
+            persisted: true
+          }
         };
       }
 
       return {
         ok: true as const,
         data: {
-          received: true,
-        },
+          received: true
+        }
       };
     });
 
@@ -134,17 +147,17 @@ describe("content runtime", () => {
         title: "性格测试页面",
         readyState: "complete",
         body: {
-          innerHTML: "",
+          innerHTML: ""
         },
         documentElement: {
-          outerHTML: lightSpaHtml,
-        },
+          outerHTML: lightSpaHtml
+        }
       },
       location: {
-        href: "https://example.com/spa-assessment",
+        href: "https://example.com/spa-assessment"
       },
       window: {} as { self: unknown; top: unknown },
-      sendMessage,
+      sendMessage
     };
 
     dependencies.window.self = dependencies.window;
@@ -155,9 +168,119 @@ describe("content runtime", () => {
       expect(sendMessage).toHaveBeenCalledWith({
         type: MESSAGE_TYPES.contentQuestionsExtracted,
         payload: expect.objectContaining({
-          siteId: "generic-fallback-assessment",
-        }),
+          siteId: "generic-fallback-assessment"
+        })
       });
+    } finally {
+      setGenericFallbackAdapterEnabledForTesting(false);
+    }
+  });
+
+  it("blocks direct generic fallback answer fill without explicit allowance", async () => {
+    setGenericFallbackAdapterEnabledForTesting(true);
+    const document = createDocumentFromHtml(
+      `
+        <html>
+          <head><title>Personality Quiz</title></head>
+          <body>
+            <fieldset>
+              <legend>How do you prefer to spend a weekend?</legend>
+              <label for="q0o0"><input id="q0o0" type="radio" name="q0" value="home">At home</label>
+              <label for="q0o1"><input id="q0o1" type="radio" name="q0" value="outdoors">Outdoors</label>
+            </fieldset>
+          </body>
+        </html>
+      `
+    );
+
+    installDocumentConstructors(document);
+
+    try {
+      const result = await applyAnswerFillCommand(
+        {
+          type: CONTENT_COMMAND_TYPES.answerFillApply,
+          payload: {
+            siteId: "generic-fallback-assessment",
+            sessionId: "session-1",
+            selections: [
+              {
+                questionId: "question-1",
+                questionText: "How do you prefer to spend a weekend?",
+                questionOrder: 0,
+                selectedOptionIds: ["outdoors"]
+              }
+            ]
+          }
+        },
+        {
+          document,
+          location: { href: "https://www.example.com/quiz/personality-test" }
+        }
+      );
+
+      expect(result).toMatchObject({
+        ok: false,
+        error: {
+          code: "GENERIC_FALLBACK_FILL_DISABLED"
+        }
+      });
+      expect(document.querySelector<HTMLInputElement>("#q0o1")?.checked).toBe(false);
+    } finally {
+      setGenericFallbackAdapterEnabledForTesting(false);
+    }
+  });
+
+  it("allows direct generic fallback answer fill with explicit allowance", async () => {
+    setGenericFallbackAdapterEnabledForTesting(true);
+    const document = createDocumentFromHtml(
+      `
+        <html>
+          <head><title>Personality Quiz</title></head>
+          <body>
+            <fieldset>
+              <legend>How do you prefer to spend a weekend?</legend>
+              <label for="q0o0"><input id="q0o0" type="radio" name="q0" value="home">At home</label>
+              <label for="q0o1"><input id="q0o1" type="radio" name="q0" value="outdoors">Outdoors</label>
+            </fieldset>
+          </body>
+        </html>
+      `
+    );
+
+    installDocumentConstructors(document);
+
+    try {
+      const result = await applyAnswerFillCommand(
+        {
+          type: CONTENT_COMMAND_TYPES.answerFillApply,
+          payload: {
+            siteId: "generic-fallback-assessment",
+            sessionId: "session-1",
+            allowGenericFallbackFill: true,
+            selections: [
+              {
+                questionId: "question-1",
+                questionText: "How do you prefer to spend a weekend?",
+                questionOrder: 0,
+                selectedOptionIds: ["outdoors"]
+              }
+            ]
+          }
+        },
+        {
+          document,
+          location: { href: "https://www.example.com/quiz/personality-test" }
+        }
+      );
+
+      expect(result).toMatchObject({
+        ok: true,
+        data: {
+          siteId: "generic-fallback-assessment",
+          filledCount: 1
+        }
+      });
+      expect(document.querySelector<HTMLInputElement>("#q0o1")?.checked).toBe(true);
     } finally {
       setGenericFallbackAdapterEnabledForTesting(false);
     }
@@ -169,16 +292,16 @@ describe("content runtime", () => {
         return {
           ok: true as const,
           data: {
-            persisted: true,
-          },
+            persisted: true
+          }
         };
       }
 
       return {
         ok: true as const,
         data: {
-          received: true,
-        },
+          received: true
+        }
       };
     });
     const dependencies = {
@@ -186,14 +309,14 @@ describe("content runtime", () => {
         title: "Enneagram Personality Test | Truity",
         readyState: "complete",
         body: {
-          innerHTML: truityEnneagramFixture,
-        },
+          innerHTML: truityEnneagramFixture
+        }
       },
       location: {
-        href: "https://www.truity.com/test/enneagram-personality-test",
+        href: "https://www.truity.com/test/enneagram-personality-test"
       },
       window: {} as { self: unknown; top: unknown },
-      sendMessage,
+      sendMessage
     };
 
     dependencies.window.self = dependencies.window;
@@ -207,9 +330,9 @@ describe("content runtime", () => {
           url: "https://www.truity.com/test/enneagram-personality-test",
           title: "Enneagram Personality Test | Truity",
           readyState: "complete",
-          isTopLevel: true,
-        },
-      },
+          isTopLevel: true
+        }
+      }
     });
     expect(sendMessage).toHaveBeenNthCalledWith(2, {
       type: MESSAGE_TYPES.contentQuestionsExtracted,
@@ -219,7 +342,7 @@ describe("content runtime", () => {
           url: "https://www.truity.com/test/enneagram-personality-test",
           title: "Enneagram Personality Test | Truity",
           readyState: "complete",
-          isTopLevel: true,
+          isTopLevel: true
         },
         questions: [
           {
@@ -230,9 +353,9 @@ describe("content runtime", () => {
               { id: "2", text: "Somewhat Inaccurate", value: "2" },
               { id: "3", text: "Neutral", value: "3" },
               { id: "4", text: "Somewhat Accurate", value: "4" },
-              { id: "5", text: "Accurate", value: "5" },
+              { id: "5", text: "Accurate", value: "5" }
             ],
-            order: 0,
+            order: 0
           },
           {
             text: "I work hard to be helpful to others",
@@ -242,12 +365,12 @@ describe("content runtime", () => {
               { id: "2", text: "Somewhat Inaccurate", value: "2" },
               { id: "3", text: "Neutral", value: "3" },
               { id: "4", text: "Somewhat Accurate", value: "4" },
-              { id: "5", text: "Accurate", value: "5" },
+              { id: "5", text: "Accurate", value: "5" }
             ],
-            order: 1,
-          },
-        ],
-      },
+            order: 1
+          }
+        ]
+      }
     });
   });
 
@@ -257,16 +380,16 @@ describe("content runtime", () => {
         return {
           ok: true as const,
           data: {
-            persisted: true,
-          },
+            persisted: true
+          }
         };
       }
 
       return {
         ok: true as const,
         data: {
-          received: true,
-        },
+          received: true
+        }
       };
     });
     const dependencies = {
@@ -274,14 +397,14 @@ describe("content runtime", () => {
         title: "Free Personality Test | 16Personalities",
         readyState: "complete",
         body: {
-          innerHTML: sixteenPersonalitiesFixture,
-        },
+          innerHTML: sixteenPersonalitiesFixture
+        }
       },
       location: {
-        href: "https://www.16personalities.com/free-personality-test",
+        href: "https://www.16personalities.com/free-personality-test"
       },
       window: {} as { self: unknown; top: unknown },
-      sendMessage,
+      sendMessage
     };
 
     dependencies.window.self = dependencies.window;
@@ -296,7 +419,7 @@ describe("content runtime", () => {
           url: "https://www.16personalities.com/free-personality-test",
           title: "Free Personality Test | 16Personalities",
           readyState: "complete",
-          isTopLevel: true,
+          isTopLevel: true
         },
         questions: [
           {
@@ -309,13 +432,12 @@ describe("content runtime", () => {
               { id: "4", text: "Neutral", value: "4" },
               { id: "5", text: "Slightly Disagree", value: "5" },
               { id: "6", text: "Disagree", value: "6" },
-              { id: "7", text: "Strongly Disagree", value: "7" },
+              { id: "7", text: "Strongly Disagree", value: "7" }
             ],
-            order: 0,
+            order: 0
           },
           {
-            text:
-              "You spend a lot of your free time exploring various random topics that pique your interest.",
+            text: "You spend a lot of your free time exploring various random topics that pique your interest.",
             type: "single-choice-rating",
             options: [
               { id: "1", text: "Strongly Agree", value: "1" },
@@ -324,12 +446,12 @@ describe("content runtime", () => {
               { id: "4", text: "Neutral", value: "4" },
               { id: "5", text: "Slightly Disagree", value: "5" },
               { id: "6", text: "Disagree", value: "6" },
-              { id: "7", text: "Strongly Disagree", value: "7" },
+              { id: "7", text: "Strongly Disagree", value: "7" }
             ],
-            order: 1,
-          },
-        ],
-      },
+            order: 1
+          }
+        ]
+      }
     });
   });
 
@@ -337,8 +459,8 @@ describe("content runtime", () => {
     const sendMessage = vi.fn(async () => ({
       ok: true as const,
       data: {
-        received: true,
-      },
+        received: true
+      }
     }));
     const brokenAssessmentHtml = `
       <main>
@@ -352,14 +474,14 @@ describe("content runtime", () => {
         title: "Enneagram Personality Test | Truity",
         readyState: "complete",
         body: {
-          innerHTML: brokenAssessmentHtml,
-        },
+          innerHTML: brokenAssessmentHtml
+        }
       },
       location: {
-        href: "https://www.truity.com/test/enneagram-personality-test",
+        href: "https://www.truity.com/test/enneagram-personality-test"
       },
       window: {} as { self: unknown; top: unknown },
-      sendMessage,
+      sendMessage
     };
 
     dependencies.window.self = dependencies.window;
@@ -375,7 +497,7 @@ describe("content runtime", () => {
           url: "https://www.truity.com/test/enneagram-personality-test",
           title: "Enneagram Personality Test | Truity",
           readyState: "complete",
-          isTopLevel: true,
+          isTopLevel: true
         },
         phase: "adapter-question-extraction",
         message:
@@ -383,9 +505,9 @@ describe("content runtime", () => {
         payload: {
           pageReadyState: "title-present",
           htmlLength: brokenAssessmentHtml.length,
-          isTopLevelCandidate: true,
-        },
-      },
+          isTopLevelCandidate: true
+        }
+      }
     });
     expect(JSON.stringify(sendMessage.mock.calls[1]?.[0] ?? {})).not.toContain("<main>");
   });
@@ -480,7 +602,11 @@ describe("content runtime", () => {
       data: { received: message.type }
     }));
     let listener:
-      | ((message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void)
+      | ((
+          message: unknown,
+          sender: unknown,
+          sendResponse: (response: unknown) => void
+        ) => boolean | void)
       | undefined;
     const runtime = {
       onMessage: {
@@ -538,7 +664,11 @@ describe("content runtime", () => {
 
   it("returns a structured error when the re-extraction command rejects", async () => {
     let listener:
-      | ((message: unknown, sender: unknown, sendResponse: (response: unknown) => void) => boolean | void)
+      | ((
+          message: unknown,
+          sender: unknown,
+          sendResponse: (response: unknown) => void
+        ) => boolean | void)
       | undefined;
     const runtime = {
       onMessage: {

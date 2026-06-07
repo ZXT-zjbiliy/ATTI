@@ -11,7 +11,7 @@ import { createOpenAiAssessmentProvider } from "../../src/llm/providers/openai-a
 import { ProviderExecutionError } from "../../src/llm/providers/provider-error";
 import type {
   AssessmentProvider,
-  ProfileSummary,
+  ProfileSummary
 } from "../../src/llm/providers/assessment-provider";
 import type { Profile, Question } from "../../src/shared/types";
 
@@ -23,7 +23,7 @@ const sampleProfile: Profile = {
   narrativeSummary: "Initial narrative",
   evidence: ["evidence-1"],
   createdAt: "2025-01-01T00:00:00.000Z",
-  updatedAt: "2025-01-01T00:00:00.000Z",
+  updatedAt: "2025-01-01T00:00:00.000Z"
 };
 
 const sampleQuestion: Question = {
@@ -36,10 +36,10 @@ const sampleQuestion: Question = {
   type: "single-choice",
   options: [
     { id: "option-1", text: "Collaborative" },
-    { id: "option-2", text: "Independent" },
+    { id: "option-2", text: "Independent" }
   ],
   order: 1,
-  createdAt: "2025-01-01T00:00:00.000Z",
+  createdAt: "2025-01-01T00:00:00.000Z"
 };
 
 describe("provider contract", () => {
@@ -47,40 +47,34 @@ describe("provider contract", () => {
     const provider: AssessmentProvider = fakeAssessmentProvider;
 
     const profileSummary = await provider.summarizeProfile({
-      profile: sampleProfile,
+      profile: sampleProfile
     });
     const interpretation = await provider.interpretQuestion({
       question: sampleQuestion,
-      profileSummary,
+      profileSummary
     });
     const planningResult = await provider.planAnswers({
       sessionId: "session-1",
       questions: [sampleQuestion],
-      profile: sampleProfile,
+      profile: sampleProfile
     });
 
     expect(provider.providerId).toBe("fake-assessment-provider");
     expect(profileSummary.narrativeSummary).toContain("Fake summary");
     expect(interpretation.questionId).toBe("question-1");
     expect(planningResult.answerPlans).toHaveLength(1);
-    expect(planningResult.answerPlans[0]?.providerId).toBe(
-      "fake-assessment-provider",
-    );
+    expect(planningResult.answerPlans[0]?.providerId).toBe("fake-assessment-provider");
   });
 
   it("provider consumers depend on the interface instead of the fake implementation", async () => {
     const provider: AssessmentProvider = fakeAssessmentProvider;
     const runner = createAssessmentProviderRunner(provider);
     const profileSummary: ProfileSummary = await runner.summarizeProfile(sampleProfile);
-    const planningResult = await runner.planAnswers(
-      "session-1",
-      [sampleQuestion],
-      sampleProfile,
-    );
+    const planningResult = await runner.planAnswers("session-1", [sampleQuestion], sampleProfile);
 
     expect(profileSummary.structuredTraits).toEqual({
       profileVersion: 1,
-      summarySource: "fake-provider",
+      summarySource: "fake-provider"
     });
     expect(planningResult.answerPlans[0]?.questionId).toBe("question-1");
   });
@@ -140,11 +134,7 @@ describe("provider contract", () => {
     const runner = createAssessmentProviderRunner(provider);
     const profileSummary = await runner.summarizeProfile(sampleProfile);
     const interpretation = await runner.interpretQuestion(sampleQuestion, profileSummary);
-    const planningResult = await runner.planAnswers(
-      "session-1",
-      [sampleQuestion],
-      sampleProfile
-    );
+    const planningResult = await runner.planAnswers("session-1", [sampleQuestion], sampleProfile);
 
     expect(provider.providerId).toBe("openai-assessment-provider");
     expect(profileSummary.narrativeSummary).toBe("Structured summary");
@@ -163,9 +153,7 @@ describe("provider contract", () => {
   it("wraps provider failures in a structured provider error instead of crashing", async () => {
     const provider = createOpenAiAssessmentProvider({
       apiKey: "test-key",
-      fetchImpl: vi.fn(async () =>
-        new Response(JSON.stringify({ error: "boom" }), { status: 500 })
-      )
+      fetchImpl: vi.fn(async () => new Response(JSON.stringify({ error: "boom" }), { status: 500 }))
     });
 
     await expect(
@@ -206,7 +194,9 @@ describe("provider contract", () => {
   it("returns an actionable error when the saved OpenAI key is rejected", async () => {
     const provider = createOpenAiAssessmentProvider({
       apiKey: "test-key",
-      fetchImpl: vi.fn(async () => new Response(JSON.stringify({ error: "invalid key" }), { status: 401 }))
+      fetchImpl: vi.fn(
+        async () => new Response(JSON.stringify({ error: "invalid key" }), { status: 401 })
+      )
     });
 
     await expect(
@@ -233,7 +223,7 @@ describe("provider boundaries", () => {
       "src/app/popup/hooks/use-popup-shell.ts",
       "src/app/sidepanel/App.tsx",
       "src/app/options/App.tsx",
-      "src/app/options/hooks/use-options-shell.ts",
+      "src/app/options/hooks/use-options-shell.ts"
     ];
 
     for (const uiFile of uiFiles) {
@@ -248,11 +238,11 @@ describe("provider boundaries", () => {
   it("keeps fake provider free of UI and orchestration concerns", () => {
     const providerContent = readFileSync(
       resolve(process.cwd(), "src/llm/providers/fake-assessment-provider.ts"),
-      "utf8",
+      "utf8"
     );
     const runnerContent = readFileSync(
       resolve(process.cwd(), "src/llm/providers/assessment-provider-runner.ts"),
-      "utf8",
+      "utf8"
     );
 
     expect(providerContent).not.toContain("/app/");
@@ -265,12 +255,12 @@ describe("provider boundaries", () => {
     const promptFiles = [
       "src/llm/prompts/openai-profile-summary-prompt.ts",
       "src/llm/prompts/openai-question-interpretation-prompt.ts",
-      "src/llm/prompts/openai-answer-planning-prompt.ts",
+      "src/llm/prompts/openai-answer-planning-prompt.ts"
     ];
     const parserFiles = [
       "src/llm/parsers/openai-profile-summary-parser.ts",
       "src/llm/parsers/openai-question-interpretation-parser.ts",
-      "src/llm/parsers/openai-answer-planning-parser.ts",
+      "src/llm/parsers/openai-answer-planning-parser.ts"
     ];
 
     for (const filePath of [...promptFiles, ...parserFiles]) {

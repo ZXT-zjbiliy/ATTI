@@ -13,7 +13,10 @@ import type { AnswerPlanRepository } from "../../src/storage/repos/answer-plan-r
 import type { ProfileRepository } from "../../src/storage/repos/profile-repo";
 import type { QuestionRepository } from "../../src/storage/repos/question-repo";
 import type { SessionRepository } from "../../src/storage/repos/session-repo";
-import type { SettingsRepository, SettingsStorageArea } from "../../src/storage/repos/settings-repo";
+import type {
+  SettingsRepository,
+  SettingsStorageArea
+} from "../../src/storage/repos/settings-repo";
 
 class InMemorySettingsStorageArea implements SettingsStorageArea {
   private store = new Map<string, unknown>();
@@ -69,9 +72,7 @@ async function createSessionRepository(testDbName: string): Promise<SessionRepos
   return new module.SessionRepository(createAttiDatabase(testDbName));
 }
 
-function createFixedProviderResolver(
-  provider: AssessmentProvider
-): AssessmentProviderResolver {
+function createFixedProviderResolver(provider: AssessmentProvider): AssessmentProviderResolver {
   return {
     resolve() {
       return provider;
@@ -93,10 +94,10 @@ function createFixedContentAutomationGateway(): ContentAutomationGateway {
 describe("background message router", () => {
   it("dispatches supported messages to the correct handlers", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-dispatch");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-dispatch");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-dispatch"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository("background-router-dispatch");
     const profileRepository = await createProfileRepository("background-router-dispatch");
     const questionRepository = await createQuestionRepository("background-router-dispatch");
     const sessionRepository = await createSessionRepository("background-router-dispatch");
@@ -215,10 +216,10 @@ describe("background message router", () => {
 
   it("returns a structured error for unsupported message types", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-unsupported");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-unsupported");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-unsupported"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository("background-router-unsupported");
     const profileRepository = await createProfileRepository("background-router-unsupported");
     const questionRepository = await createQuestionRepository("background-router-unsupported");
     const sessionRepository = await createSessionRepository("background-router-unsupported");
@@ -261,10 +262,10 @@ describe("background message router", () => {
 
   it("returns a structured error for invalid payloads", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-invalid");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-invalid");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-invalid"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository("background-router-invalid");
     const profileRepository = await createProfileRepository("background-router-invalid");
     const questionRepository = await createQuestionRepository("background-router-invalid");
     const sessionRepository = await createSessionRepository("background-router-invalid");
@@ -307,10 +308,12 @@ describe("background message router", () => {
 
   it("rejects invalid content metadata payloads", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-content-invalid");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-content-invalid");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-content-invalid"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-content-invalid"
+    );
     const profileRepository = await createProfileRepository("background-router-content-invalid");
     const questionRepository = await createQuestionRepository("background-router-content-invalid");
     const sessionRepository = await createSessionRepository("background-router-content-invalid");
@@ -358,10 +361,12 @@ describe("background message router", () => {
 
   it("fetches a saved profile through the repository-backed route", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-profile-fetch");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-profile-fetch");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-profile-fetch"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-profile-fetch"
+    );
     const profileRepository = await createProfileRepository("background-router-profile-fetch");
     const questionRepository = await createQuestionRepository("background-router-profile-fetch");
     const sessionRepository = await createSessionRepository("background-router-profile-fetch");
@@ -440,10 +445,12 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-profile-preset");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-profile-preset");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-profile-preset"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-profile-preset"
+    );
     const profileRepository = await createProfileRepository("background-router-profile-preset");
     const questionRepository = await createQuestionRepository("background-router-profile-preset");
     const sessionRepository = await createSessionRepository("background-router-profile-preset");
@@ -504,10 +511,12 @@ describe("background message router", () => {
 
   it("returns the latest session through the read-only latest session route", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-latest-session");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-latest-session");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-latest-session"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-latest-session"
+    );
     const profileRepository = await createProfileRepository("background-router-latest-session");
     const questionRepository = await createQuestionRepository("background-router-latest-session");
     const sessionRepository = await createSessionRepository("background-router-latest-session");
@@ -551,10 +560,12 @@ describe("background message router", () => {
 
   it("returns recent session history through the read-only history route", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-session-history");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-session-history");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-session-history"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-session-history"
+    );
     const profileRepository = await createProfileRepository("background-router-session-history");
     const questionRepository = await createQuestionRepository("background-router-session-history");
     const sessionRepository = await createSessionRepository("background-router-session-history");
@@ -642,10 +653,12 @@ describe("background message router", () => {
 
   it("fetches recommendation preview data through the background router", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-preview-fetch");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-preview-fetch");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-preview-fetch"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-preview-fetch"
+    );
     const profileRepository = await createProfileRepository("background-router-preview-fetch");
     const questionRepository = await createQuestionRepository("background-router-preview-fetch");
     const sessionRepository = await createSessionRepository("background-router-preview-fetch");
@@ -750,16 +763,21 @@ describe("background message router", () => {
 
   it("keeps extracted questions in preview before AI recommendations are available", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-preview-question-only");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-preview-question-only");
-    const profileRepository =
-      await createProfileRepository("background-router-preview-question-only");
-    const questionRepository =
-      await createQuestionRepository("background-router-preview-question-only");
-    const sessionRepository =
-      await createSessionRepository("background-router-preview-question-only");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-preview-question-only"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-preview-question-only"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-preview-question-only"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-preview-question-only"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-preview-question-only"
+    );
     const session = await sessionRepository.createSession({
       siteId: "truity-enneagram",
       pageUrl: "https://www.truity.com/test/enneagram-personality-test",
@@ -846,10 +864,10 @@ describe("background message router", () => {
 
   it("persists confirmed, rejected, and modified reviews through the background router", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-review-save");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-review-save");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-review-save"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository("background-router-review-save");
     const profileRepository = await createProfileRepository("background-router-review-save");
     const questionRepository = await createQuestionRepository("background-router-review-save");
     const sessionRepository = await createSessionRepository("background-router-review-save");
@@ -960,10 +978,10 @@ describe("background message router", () => {
 
   it("fills confirmed or modified answers through the background router", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-answer-fill");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-answer-fill");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-answer-fill"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository("background-router-answer-fill");
     const profileRepository = await createProfileRepository("background-router-answer-fill");
     const questionRepository = await createQuestionRepository("background-router-answer-fill");
     const sessionRepository = await createSessionRepository("background-router-answer-fill");
@@ -1047,18 +1065,234 @@ describe("background message router", () => {
     });
   });
 
+  it("blocks generic fallback answer fill by default before content automation runs", async () => {
+    const settingsRepository = await createSettingsRepository();
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-generic-fallback-fill-blocked"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-generic-fallback-fill-blocked"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-generic-fallback-fill-blocked"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-generic-fallback-fill-blocked"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-generic-fallback-fill-blocked"
+    );
+    const session = await sessionRepository.createSession({
+      siteId: "generic-fallback-assessment",
+      pageUrl: "https://www.example.com/quiz/personality-test",
+      profileId: "profile-1",
+      status: "answer-planning-complete"
+    });
+    const question = await questionRepository.createQuestion({
+      sessionId: session.id,
+      siteId: session.siteId,
+      pageUrl: session.pageUrl,
+      text: "How do you prefer to spend a weekend?",
+      type: "single-choice",
+      options: [
+        { id: "0-0", text: "At home", value: "home" },
+        { id: "0-1", text: "Outdoors", value: "outdoors" }
+      ],
+      order: 0
+    });
+    const answerPlan = await answerPlanRepository.createAnswerPlan({
+      sessionId: session.id,
+      questionId: question.id,
+      recommendedOptionIds: ["0-1"],
+      confidence: 0.84,
+      rationale: "Recommended fallback answer",
+      requiresConfirmation: true,
+      providerId: "openai-assessment-provider",
+      promptVersion: "openai-v1"
+    });
+    await answerPlanRepository.updateReview({
+      answerPlanId: answerPlan.id,
+      reviewStatus: "confirmed",
+      selectedOptionIds: ["0-1"]
+    });
+    let gatewayCallCount = 0;
+    const router = new BackgroundMessageRouter({
+      adapterDiagnosticsRepository,
+      answerPlanRepository,
+      assessmentProviderResolver: createFixedProviderResolver({
+        providerId: "test-provider",
+        async summarizeProfile() {
+          throw new Error("not used");
+        },
+        async interpretQuestion() {
+          throw new Error("not used");
+        },
+        async planAnswers() {
+          throw new Error("not used");
+        }
+      }),
+      contentAutomationGateway: {
+        async applyAnswerFill() {
+          gatewayCallCount += 1;
+          throw new Error("generic fallback fill should be blocked before gateway");
+        },
+        async runQuestionExtraction() {
+          throw new Error("not used");
+        }
+      },
+      profileRepository,
+      questionRepository,
+      sessionRepository,
+      settingsRepository
+    });
+
+    const result = await router.routeMessage({
+      type: MESSAGE_TYPES.answerFillRun,
+      payload: {
+        sessionId: session.id
+      }
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: "GENERIC_FALLBACK_FILL_DISABLED"
+      }
+    });
+    expect(gatewayCallCount).toBe(0);
+  });
+
+  it("allows generic fallback answer fill when the feature flag is explicitly enabled", async () => {
+    const settingsRepository = await createSettingsRepository();
+    await settingsRepository.saveSettings({
+      extensionEnabled: true,
+      debugMode: false,
+      activeProvider: "openai",
+      openAiApiKey: null,
+      providerApiKey: null,
+      providerBaseUrl: null,
+      providerModel: null,
+      approvedDomains: [],
+      lastActiveProfileId: null,
+      featureFlags: {
+        genericFallbackFill: true
+      }
+    });
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-generic-fallback-fill-allowed"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-generic-fallback-fill-allowed"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-generic-fallback-fill-allowed"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-generic-fallback-fill-allowed"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-generic-fallback-fill-allowed"
+    );
+    const session = await sessionRepository.createSession({
+      siteId: "generic-fallback-assessment",
+      pageUrl: "https://www.example.com/quiz/personality-test",
+      profileId: "profile-1",
+      status: "answer-planning-complete"
+    });
+    const question = await questionRepository.createQuestion({
+      sessionId: session.id,
+      siteId: session.siteId,
+      pageUrl: session.pageUrl,
+      text: "How do you prefer to spend a weekend?",
+      type: "single-choice",
+      options: [
+        { id: "0-0", text: "At home", value: "home" },
+        { id: "0-1", text: "Outdoors", value: "outdoors" }
+      ],
+      order: 0
+    });
+    const answerPlan = await answerPlanRepository.createAnswerPlan({
+      sessionId: session.id,
+      questionId: question.id,
+      recommendedOptionIds: ["0-1"],
+      confidence: 0.84,
+      rationale: "Recommended fallback answer",
+      requiresConfirmation: true,
+      providerId: "openai-assessment-provider",
+      promptVersion: "openai-v1"
+    });
+    await answerPlanRepository.updateReview({
+      answerPlanId: answerPlan.id,
+      reviewStatus: "confirmed",
+      selectedOptionIds: ["0-1"]
+    });
+    const router = new BackgroundMessageRouter({
+      adapterDiagnosticsRepository,
+      answerPlanRepository,
+      assessmentProviderResolver: createFixedProviderResolver({
+        providerId: "test-provider",
+        async summarizeProfile() {
+          throw new Error("not used");
+        },
+        async interpretQuestion() {
+          throw new Error("not used");
+        },
+        async planAnswers() {
+          throw new Error("not used");
+        }
+      }),
+      contentAutomationGateway: {
+        async applyAnswerFill(request) {
+          expect(request.allowGenericFallbackFill).toBe(true);
+          return {
+            filledCount: request.selections.length,
+            siteId: request.siteId
+          };
+        },
+        async runQuestionExtraction() {
+          throw new Error("not used");
+        }
+      },
+      profileRepository,
+      questionRepository,
+      sessionRepository,
+      settingsRepository
+    });
+
+    const result = await router.routeMessage({
+      type: MESSAGE_TYPES.answerFillRun,
+      payload: {
+        sessionId: session.id
+      }
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        sessionId: session.id,
+        siteId: "generic-fallback-assessment",
+        filledCount: 1
+      }
+    });
+  });
+
   it("persists extracted questions through the repository-backed extraction route", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-question-extraction");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-question-extraction");
-    const profileRepository =
-      await createProfileRepository("background-router-question-extraction");
-    const questionRepository =
-      await createQuestionRepository("background-router-question-extraction");
-    const sessionRepository =
-      await createSessionRepository("background-router-question-extraction");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-question-extraction"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-question-extraction"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-question-extraction"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-question-extraction"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-question-extraction"
+    );
     const router = new BackgroundMessageRouter({
       adapterDiagnosticsRepository,
       answerPlanRepository,
@@ -1117,7 +1351,9 @@ describe("background message router", () => {
       throw new Error("Expected extracted questions route to succeed");
     }
 
-    const persistedQuestions = await questionRepository.listBySessionId(result.data.sessionId as string);
+    const persistedQuestions = await questionRepository.listBySessionId(
+      result.data.sessionId as string
+    );
 
     expect(persistedQuestions).toHaveLength(1);
     expect(persistedQuestions[0]).toMatchObject({
@@ -1131,16 +1367,15 @@ describe("background message router", () => {
 
   it("writes sanitized diagnostics when extraction fails", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-question-failure");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-question-failure");
-    const profileRepository =
-      await createProfileRepository("background-router-question-failure");
-    const questionRepository =
-      await createQuestionRepository("background-router-question-failure");
-    const sessionRepository =
-      await createSessionRepository("background-router-question-failure");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-question-failure"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-question-failure"
+    );
+    const profileRepository = await createProfileRepository("background-router-question-failure");
+    const questionRepository = await createQuestionRepository("background-router-question-failure");
+    const sessionRepository = await createSessionRepository("background-router-question-failure");
     const router = new BackgroundMessageRouter({
       adapterDiagnosticsRepository,
       answerPlanRepository,
@@ -1221,16 +1456,21 @@ describe("background message router", () => {
 
   it("writes site-scoped selector diagnostics for the 16Personalities extraction boundary", async () => {
     const settingsRepository = await createSettingsRepository();
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-16p-question-failure");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-16p-question-failure");
-    const profileRepository =
-      await createProfileRepository("background-router-16p-question-failure");
-    const questionRepository =
-      await createQuestionRepository("background-router-16p-question-failure");
-    const sessionRepository =
-      await createSessionRepository("background-router-16p-question-failure");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-16p-question-failure"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-16p-question-failure"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-16p-question-failure"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-16p-question-failure"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-16p-question-failure"
+    );
     const router = new BackgroundMessageRouter({
       adapterDiagnosticsRepository,
       answerPlanRepository,
@@ -1302,16 +1542,15 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-answer-planning");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-answer-planning");
-    const profileRepository =
-      await createProfileRepository("background-router-answer-planning");
-    const questionRepository =
-      await createQuestionRepository("background-router-answer-planning");
-    const sessionRepository =
-      await createSessionRepository("background-router-answer-planning");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-answer-planning"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-answer-planning"
+    );
+    const profileRepository = await createProfileRepository("background-router-answer-planning");
+    const questionRepository = await createQuestionRepository("background-router-answer-planning");
+    const sessionRepository = await createSessionRepository("background-router-answer-planning");
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer collaborative planning.",
       evidence: ["Enjoy structured teamwork"]
@@ -1477,10 +1716,12 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-real-openai-flow");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-real-openai-flow");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-real-openai-flow"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-real-openai-flow"
+    );
     const profileRepository = await createProfileRepository("background-router-real-openai-flow");
     const questionRepository = await createQuestionRepository("background-router-real-openai-flow");
     const sessionRepository = await createSessionRepository("background-router-real-openai-flow");
@@ -1566,9 +1807,7 @@ describe("background message router", () => {
             apiKey: "sk-test",
             fetchImpl: async (_input, init) => {
               const requestBody =
-                typeof init?.body === "string"
-                  ? (JSON.parse(init.body) as { input?: string })
-                  : {};
+                typeof init?.body === "string" ? (JSON.parse(init.body) as { input?: string }) : {};
               const input = typeof requestBody.input === "string" ? requestBody.input : "";
               const questionsLine = input
                 .split("\n")
@@ -1701,16 +1940,21 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-openai-parse-failure");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-openai-parse-failure");
-    const profileRepository =
-      await createProfileRepository("background-router-openai-parse-failure");
-    const questionRepository =
-      await createQuestionRepository("background-router-openai-parse-failure");
-    const sessionRepository =
-      await createSessionRepository("background-router-openai-parse-failure");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-openai-parse-failure"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-openai-parse-failure"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-openai-parse-failure"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-openai-parse-failure"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-openai-parse-failure"
+    );
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer reflective but helpful choices.",
       evidence: ["Prefer clear structure", "Help others consistently"]
@@ -1863,16 +2107,17 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-validation-failure");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-validation-failure");
-    const profileRepository =
-      await createProfileRepository("background-router-validation-failure");
-    const questionRepository =
-      await createQuestionRepository("background-router-validation-failure");
-    const sessionRepository =
-      await createSessionRepository("background-router-validation-failure");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-validation-failure"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-validation-failure"
+    );
+    const profileRepository = await createProfileRepository("background-router-validation-failure");
+    const questionRepository = await createQuestionRepository(
+      "background-router-validation-failure"
+    );
+    const sessionRepository = await createSessionRepository("background-router-validation-failure");
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer collaborative planning.",
       evidence: ["Enjoy structured teamwork"]
@@ -2018,16 +2263,21 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-answer-planning-rerun");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-answer-planning-rerun");
-    const profileRepository =
-      await createProfileRepository("background-router-answer-planning-rerun");
-    const questionRepository =
-      await createQuestionRepository("background-router-answer-planning-rerun");
-    const sessionRepository =
-      await createSessionRepository("background-router-answer-planning-rerun");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-answer-planning-rerun"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-answer-planning-rerun"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-answer-planning-rerun"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-answer-planning-rerun"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-answer-planning-rerun"
+    );
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer collaborative planning.",
       evidence: ["Enjoy structured teamwork"]
@@ -2172,16 +2422,21 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-answer-planning-profile-fallback");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-answer-planning-profile-fallback");
-    const profileRepository =
-      await createProfileRepository("background-router-answer-planning-profile-fallback");
-    const questionRepository =
-      await createQuestionRepository("background-router-answer-planning-profile-fallback");
-    const sessionRepository =
-      await createSessionRepository("background-router-answer-planning-profile-fallback");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-answer-planning-profile-fallback"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-answer-planning-profile-fallback"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-answer-planning-profile-fallback"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-answer-planning-profile-fallback"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-answer-planning-profile-fallback"
+    );
     const extractionRouter = new BackgroundMessageRouter({
       adapterDiagnosticsRepository,
       answerPlanRepository,
@@ -2315,16 +2570,21 @@ describe("background message router", () => {
       featureFlags: {}
     });
     void savedSettings;
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-answer-plan-failure");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-answer-plan-failure");
-    const profileRepository =
-      await createProfileRepository("background-router-answer-plan-failure");
-    const questionRepository =
-      await createQuestionRepository("background-router-answer-plan-failure");
-    const sessionRepository =
-      await createSessionRepository("background-router-answer-plan-failure");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-answer-plan-failure"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-answer-plan-failure"
+    );
+    const profileRepository = await createProfileRepository(
+      "background-router-answer-plan-failure"
+    );
+    const questionRepository = await createQuestionRepository(
+      "background-router-answer-plan-failure"
+    );
+    const sessionRepository = await createSessionRepository(
+      "background-router-answer-plan-failure"
+    );
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer collaborative planning.",
       evidence: ["Enjoy structured teamwork"]
@@ -2464,16 +2724,15 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-degraded-only");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-degraded-only");
-    const profileRepository =
-      await createProfileRepository("background-router-degraded-only");
-    const questionRepository =
-      await createQuestionRepository("background-router-degraded-only");
-    const sessionRepository =
-      await createSessionRepository("background-router-degraded-only");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-degraded-only"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-degraded-only"
+    );
+    const profileRepository = await createProfileRepository("background-router-degraded-only");
+    const questionRepository = await createQuestionRepository("background-router-degraded-only");
+    const sessionRepository = await createSessionRepository("background-router-degraded-only");
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer reflective but helpful choices.",
       evidence: ["Prefer clear structure"]
@@ -2635,16 +2894,15 @@ describe("background message router", () => {
       lastActiveProfileId: null,
       featureFlags: {}
     });
-    const adapterDiagnosticsRepository =
-      await createAdapterDiagnosticsRepository("background-router-mixed-quality");
-    const answerPlanRepository =
-      await createAnswerPlanRepository("background-router-mixed-quality");
-    const profileRepository =
-      await createProfileRepository("background-router-mixed-quality");
-    const questionRepository =
-      await createQuestionRepository("background-router-mixed-quality");
-    const sessionRepository =
-      await createSessionRepository("background-router-mixed-quality");
+    const adapterDiagnosticsRepository = await createAdapterDiagnosticsRepository(
+      "background-router-mixed-quality"
+    );
+    const answerPlanRepository = await createAnswerPlanRepository(
+      "background-router-mixed-quality"
+    );
+    const profileRepository = await createProfileRepository("background-router-mixed-quality");
+    const questionRepository = await createQuestionRepository("background-router-mixed-quality");
+    const sessionRepository = await createSessionRepository("background-router-mixed-quality");
     const savedProfile = await profileRepository.saveDraft({
       narrativeSummary: "I prefer reflective but helpful choices.",
       evidence: ["Prefer clear structure", "Help others consistently"]

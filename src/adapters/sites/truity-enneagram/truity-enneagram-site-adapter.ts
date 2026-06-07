@@ -1,7 +1,7 @@
 import type { SiteAdapter } from "../../base/site-adapter";
 import {
   isSupportedTruityEnneagramAssessmentPage,
-  matchesTruityEnneagramUrl,
+  matchesTruityEnneagramUrl
 } from "./match-truity-enneagram-page";
 import { extractTruityEnneagramQuestions } from "./extract-truity-enneagram-questions";
 import { fillTruityEnneagramAnswers } from "./fill-truity-enneagram-answers";

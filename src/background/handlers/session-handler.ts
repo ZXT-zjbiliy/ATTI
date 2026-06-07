@@ -23,7 +23,10 @@ export const handleSessionFetchMessage: BackgroundMessageHandler<SessionFetchMes
   const session = await context.sessionRepository.getSessionById(message.payload.sessionId);
 
   if (!session) {
-    return createErrorResult("SESSION_NOT_FOUND", `Session not found: ${message.payload.sessionId}`);
+    return createErrorResult(
+      "SESSION_NOT_FOUND",
+      `Session not found: ${message.payload.sessionId}`
+    );
   }
 
   return {
@@ -32,10 +35,9 @@ export const handleSessionFetchMessage: BackgroundMessageHandler<SessionFetchMes
   };
 };
 
-export const handleSessionLatestFetchMessage: BackgroundMessageHandler<SessionLatestFetchMessage> = async (
-  _message,
-  context: BackgroundHandlerContext
-): Promise<AppResult> => {
+export const handleSessionLatestFetchMessage: BackgroundMessageHandler<
+  SessionLatestFetchMessage
+> = async (_message, context: BackgroundHandlerContext): Promise<AppResult> => {
   const session = await context.sessionRepository.getLatestSession();
 
   return {
@@ -44,10 +46,9 @@ export const handleSessionLatestFetchMessage: BackgroundMessageHandler<SessionLa
   };
 };
 
-export const handleSessionHistoryFetchMessage: BackgroundMessageHandler<SessionHistoryFetchMessage> = async (
-  message,
-  context: BackgroundHandlerContext
-): Promise<AppResult> => {
+export const handleSessionHistoryFetchMessage: BackgroundMessageHandler<
+  SessionHistoryFetchMessage
+> = async (message, context: BackgroundHandlerContext): Promise<AppResult> => {
   const history = await context.sessionRepository.listRecentSessions(message.payload.limit ?? 5);
 
   return {
