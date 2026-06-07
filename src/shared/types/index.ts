@@ -31,9 +31,13 @@ export type {
   AnswerFillRunResult,
   SessionHistoryFetchResult,
   ProfileFetchMessage,
+  ProfileExportAllMessage,
+  SessionExportAllMessage,
   SessionFetchMessage,
   SessionHistoryFetchMessage,
   SessionLatestFetchMessage,
+  SessionPurgeCompletedMessage,
+  SessionPurgeCompletedResult,
   SettingsFetchMessage,
   SettingsUpdateMessage
 } from "./messages";

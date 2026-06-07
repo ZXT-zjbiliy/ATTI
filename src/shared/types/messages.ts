@@ -1,7 +1,7 @@
 import type { Profile, ProfileDraft } from "./profile";
 import type { ProfilePresetAnalysisInput } from "./profile-preset";
 import type { QuestionOption } from "./question";
-import type { SessionHistoryEntry } from "./session";
+import type { Session, SessionHistoryEntry } from "./session";
 import type { Settings } from "./settings";
 import type {
   AnswerPlanReviewStatus,
@@ -26,7 +26,10 @@ export const MESSAGE_TYPES = {
   sessionFetch: "sessionFetch",
   sessionLatestFetch: "sessionLatestFetch",
   sessionHistoryFetch: "sessionHistoryFetch",
-  profileFetch: "profileFetch"
+  profileFetch: "profileFetch",
+  sessionExportAll: "sessionExportAll",
+  profileExportAll: "profileExportAll",
+  sessionPurgeCompleted: "sessionPurgeCompleted"
 } as const;
 
 export type MessageType = (typeof MESSAGE_TYPES)[keyof typeof MESSAGE_TYPES];
@@ -167,6 +170,21 @@ export type ProfileFetchMessage = {
   };
 };
 
+export type SessionExportAllMessage = {
+  type: typeof MESSAGE_TYPES.sessionExportAll;
+  payload: EmptyPayload;
+};
+
+export type ProfileExportAllMessage = {
+  type: typeof MESSAGE_TYPES.profileExportAll;
+  payload: EmptyPayload;
+};
+
+export type SessionPurgeCompletedMessage = {
+  type: typeof MESSAGE_TYPES.sessionPurgeCompleted;
+  payload: EmptyPayload;
+};
+
 export type AppMessage =
   | PingMessage
   | ContentMetadataReportMessage
@@ -184,9 +202,15 @@ export type AppMessage =
   | SessionFetchMessage
   | SessionLatestFetchMessage
   | SessionHistoryFetchMessage
-  | ProfileFetchMessage;
+  | ProfileFetchMessage
+  | SessionExportAllMessage
+  | ProfileExportAllMessage
+  | SessionPurgeCompletedMessage;
 
 export type ProfileFetchResult = Profile | null;
+export type SessionExportAllResult = Session[];
+export type ProfileExportAllResult = Profile[];
+export type SessionPurgeCompletedResult = { deletedCount: number };
 export type RecommendationPreviewFetchResult = RecommendationPreview;
 export type AnswerPlanReviewSaveResult = RecommendationPreviewItem;
 export type AnswerFillRunResult = {

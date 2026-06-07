@@ -10,12 +10,15 @@ import {
   contentMetadataReportMessageSchema,
   pingMessageSchema,
   profileDraftSaveMessageSchema,
+  profileExportAllMessageSchema,
   profileFetchMessageSchema,
   profilePresetAnalyzeMessageSchema,
   recommendationPreviewFetchMessageSchema,
+  sessionExportAllMessageSchema,
   sessionFetchMessageSchema,
   sessionHistoryFetchMessageSchema,
   sessionLatestFetchMessageSchema,
+  sessionPurgeCompletedMessageSchema,
   settingsFetchMessageSchema,
   settingsUpdateMessageSchema
 } from "../shared/schemas";
@@ -38,6 +41,11 @@ import {
   handleProfileFetchMessage,
   handleProfilePresetAnalyzeMessage
 } from "./handlers/profile-handlers";
+import {
+  handleProfileExportAllMessage,
+  handleSessionExportAllMessage,
+  handleSessionPurgeCompletedMessage
+} from "./handlers/data-management-handler";
 import { AdapterDiagnosticsRepository } from "../storage/repos/adapter-diagnostics-repo";
 import { AnswerPlanRepository } from "../storage/repos/answer-plan-repo";
 import { createAssessmentProviderResolver } from "../llm/providers";
@@ -84,7 +92,10 @@ const supportedMessageSchemas = {
   [MESSAGE_TYPES.settingsUpdate]: settingsUpdateMessageSchema,
   [MESSAGE_TYPES.sessionFetch]: sessionFetchMessageSchema,
   [MESSAGE_TYPES.sessionLatestFetch]: sessionLatestFetchMessageSchema,
-  [MESSAGE_TYPES.sessionHistoryFetch]: sessionHistoryFetchMessageSchema
+  [MESSAGE_TYPES.sessionHistoryFetch]: sessionHistoryFetchMessageSchema,
+  [MESSAGE_TYPES.sessionExportAll]: sessionExportAllMessageSchema,
+  [MESSAGE_TYPES.profileExportAll]: profileExportAllMessageSchema,
+  [MESSAGE_TYPES.sessionPurgeCompleted]: sessionPurgeCompletedMessageSchema
 } as const;
 
 const supportedBackgroundMessageTypes = Object.keys(supportedMessageSchemas) as MessageType[];
@@ -125,7 +136,13 @@ const supportedMessageHandlers: Record<
   [MESSAGE_TYPES.sessionLatestFetch]:
     handleSessionLatestFetchMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
   [MESSAGE_TYPES.sessionHistoryFetch]:
-    handleSessionHistoryFetchMessage as BackgroundMessageHandler<SupportedBackgroundMessage>
+    handleSessionHistoryFetchMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
+  [MESSAGE_TYPES.sessionExportAll]:
+    handleSessionExportAllMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
+  [MESSAGE_TYPES.profileExportAll]:
+    handleProfileExportAllMessage as BackgroundMessageHandler<SupportedBackgroundMessage>,
+  [MESSAGE_TYPES.sessionPurgeCompleted]:
+    handleSessionPurgeCompletedMessage as BackgroundMessageHandler<SupportedBackgroundMessage>
 } as const;
 
 function isSupportedBackgroundMessageType(

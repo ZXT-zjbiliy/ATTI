@@ -204,6 +204,21 @@ export const profileFetchMessageSchema = z.object({
   payload: profileFetchPayloadSchema
 });
 
+export const sessionExportAllMessageSchema = z.object({
+  type: z.literal(MESSAGE_TYPES.sessionExportAll),
+  payload: z.object({}).strict()
+});
+
+export const profileExportAllMessageSchema = z.object({
+  type: z.literal(MESSAGE_TYPES.profileExportAll),
+  payload: z.object({}).strict()
+});
+
+export const sessionPurgeCompletedMessageSchema = z.object({
+  type: z.literal(MESSAGE_TYPES.sessionPurgeCompleted),
+  payload: z.object({}).strict()
+});
+
 export const appMessageSchema = z.discriminatedUnion("type", [
   pingMessageSchema,
   contentMetadataReportMessageSchema,
@@ -221,7 +236,10 @@ export const appMessageSchema = z.discriminatedUnion("type", [
   sessionFetchMessageSchema,
   sessionLatestFetchMessageSchema,
   sessionHistoryFetchMessageSchema,
-  profileFetchMessageSchema
+  profileFetchMessageSchema,
+  sessionExportAllMessageSchema,
+  profileExportAllMessageSchema,
+  sessionPurgeCompletedMessageSchema
 ]) satisfies z.ZodType<AppMessage>;
 
 export const appResultSuccessSchema = z.object({

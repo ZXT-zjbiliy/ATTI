@@ -57,7 +57,17 @@ export function OptionsView({ model }: OptionsViewProps) {
               <ProviderStatusNote state={model.providerConfiguration} />
             ) : null}
             <ProviderBoundarySection />
-            <DataManagementSection />
+            <DataManagementSection
+              onExportSessions={() => {
+                void model.exportSessionData();
+              }}
+              onExportProfiles={() => {
+                void model.exportProfileData();
+              }}
+              onPurgeCompletedSessions={() => {
+                void model.purgeCompletedSessionData();
+              }}
+            />
             {settings?.debugMode ? (
               <DebugViewSection
                 isLoading={model.isDebugViewLoading}

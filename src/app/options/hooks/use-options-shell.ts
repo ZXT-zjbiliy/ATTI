@@ -14,6 +14,10 @@ import {
   type DebugSnapshot,
   type OptionsDebugClient
 } from "../services/options-debug-client";
+import {
+  createDataManagementClient,
+  type DataManagementClient
+} from "../services/data-management-client";
 
 export interface OptionsShellModel {
   readonly settings: Settings | null;
@@ -28,17 +32,24 @@ export interface OptionsShellModel {
   updateProviderApiKey: (providerApiKey: string) => Promise<void>;
   updateProviderBaseUrl: (providerBaseUrl: string) => Promise<void>;
   updateProviderModel: (providerModel: string) => Promise<void>;
+  exportSessionData: () => Promise<void>;
+  exportProfileData: () => Promise<void>;
+  purgeCompletedSessionData: () => Promise<void>;
 }
 
 export function useOptionsShell(
   settingsClient?: OptionsSettingsClient,
-  debugClient?: OptionsDebugClient
+  debugClient?: OptionsDebugClient,
+  dataClient?: DataManagementClient
 ): OptionsShellModel {
   const [stableSettingsClient] = useState<OptionsSettingsClient>(
     () => settingsClient ?? createOptionsSettingsClient()
   );
   const [stableDebugClient] = useState<OptionsDebugClient>(
     () => debugClient ?? createOptionsDebugClient()
+  );
+  const [stableDataClient] = useState<DataManagementClient>(
+    () => dataClient ?? createDataManagementClient()
   );
   const [settings, setSettings] = useState<Settings | null>(null);
   const providerConfiguration = settings ? getProviderConfigurationState(settings) : null;
@@ -112,6 +123,17 @@ export function useOptionsShell(
     };
   }, [stableDebugClient, stableSettingsClient]);
 
+  function downloadJson(filename: string, data: unknown) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   const applySettingsPatch = async (patch: Partial<Settings>, successMessage: string) => {
     setIsSaving(true);
 
@@ -181,6 +203,25 @@ export function useOptionsShell(
         { providerModel: trimmedProviderModel },
         trimmedProviderModel ? "模型名称已保存在本地。" : "已移除模型名称。"
       );
+    },
+    async exportSessionData() {
+      const sessionData = await stableDataClient.exportAllSessions();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+
+      downloadJson(`atti-session-data-${timestamp}.json`, sessionData);
+      setStatusMessage(`已导出 ${sessionData.length} 条会话记录。`);
+    },
+    async exportProfileData() {
+      const profileData = await stableDataClient.exportAllProfiles();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+
+      downloadJson(`atti-profile-data-${timestamp}.json`, profileData);
+      setStatusMessage(`已导出 ${profileData.length} 份画像。`);
+    },
+    async purgeCompletedSessionData() {
+      const result = await stableDataClient.purgeCompletedSessions();
+
+      setStatusMessage(`已清除 ${result.deletedCount} 条已完成的会话记录。`);
     }
   };
 }

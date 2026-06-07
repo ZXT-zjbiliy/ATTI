@@ -66,4 +66,10 @@ export class ProfileRepository {
 
     return cloneProfile(profileSchema.parse(profile));
   }
+
+  async listAllProfiles(): Promise<Profile[]> {
+    const profiles = await this.database.profiles.toArray();
+
+    return profiles.map((profile) => cloneProfile(profileSchema.parse(profile)));
+  }
 }

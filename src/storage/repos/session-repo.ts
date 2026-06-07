@@ -245,4 +245,21 @@ export class SessionRepository {
 
     return cloneSession(nextSession);
   }
+
+  async listAllSessions(): Promise<Session[]> {
+    const sessions = await this.database.sessions.toArray();
+
+    return sessions.map((session) => cloneSession(sessionSchema.parse(session)));
+  }
+
+  async deleteSessionsByStatus(status: string): Promise<number> {
+    const sessions = await this.database.sessions.where("status").equals(status).toArray();
+    const ids = sessions.map((session) => session.id);
+
+    if (ids.length > 0) {
+      await this.database.sessions.bulkDelete(ids);
+    }
+
+    return ids.length;
+  }
 }

@@ -10,12 +10,15 @@ import type {
   ContentMetadataReportMessage,
   PingMessage,
   ProfileDraftSaveMessage,
+  ProfileExportAllMessage,
   ProfileFetchMessage,
   ProfilePresetAnalyzeMessage,
   RecommendationPreviewFetchMessage,
+  SessionExportAllMessage,
   SessionFetchMessage,
   SessionHistoryFetchMessage,
   SessionLatestFetchMessage,
+  SessionPurgeCompletedMessage,
   SettingsFetchMessage,
   SettingsUpdateMessage
 } from "../../shared/types";
@@ -45,7 +48,10 @@ export type SupportedBackgroundMessage =
   | SettingsUpdateMessage
   | SessionFetchMessage
   | SessionLatestFetchMessage
-  | SessionHistoryFetchMessage;
+  | SessionHistoryFetchMessage
+  | SessionExportAllMessage
+  | ProfileExportAllMessage
+  | SessionPurgeCompletedMessage;
 
 export type BackgroundHandlerContext = {
   adapterDiagnosticsRepository: AdapterDiagnosticsRepository;

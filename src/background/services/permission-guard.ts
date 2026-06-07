@@ -27,7 +27,10 @@ const alwaysAllowedMessageTypes = new Set<MessageType>([
   MESSAGE_TYPES.profileFetch,
   MESSAGE_TYPES.sessionFetch,
   MESSAGE_TYPES.sessionLatestFetch,
-  MESSAGE_TYPES.sessionHistoryFetch
+  MESSAGE_TYPES.sessionHistoryFetch,
+  MESSAGE_TYPES.sessionExportAll,
+  MESSAGE_TYPES.profileExportAll,
+  MESSAGE_TYPES.sessionPurgeCompleted
 ]);
 
 const extensionEnabledMessageTypes = new Set<MessageType>([
