@@ -190,6 +190,27 @@ function createPageDetectionProgress(
   };
 }
 
+const PERMANENT_ERROR_MARKERS = [
+  "API key",
+  "api key",
+  "API_KEY",
+  "provider 配置",
+  "provider configuration",
+  "GENERIC_FALLBACK_FILL_DISABLED",
+  "EXTENSION_DISABLED",
+  "DOMAIN_NOT_APPROVED"
+];
+
+function isRetryableError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return !PERMANENT_ERROR_MARKERS.some((marker) => message.includes(marker));
+}
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function useSidePanelShell(
   profileClient?: ProfileDraftClient,
   recommendationClient?: RecommendationPreviewClient,
@@ -309,7 +330,8 @@ export function useSidePanelShell(
             }
       );
     } catch (error) {
-      const nextMessage = error instanceof Error ? error.message : "无法加载推荐预览。";
+      const nextMessage = extractErrorMessage(error, "无法加载推荐预览。");
+      const retryable = isRetryableError(error);
 
       setPlanningRequestState("sent");
       setRecommendationPreviewStatus({
@@ -319,7 +341,9 @@ export function useSidePanelShell(
       setSessionProgress(createSessionProgress(latestSession, 0, "sent"));
       setSessionStatus({
         kind: "error",
-        message: nextMessage
+        message: nextMessage,
+        retryable,
+        retryLabel: "刷新预览"
       });
     }
   }
@@ -376,6 +400,44 @@ export function useSidePanelShell(
     };
   }, [stableProfileClient]);
 
+  async function executeAnswerPlanning() {
+    if (!latestSession) {
+      setSessionStatus({
+        kind: "error",
+        message: "当前没有可用于 AI 规划的活动会话。"
+      });
+      return;
+    }
+
+    if (settings && getProviderConfigurationState(settings).isReady === false) {
+      setSessionStatus({
+        kind: "error",
+        message:
+          getProviderConfigurationState(settings).actionMessage ??
+          "请先完成 provider 配置，再开始 AI 规划。"
+      });
+      return;
+    }
+
+    setPlanningRequestState("sending");
+    setSessionProgress(createSessionProgress(latestSession, 0, "sending"));
+
+    try {
+      await stableAssessmentSessionClient.runAnswerPlanning(latestSession.id);
+      setPlanningRequestState("sent");
+      await refreshRecommendationPreview(settings);
+    } catch (error) {
+      setPlanningRequestState("sent");
+      setSessionProgress(createSessionProgress(latestSession, 0, "sent"));
+      setSessionStatus({
+        kind: "error",
+        message: extractErrorMessage(error, "无法执行 AI 规划。"),
+        retryable: isRetryableError(error),
+        retryLabel: "重新规划"
+      });
+    }
+  }
+
   return {
     ...defaultSidePanelShellModel,
     profilePanel: {
@@ -399,6 +461,12 @@ export function useSidePanelShell(
       (settings != null && getProviderConfigurationState(settings).isReady === false),
     isReapplyAnswerFillDisabled: latestSession == null,
     isReextractDisabled: latestSession == null,
+    retrySessionPlanning:
+      sessionStatus.kind === "error" && sessionStatus.retryable
+        ? () => {
+            void executeAnswerPlanning();
+          }
+        : undefined,
     setProfilePresetAnswer(questionId, selectedOptionId) {
       setPresetAnswers((currentAnswers) => ({
         ...currentAnswers,
@@ -412,39 +480,7 @@ export function useSidePanelShell(
       setDraftEvidenceText(evidenceText);
     },
     async runAnswerPlanning() {
-      if (!latestSession) {
-        setSessionStatus({
-          kind: "error",
-          message: "当前没有可用于 AI 规划的活动会话。"
-        });
-        return;
-      }
-
-      if (settings && getProviderConfigurationState(settings).isReady === false) {
-        setSessionStatus({
-          kind: "error",
-          message:
-            getProviderConfigurationState(settings).actionMessage ??
-            "请先完成 provider 配置，再开始 AI 规划。"
-        });
-        return;
-      }
-
-      setPlanningRequestState("sending");
-      setSessionProgress(createSessionProgress(latestSession, 0, "sending"));
-
-      try {
-        await stableAssessmentSessionClient.runAnswerPlanning(latestSession.id);
-        setPlanningRequestState("sent");
-        await refreshRecommendationPreview(settings);
-      } catch (error) {
-        setPlanningRequestState("sent");
-        setSessionProgress(createSessionProgress(latestSession, 0, "sent"));
-        setSessionStatus({
-          kind: "error",
-          message: error instanceof Error ? error.message : "无法执行 AI 规划。"
-        });
-      }
+      await executeAnswerPlanning();
     },
     async reapplyAnswerFill() {
       if (!latestSession) {
@@ -464,7 +500,9 @@ export function useSidePanelShell(
         await refreshRecommendationPreview(settings);
         setSessionStatus({
           kind: "error",
-          message: error instanceof Error ? error.message : "无法重新填写当前问卷。"
+          message: extractErrorMessage(error, "无法重新填写当前问卷。"),
+          retryable: isRetryableError(error),
+          retryLabel: "重新填写"
         });
       }
     },
@@ -487,7 +525,9 @@ export function useSidePanelShell(
         setPageDetectionProgress(createPageDetectionProgress("reextract-questions", "sent"));
         setPageDetectionStatus({
           kind: "error",
-          message: error instanceof Error ? error.message : "无法重新提取当前页题目。"
+          message: extractErrorMessage(error, "无法重新提取当前页题目。"),
+          retryable: isRetryableError(error),
+          retryLabel: "重新提取"
         });
       }
     },
@@ -501,7 +541,9 @@ export function useSidePanelShell(
         setPageDetectionProgress(createPageDetectionProgress("refresh-detection", "sent"));
         setPageDetectionStatus({
           kind: "error",
-          message: error instanceof Error ? error.message : "无法刷新页面识别状态。"
+          message: extractErrorMessage(error, "无法刷新页面识别状态。"),
+          retryable: isRetryableError(error),
+          retryLabel: "重新识别"
         });
       }
     },

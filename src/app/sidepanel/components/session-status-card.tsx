@@ -8,17 +8,19 @@ interface SessionStatusCardProps {
   readonly progress: SessionProgressState | null;
   readonly isRunAnswerPlanningDisabled: boolean;
   readonly onRunAnswerPlanning: () => void;
+  readonly onRetry?: () => void;
 }
 
 export function SessionStatusCard({
   state,
   progress,
   isRunAnswerPlanningDisabled,
-  onRunAnswerPlanning
+  onRunAnswerPlanning,
+  onRetry
 }: SessionStatusCardProps) {
   return (
     <StatusCard title="执行会话">
-      <SectionStateView state={state} />
+      <SectionStateView state={state} onRetry={onRetry} />
       {progress ? <SessionProgressBar state={progress} /> : null}
       <button
         className="atti-button"

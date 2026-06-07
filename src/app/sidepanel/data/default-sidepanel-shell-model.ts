@@ -29,6 +29,7 @@ export const defaultSidePanelShellModel: SidePanelShellModel = {
   isRunAnswerPlanningDisabled: true,
   isReapplyAnswerFillDisabled: true,
   isReextractDisabled: true,
+  retrySessionPlanning: undefined,
   setProfilePresetAnswer: () => undefined,
   setProfileDraftNarrativeSummary: () => undefined,
   setProfileDraftEvidenceText: () => undefined,

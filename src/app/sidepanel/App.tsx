@@ -6,11 +6,7 @@ import { RecommendationPreviewCard } from "./components/recommendation-preview-c
 import { SessionStatusCard } from "./components/session-status-card";
 import type { SidePanelShellModel } from "./types/sidepanel-shell";
 
-interface SidePanelViewProps {
-  readonly model: SidePanelShellModel;
-}
-
-export function SidePanelView({ model }: SidePanelViewProps) {
+export function SidePanelView({ model }: { readonly model: SidePanelShellModel }) {
   return (
     <main className="atti-shell atti-shell--panel">
       <div className="atti-frame">
@@ -52,6 +48,7 @@ export function SidePanelView({ model }: SidePanelViewProps) {
               onRunAnswerPlanning={() => {
                 void model.runAnswerPlanning();
               }}
+              onRetry={model.retrySessionPlanning}
               state={model.sessionStatus}
             />
             <RecommendationPreviewCard

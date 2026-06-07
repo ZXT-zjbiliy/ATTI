@@ -12,6 +12,8 @@ export type SidePanelSectionState =
   | {
       kind: "error";
       message: string;
+      retryable?: boolean;
+      retryLabel?: string;
     }
   | {
       kind: "placeholder";
@@ -75,6 +77,7 @@ export interface SidePanelShellModel {
   readonly isRunAnswerPlanningDisabled: boolean;
   readonly isReapplyAnswerFillDisabled: boolean;
   readonly isReextractDisabled: boolean;
+  readonly retrySessionPlanning: (() => void) | undefined;
   setProfilePresetAnswer: (questionId: string, selectedOptionId: string) => void;
   setProfileDraftNarrativeSummary: (narrativeSummary: string) => void;
   setProfileDraftEvidenceText: (evidenceText: string) => void;
